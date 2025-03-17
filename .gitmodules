@@ -1,0 +1,20 @@
+[submodule "modules/foleys-gui-magic"]
+	path = modules/foleys_gui_magic
+	url = https://github.com/ffAudio/foleys_gui_magic
+	branch = main
+[submodule "modules/JUCE"]
+	path = modules/JUCE
+	url = https://github.com/juce-framework/JUCE
+	branch = master
+[submodule "modules/melatonin_inspector"]
+	path = modules/melatonin_inspector
+	url = https://github.com/sudara/melatonin_inspector.git
+	branch = main
+[submodule "cmake"]
+	path = cmake
+	url = https://github.com/cristianpandele/cmake-includes.git
+	branch = main
+[submodule "modules/clap-juce-extensions"]
+	path = modules/clap-juce-extensions
+	url = https://github.com/free-audio/clap-juce-extensions.git
+	branch = main
