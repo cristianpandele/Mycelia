@@ -1,6 +1,6 @@
-#include "PluginEditor.h"
+#include "MyceliaEditor.h"
 
-PluginEditor::PluginEditor (PluginProcessor& p)
+MyceliaEditor::MyceliaEditor (Mycelia& p)
     : AudioProcessorEditor (&p), processorRef (p)
 {
     juce::ignoreUnused (processorRef);
@@ -23,11 +23,11 @@ PluginEditor::PluginEditor (PluginProcessor& p)
     setSize (400, 300);
 }
 
-PluginEditor::~PluginEditor()
+MyceliaEditor::~MyceliaEditor()
 {
 }
 
-void PluginEditor::paint (juce::Graphics& g)
+void MyceliaEditor::paint (juce::Graphics& g)
 {
     // (Our component is opaque, so we must completely fill the background with a solid colour)
     g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
@@ -39,7 +39,7 @@ void PluginEditor::paint (juce::Graphics& g)
     g.drawText (helloWorld, area.removeFromTop (150), juce::Justification::centred, false);
 }
 
-void PluginEditor::resized()
+void MyceliaEditor::resized()
 {
     // layout the positions of your child components here
     auto area = getLocalBounds();
