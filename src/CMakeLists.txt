@@ -6,10 +6,9 @@ add_library(AppCode INTERFACE)
 add_code_compile_defaults(AppCode)
 
 target_sources(AppCode INTERFACE
-    Mycelia.cpp
-    MyceliaEditor.cpp
-    # PluginProcessor.cpp
-    # PluginEditor.cpp
+    # Mycelia.cpp
+    PluginEditor.cpp
+    PluginProcessor.cpp
     # NodeManager.cpp
 
     # dsp/BaseNode.cpp
