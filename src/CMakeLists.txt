@@ -5,7 +5,9 @@ add_library(AppCode INTERFACE)
 # Enable fast math, C++20 and a few other target defaults
 add_code_compile_defaults(AppCode)
 
-target_sources(AppCode INTERFACE
+target_sources(
+    AppCode
+    INTERFACE
     Mycelia.cpp
 )
 
@@ -53,8 +55,9 @@ target_sources(AppCode INTERFACE
 )
 
 # Link the actual app code to the ModulesCode library
-target_link_libraries(AppCode
+target_link_libraries(
+    AppCode
     INTERFACE
-        ModulesCode
+    ModulesCode
 )
 

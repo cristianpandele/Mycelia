@@ -8,6 +8,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include (PamplejuceVersion)
 
+# Build options
+option(RUN_PLUGINVAL "Run pluginval on Mycelia plugins" OFF)
+option(MACOS_RELEASE "Set build flags for MacOS Release" OFF)
+# Set wether we have the Plugin GUI Magic editor enabled
+set(SHOW_GUI_EDITOR 1)
+
 # Modern concise way to add dependencies to your project
 include (CPM)
 
@@ -81,9 +87,6 @@ endif()
 juce_add_plugin(
     "${PROJECT_NAME}"
 
-    # Icons for the standalone app
-    ICON_BIG "${CMAKE_CURRENT_SOURCE_DIR}/res/logo.png"
-
     COMPANY_NAME "${COMPANY_NAME}"
     BUNDLE_ID "${BUNDLE_ID}"
 
@@ -112,7 +115,9 @@ juce_add_plugin(
 
     LV2URI https://github.com/cristianpandele/Mycelia
 
-    ICON_BIG res/logo.png
+    # Icons for the standalone app
+    ICON_BIG "${CMAKE_CURRENT_SOURCE_DIR}/res/logo.png"
+
     MICROPHONE_PERMISSION_ENABLED TRUE
     NEEDS_STORE_KIT TRUE
     REQUIRES_FULL_SCREEN TRUE
@@ -172,18 +177,16 @@ include(GitHubENV)
 # endif()
 
 # Pluginval
-option(RUN_PLUGINVAL "Run pluginval on Mycelia plugins" OFF)
 if(RUN_PLUGINVAL)
     create_pluginval_target("${PROJECT_NAME}"_VST3 "Mycelia.vst3")
 endif()
 
 # # we need these flags for notarization on MacOS
-# option(MACOS_RELEASE "Set build flags for MacOS Release" OFF)
-# if(MACOS_RELEASE)
-#     message(STATUS "Setting MacOS release flags...")
-#     set_target_properties("${PROJECT_NAME}"_Standalone PROPERTIES
-#         XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME YES)
-# endif()
+if(MACOS_RELEASE)
+    message(STATUS "Setting MacOS release flags...")
+    set_target_properties("${PROJECT_NAME}"_Standalone PROPERTIES
+        XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME YES)
+endif()
 
 # # iOS
 # if(IOS)

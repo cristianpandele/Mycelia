@@ -21,12 +21,19 @@ add_library(ModulesCode INTERFACE)
 # Enable fast math, C++20 and a few other target defaults
 add_code_compile_defaults(ModulesCode)
 
+target_compile_definitions(
+    ModulesCode
+    INTERFACE
+    FOLEYS_SHOW_GUI_EDITOR_PALLETTE=${SHOW_GUI_EDITOR}
+)
+
 # Link to any other modules you added (with juce_add_module) here!
 # Usually JUCE modules must have PRIVATE visibility
 # See https://github.com/juce-framework/JUCE/blob/master/docs/CMake%20API.md#juce_add_module
 # However, with Pamplejuce, you'll link modules to ModulesCode with INTERFACE visibility
 # This allows the JUCE plugin targets and the Tests target to link against it
-target_link_libraries(ModulesCode
+target_link_libraries(
+    ModulesCode
     INTERFACE
         # Assets
         BinaryData
