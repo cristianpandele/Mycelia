@@ -7,10 +7,7 @@ add_code_compile_defaults(AppCode)
 
 target_sources(AppCode INTERFACE
     Mycelia.cpp
-    MyceliaEditor.cpp
-    # PluginEditor.cpp
-    # PluginProcessor.cpp
-    # NodeManager.cpp
+)
 
     # dsp/BaseNode.cpp
     # dsp/DelayNode.cpp

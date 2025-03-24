@@ -19,23 +19,36 @@
 #include <juce_dsp/juce_dsp.h>
 #include <juce_cryptography/juce_cryptography.h>
 #include <foleys_gui_magic/foleys_gui_magic.h>
+
 using namespace juce;
 
-class Mycelia : public juce::AudioProcessor
+class Mycelia :
+    public foleys::MagicProcessor,
+    private juce::AudioProcessorValueTreeState::Listener
 {
     public:
+        enum WaveType
+        {
+            None = 0,
+            Sine,
+            Triangle,
+            Square
+        };
+
+        //==============================================================================
         Mycelia();
         ~Mycelia() override;
+
+        //==============================================================================
 
         void prepareToPlay(double sampleRate, int samplesPerBlock) override;
         void releaseResources() override;
 
+        void parameterChanged(const juce::String &param, float value) override;
+
         bool isBusesLayoutSupported(const BusesLayout &layouts) const override;
 
         void processBlock(juce::AudioBuffer<float> &, juce::MidiBuffer &) override;
-
-        juce::AudioProcessorEditor *createEditor() override;
-        bool hasEditor() const override;
 
         const juce::String getName() const override;
 
@@ -53,6 +66,28 @@ class Mycelia : public juce::AudioProcessor
         void getStateInformation(juce::MemoryBlock &destData) override;
         void setStateInformation(const void *data, int sizeInBytes) override;
 
+        //==============================================================================
     private:
+
+        void setOscillator(juce::dsp::Oscillator<float> &osc, WaveType type);
+
+        std::atomic<float> *frequency = nullptr;
+        std::atomic<float> *level = nullptr;
+
+        std::atomic<float> *lfoFrequency = nullptr;
+        std::atomic<float> *lfoLevel = nullptr;
+
+        std::atomic<float> *vfoFrequency = nullptr;
+        std::atomic<float> *vfoLevel = nullptr;
+
+        juce::dsp::Oscillator<float> mainOSC;
+        juce::dsp::Oscillator<float> lfoOSC;
+        juce::dsp::Oscillator<float> vfoOSC;
+
+        juce::AudioProcessorValueTreeState treeState;
+
+        // MAGIC GUI: this is a shorthand where the samples to display are fed to
+        foleys::MagicPlotSource *oscilloscope = nullptr;
+
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Mycelia)
 };

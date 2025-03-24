@@ -6,9 +6,6 @@ message(STATUS "VERSION for JUCE: ${juce_version}")
 # Add CLAP format
 add_subdirectory(clap-juce-extensions EXCLUDE_FROM_ALL)
 
-# This adds the melatonin inspector module
-add_subdirectory (melatonin_inspector)
-
 # Add polylogarithm module
 add_subdirectory(polylogarithm)
 
@@ -33,8 +30,6 @@ target_link_libraries(ModulesCode
     INTERFACE
         # Assets
         BinaryData
-        # Melatonin Inspector
-        melatonin_inspector
         # Juce
         juce_audio_utils
         # juce::juce_audio_plugin_client

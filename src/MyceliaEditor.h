@@ -2,7 +2,6 @@
 
 #include "Mycelia.h"
 #include "BinaryData.h"
-#include "melatonin_inspector/melatonin_inspector.h"
 
 //==============================================================================
 class MyceliaEditor : public juce::AudioProcessorEditor
