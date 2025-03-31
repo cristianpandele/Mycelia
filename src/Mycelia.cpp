@@ -96,7 +96,7 @@ Mycelia::Mycelia()
     //            And we are only interested in channel 0
     oscilloscope = magicState.createAndAddObject<foleys::MagicOscilloscope>(IDs::oscilloscope, 0);
 
-    magicState.setGuiValueTree(BinaryData::magic_xml, BinaryData::magic_xmlSize);
+    magicState.setGuiValueTree(BinaryData::sporadic_xml, BinaryData::sporadic_xmlSize);
 
 }
 

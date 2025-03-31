@@ -1,6 +1,7 @@
 juce_add_binary_data(BinaryData SOURCES
-    gui.xml
-    magic.xml
+    # gui.xml
+    # magic.xml
+    sporadic.xml
     # gui_ios.xml
     
     # Diceroll.png
