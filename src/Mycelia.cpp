@@ -1,6 +1,7 @@
 #include "Mycelia.h"
 #include "BinaryData.h"
 #include "MyceliaModel.h"
+#include "MyceliaView.h"
 #include "foleys_gui_magic/General/foleys_MagicGUIBuilder.h"
 
 //==============================================================================
@@ -13,7 +14,7 @@ Mycelia::Mycelia()
         .withOutput("Output", juce::AudioChannelSet::stereo(), true)
 #endif
     ),
-    myceliaModel(*this)//,
+    myceliaModel(*this)
 {
     FOLEYS_SET_SOURCE_PATH(__FILE__);
 
@@ -107,6 +108,16 @@ void Mycelia::changeProgramName (int index, const juce::String& newName)
 {
     juce::ignoreUnused (index, newName);
 }
+
+void Mycelia::initialiseBuilder(foleys::MagicGUIBuilder &builder)
+{
+    builder.registerJUCEFactories();
+    builder.registerJUCELookAndFeels();
+
+    // Register your custom GUI components here
+    builder.registerFactory("MyceliaAnimation", &MyceliaViewItem::factory);
+}
+
 //==============================================================================
 
 void Mycelia::prepareToPlay(double sampleRate, int samplesPerBlock)

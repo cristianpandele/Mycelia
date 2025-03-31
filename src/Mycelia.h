@@ -2,7 +2,6 @@
 
 #include "MyceliaModel.h"
 
-// #include "juce_audio_processors/processors/juce_AudioProcessor.h"
 #include <juce_audio_plugin_client/juce_audio_plugin_client.h>
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_gui_extra/juce_gui_extra.h>
@@ -30,7 +29,7 @@ class Mycelia :
         ~Mycelia() override;
 
         //==============================================================================
-
+        void initialiseBuilder(foleys::MagicGUIBuilder &builder) override;
         void prepareToPlay(double sampleRate, int samplesPerBlock) override;
         void releaseResources() override;
 
