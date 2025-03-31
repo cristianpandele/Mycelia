@@ -18,3 +18,7 @@
 	path = modules/clap-juce-extensions
 	url = https://github.com/free-audio/clap-juce-extensions.git
 	branch = main
+[submodule "modules/visage"]
+	path = modules/visage
+	url = https://github.com/VitalAudio/visage.git
+	branch = main
