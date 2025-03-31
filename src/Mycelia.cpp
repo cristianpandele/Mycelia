@@ -16,7 +16,7 @@ Mycelia::Mycelia()
     ),
     myceliaModel(*this)
 {
-    FOLEYS_SET_SOURCE_PATH(__FILE__);
+    FOLEYS_SET_SOURCE_PATH(RES_FOLDER_PATH);
 
     myceliaModel.addParamListener(IDs::mainType, this);
     myceliaModel.addParamListener(IDs::lfoType, this);

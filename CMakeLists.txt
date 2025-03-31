@@ -149,6 +149,9 @@ target_compile_definitions("${PROJECT_NAME}"
 
     # JucePlugin_Name is for some reason doesn't use the nicer PRODUCT_NAME
     PRODUCT_NAME_WITHOUT_VERSION="Mycelia"
+
+    # This is the path to the res folder (the filename is only a placeholder)
+    RES_FOLDER_PATH="${CMAKE_CURRENT_SOURCE_DIR}/res/dummy"
 )
 
 add_code_compile_defaults(${PROJECT_NAME})
