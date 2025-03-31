@@ -1,7 +1,6 @@
 #pragma once
 
-// #include <JuceHeader.h>
-#include "juce_core/juce_core.h"
+#include "MyceliaModel.h"
 
 // #include "juce_audio_processors/processors/juce_AudioProcessor.h"
 #include <juce_audio_plugin_client/juce_audio_plugin_client.h>
@@ -27,15 +26,6 @@ class Mycelia :
     private juce::AudioProcessorValueTreeState::Listener
 {
     public:
-        enum WaveType
-        {
-            None = 0,
-            Sine,
-            Triangle,
-            Square
-        };
-
-        //==============================================================================
         Mycelia();
         ~Mycelia() override;
 
@@ -68,26 +58,11 @@ class Mycelia :
 
         //==============================================================================
     private:
-
-        void setOscillator(juce::dsp::Oscillator<float> &osc, WaveType type);
-
-        std::atomic<float> *frequency = nullptr;
-        std::atomic<float> *level = nullptr;
-
-        std::atomic<float> *lfoFrequency = nullptr;
-        std::atomic<float> *lfoLevel = nullptr;
-
-        std::atomic<float> *vfoFrequency = nullptr;
-        std::atomic<float> *vfoLevel = nullptr;
-
-        juce::dsp::Oscillator<float> mainOSC;
-        juce::dsp::Oscillator<float> lfoOSC;
-        juce::dsp::Oscillator<float> vfoOSC;
-
-        juce::AudioProcessorValueTreeState treeState;
-
         // MAGIC GUI: this is a shorthand where the samples to display are fed to
         foleys::MagicPlotSource *oscilloscope = nullptr;
+
+        // The underlying model used to perform the DSP processing
+        MyceliaModel myceliaModel;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Mycelia)
 };

@@ -9,7 +9,7 @@ target_sources(
     AppCode
     INTERFACE
     Mycelia.cpp
-)
+    MyceliaModel.cpp
 
     # dsp/BaseNode.cpp
     # dsp/DelayNode.cpp
