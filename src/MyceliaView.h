@@ -4,8 +4,9 @@
 #include <juce_graphics/juce_graphics.h>
 #include <foleys_gui_magic/foleys_gui_magic.h>
 
-class MyceliaAnimation : public juce::Component,
-                  private juce::Timer
+class MyceliaAnimation :
+    public juce::Component,
+    private juce::Timer
 {
     public:
         enum ColourIDs

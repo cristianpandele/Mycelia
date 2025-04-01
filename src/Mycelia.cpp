@@ -18,9 +18,17 @@ Mycelia::Mycelia()
 {
     FOLEYS_SET_SOURCE_PATH(RES_FOLDER_PATH);
 
-    myceliaModel.addParamListener(IDs::mainType, this);
-    myceliaModel.addParamListener(IDs::lfoType, this);
-    myceliaModel.addParamListener(IDs::vfoType, this);
+    myceliaModel.addParamListener(IDs::treeSize, this);
+    myceliaModel.addParamListener(IDs::treeDensity, this);
+    myceliaModel.addParamListener(IDs::stretch, this);
+    myceliaModel.addParamListener(IDs::foldPosition, this);
+    myceliaModel.addParamListener(IDs::foldWindowShape, this);
+    myceliaModel.addParamListener(IDs::foldWindowSize, this);
+    myceliaModel.addParamListener(IDs::entanglement, this);
+    myceliaModel.addParamListener(IDs::growthRate, this);
+    myceliaModel.addParamListener(IDs::skyHumidity, this);
+    myceliaModel.addParamListener(IDs::skyHeight, this);
+    myceliaModel.addParamListener(IDs::skyHeight, this);
 
     // MAGIC GUI: register an oscilloscope to display in the GUI.
     //            We keep a pointer to push samples into in processBlock().
