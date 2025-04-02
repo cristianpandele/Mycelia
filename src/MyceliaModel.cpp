@@ -4,20 +4,46 @@
 MyceliaModel::MyceliaModel(Mycelia &p)
     : treeState(p, nullptr, "PARAMETERS", MyceliaModel::createParameterLayout())
 {
-    // frequency = treeState.getRawParameterValue(IDs::mainFreq);
-    // jassert(frequency != nullptr);
-    // level = treeState.getRawParameterValue(IDs::preampLevel);
-    // jassert(level != nullptr);
-
-    // lfoFrequency = treeState.getRawParameterValue(IDs::lfoFreq);
-    // jassert(lfoFrequency != nullptr);
-    // lfoLevel = treeState.getRawParameterValue(IDs::lfoLevel);
-    // jassert(lfoLevel != nullptr);
-
-    // vfoFrequency = treeState.getRawParameterValue(IDs::vfoFreq);
-    // jassert(vfoFrequency != nullptr);
-    // vfoLevel = treeState.getRawParameterValue(IDs::vfoLevel);
-    // jassert(vfoLevel != nullptr);
+    preampLevel = treeState.getRawParameterValue(IDs::preampLevel);
+    jassert(preampLevel != nullptr);
+    reverbMix = treeState.getRawParameterValue(IDs::reverbMix);
+    jassert(reverbMix != nullptr);
+    //
+    bandpassFreq = treeState.getRawParameterValue(IDs::bandpassFreq);
+    jassert(bandpassFreq != nullptr);
+    bandpassWidth = treeState.getRawParameterValue(IDs::bandpassWidth);
+    jassert(bandpassWidth != nullptr);
+    //
+    treeSize = treeState.getRawParameterValue(IDs::treeSize);
+    jassert(treeSize != nullptr);
+    treeDensity = treeState.getRawParameterValue(IDs::treeDensity);
+    jassert(treeDensity != nullptr);
+    //
+    stretch = treeState.getRawParameterValue(IDs::stretch);
+    jassert(stretch != nullptr);
+    abundanceScarcity = treeState.getRawParameterValue(IDs::abundanceScarcity);
+    jassert(abundanceScarcity != nullptr);
+    foldPosition = treeState.getRawParameterValue(IDs::foldPosition);
+    jassert(foldPosition != nullptr);
+    foldWindowShape = treeState.getRawParameterValue(IDs::foldWindowShape);
+    jassert(foldWindowShape != nullptr);
+    foldWindowSize = treeState.getRawParameterValue(IDs::foldWindowSize);
+    jassert(foldWindowSize != nullptr);
+    //
+    entanglement = treeState.getRawParameterValue(IDs::entanglement);
+    jassert(entanglement != nullptr);
+    growthRate = treeState.getRawParameterValue(IDs::growthRate);
+    jassert(growthRate != nullptr);
+    //
+    skyHumidity = treeState.getRawParameterValue(IDs::skyHumidity);
+    jassert(skyHumidity != nullptr);
+    skyHeight = treeState.getRawParameterValue(IDs::skyHeight);
+    jassert(skyHeight != nullptr);
+    //
+    dryWet = treeState.getRawParameterValue(IDs::dryWet);
+    jassert(dryWet != nullptr);
+    delayDuck = treeState.getRawParameterValue(IDs::delayDuck);
+    jassert(delayDuck != nullptr);
 }
 
 MyceliaModel::~MyceliaModel()
@@ -83,8 +109,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout MyceliaModel::createParamete
     universeCtrls->addChild(
         std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::stretch, 1), "Stretch", stretchRange, 100.0f),
         std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::abundanceScarcity, 1), "Abundance/Scarcity", abundanceScarcityRange, 0.0f),
-        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::foldPosition, 1), "Fold Position", foldPositionRange, 50.0f),
-        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::foldWindowShape, 1), "Fold Window Shape", foldWindowShapeRange, 50.0f),
+        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::foldPosition, 1), "Fold Position", foldPositionRange, 0.0f),
+        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::foldWindowShape, 1), "Fold Window Shape", foldWindowShapeRange, 0.0f),
         std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::foldWindowSize, 1), "Fold Window Size", foldWindowSize, 0.2f));
     // TODO: Add checkboxes
     //
@@ -102,18 +128,9 @@ juce::AudioProcessorValueTreeState::ParameterLayout MyceliaModel::createParamete
     outputSculpt->addChild(
         std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::dryWet, 1), "Dry/Wet", dryWetRange, 0.0f),
         std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::delayDuck, 1), "Delay Duck", delayDuckRange, 33.33f));
-    // auto lfo = std::make_unique<juce::AudioProcessorParameterGroup>("lfo", juce::translate("LFO"), "|");
-    // lfo->addChild(std::make_unique<juce::AudioParameterChoice>(juce::ParameterID(IDs::lfoType, 1), "LFO-Type", juce::StringArray("None", "Sine", "Triangle", "Square"), 0),
-    //               std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::lfoFreq, 1), "Frequency", juce::NormalisableRange<float>(0.25f, 10.0f), 2.0f),
-    //               std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::lfoLevel, 1), "Level", juce::NormalisableRange<float>(0.0f, 1.0f), 0.0f));
-
-    // auto vfo = std::make_unique<juce::AudioProcessorParameterGroup>("vfo", juce::translate("VFO"), "|");
-    // vfo->addChild(std::make_unique<juce::AudioParameterChoice>(juce::ParameterID(IDs::vfoType, 1), "VFO-Type", juce::StringArray("None", "Sine", "Triangle", "Square"), 0),
-    //               std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::vfoFreq, 1), "Frequency", juce::NormalisableRange<float>(0.5f, 10.0f), 2.0f),
-    //               std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::vfoLevel, 1), "Level", juce::NormalisableRange<float>(0.0f, 1.0), 0.0f));
 
     juce::AudioProcessorValueTreeState::ParameterLayout layout;
-    layout.add(std::move(inputLevels), std::move(inputSculpt), std::move(trees), std::move(universeCtrls), std::move(mycelia), std::move(outputSculpt));
+    layout.add(std::move(inputLevels), std::move(inputSculpt), std::move(trees), std::move(universeCtrls), std::move(mycelia), std::move(sky), std::move(outputSculpt));
 
     return layout;
 }
@@ -137,7 +154,7 @@ void MyceliaModel::addParamListener(juce::String id, juce::AudioProcessorValueTr
 
 void MyceliaModel::setOscillator(const juce::String &id, MyceliaModel::WaveType type)
 {
-    juce::dsp::Oscillator<float> *osc = nullptr;
+    // juce::dsp::Oscillator<float> *osc = nullptr;
     // if (id == IDs::reverbMix)
     //     osc = &mainOSC;
     // else if (id == IDs::lfoType)
@@ -190,7 +207,33 @@ void MyceliaModel::releaseResources()
     // lfoLevel = nullptr;
     // vfoFrequency = nullptr;
     // vfoLevel = nullptr;
+
+    preampLevel = nullptr;
+    reverbMix = nullptr;
+    //
+    bandpassFreq = nullptr;
+    bandpassWidth = nullptr;
+    //
+    treeSize = nullptr;
+    treeDensity = nullptr;
+    //
+    stretch = nullptr;
+    abundanceScarcity = nullptr;
+    foldPosition = nullptr;
+    foldWindowShape = nullptr;
+    foldWindowSize = nullptr;
+    //
+    entanglement = nullptr;
+    growthRate = nullptr;
+    //
+    skyHumidity = nullptr;
+    skyHeight = nullptr;
+    //
+    dryWet = nullptr;
+    delayDuck = nullptr;
 }
+
+//==============================================================================
 
 void MyceliaModel::process(juce::AudioBuffer<float> &buffer)
 {
@@ -206,5 +249,3 @@ void MyceliaModel::process(juce::AudioBuffer<float> &buffer)
         channelData[i] = juce::jlimit(-1.0f, 1.0f, /* mainOSC.processSample(0.0f)*/ 0 * gain * (1.0f - (/*lfoLevel->load() *   lfoOSC.processSample(0.0f) */ 0)));
     }
 }
-
-//==============================================================================

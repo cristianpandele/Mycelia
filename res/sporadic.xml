@@ -46,7 +46,8 @@
       <XYDragComponent pos-y="89%" pos-height="11%" pos-x="10%" pos-width="80%" margin="2"
                        padding="1" border="2" caption="Fold" caption-placement="bottom-right"
                        xy-jump-to-click="1" lookAndFeel="FoleysFinest" background-color="FFEFC9FF"
-                       parameter-x="foldposition" wheel-parameter="foldwindowsize" parameter-y="foldwindowshape"/>
+                       parameter-x="foldposition" wheel-parameter="foldwindowsize" parameter-y="foldwindowshape"
+                       caption-color="FF000000"/>
       <View flex-align-self="center" display="contents" border="2" pos-x="90%"
             pos-width="10%" pos-y="" caption="Output" border-color="FF6B3232"
             margin="2" padding="1" flex-align-content="center" flex-direction="row"

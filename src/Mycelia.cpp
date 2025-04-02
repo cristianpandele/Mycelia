@@ -20,14 +20,16 @@ Mycelia::Mycelia()
 
     myceliaModel.addParamListener(IDs::treeSize, this);
     myceliaModel.addParamListener(IDs::treeDensity, this);
+    //
     myceliaModel.addParamListener(IDs::stretch, this);
     myceliaModel.addParamListener(IDs::foldPosition, this);
     myceliaModel.addParamListener(IDs::foldWindowShape, this);
     myceliaModel.addParamListener(IDs::foldWindowSize, this);
+    //
     myceliaModel.addParamListener(IDs::entanglement, this);
     myceliaModel.addParamListener(IDs::growthRate, this);
+    //
     myceliaModel.addParamListener(IDs::skyHumidity, this);
-    myceliaModel.addParamListener(IDs::skyHeight, this);
     myceliaModel.addParamListener(IDs::skyHeight, this);
 
     // MAGIC GUI: register an oscilloscope to display in the GUI.

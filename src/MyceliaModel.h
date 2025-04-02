@@ -34,14 +34,6 @@ namespace IDs
     static juce::String dryWet{"drywet"};
     static juce::String delayDuck{"delayduck"};
 
-    // static juce::String mainFreq{"mainfreq"};
-    // static juce::String lfoType{"lfoType"};
-    // static juce::String lfoFreq{"lfofreq"};
-    // static juce::String lfoLevel{"lfolevel"};
-    // static juce::String vfoType{"vfoType"};
-    // static juce::String vfoFreq{"vfofreq"};
-    // static juce::String vfoLevel{"vfolevel"};
-
     static juce::Identifier oscilloscope{"oscilloscope"};
 } // namespace IDs
 
@@ -82,14 +74,29 @@ class MyceliaModel
     private:
         juce::AudioProcessorValueTreeState treeState;
 
-        // std::atomic<float> *frequency = nullptr;
-        // std::atomic<float> *level = nullptr;
-
-        // std::atomic<float> *lfoFrequency = nullptr;
-        // std::atomic<float> *lfoLevel = nullptr;
-
-        // std::atomic<float> *vfoFrequency = nullptr;
-        // std::atomic<float> *vfoLevel = nullptr;
+        std::atomic<float>* preampLevel = nullptr;
+        std::atomic<float>* reverbMix = nullptr;
+        //
+        std::atomic<float>* bandpassFreq = nullptr;
+        std::atomic<float>* bandpassWidth = nullptr;
+        //
+        std::atomic<float>* treeSize = nullptr;
+        std::atomic<float>* treeDensity = nullptr;
+        //
+        std::atomic<float>* stretch = nullptr;
+        std::atomic<float>* abundanceScarcity = nullptr;
+        std::atomic<float>* foldPosition = nullptr;
+        std::atomic<float>* foldWindowShape = nullptr;
+        std::atomic<float>* foldWindowSize = nullptr;
+        //
+        std::atomic<float>* entanglement = nullptr;
+        std::atomic<float>* growthRate = nullptr;
+        //
+        std::atomic<float>* skyHumidity = nullptr;
+        std::atomic<float>* skyHeight = nullptr;
+        //
+        std::atomic<float>* dryWet = nullptr;
+        std::atomic<float>* delayDuck = nullptr;
 
         // juce::dsp::Oscillator<float> mainOSC;
         // juce::dsp::Oscillator<float> lfoOSC;
