@@ -11,10 +11,10 @@ target_sources(
     Mycelia.cpp
     MyceliaModel.cpp
     MyceliaView.cpp
+    dsp/InputNode.cpp
 
     # dsp/BaseNode.cpp
     # dsp/DelayNode.cpp
-    # dsp/InputNode.cpp
     # # dsp/Delay/DelayProc.cpp
     # # dsp/Delay/Diffusion.cpp
     # # dsp/Delay/Reverser.cpp

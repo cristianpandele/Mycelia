@@ -1,6 +1,8 @@
 #pragma once
 
 #include "BinaryData.h"
+#include "dsp/InputNode.h"
+
 #include <juce_dsp/juce_dsp.h>
 #include <juce_audio_processors/juce_audio_processors.h>
 
@@ -37,7 +39,8 @@ namespace IDs
     static juce::Identifier oscilloscope{"oscilloscope"};
 } // namespace IDs
 
-class MyceliaModel
+class MyceliaModel :
+    private juce::AudioProcessorValueTreeState::Listener
 {
     public:
         explicit MyceliaModel(Mycelia &);
@@ -63,7 +66,7 @@ class MyceliaModel
         //==============================================================================
         void addParamListener(juce::String id, juce::AudioProcessorValueTreeState::Listener *listener);
 
-        void setOscillator(const juce::String &id, WaveType type);
+        void parameterChanged(const juce::String &parameterID, float newValue);
 
         void prepareToPlay(juce::dsp::ProcessSpec spec);
 
@@ -72,6 +75,7 @@ class MyceliaModel
         void releaseResources();
 
     private:
+        // Parameters
         juce::AudioProcessorValueTreeState treeState;
 
         std::atomic<float>* preampLevel = nullptr;
@@ -98,9 +102,14 @@ class MyceliaModel
         std::atomic<float>* dryWet = nullptr;
         std::atomic<float>* delayDuck = nullptr;
 
-        // juce::dsp::Oscillator<float> mainOSC;
-        // juce::dsp::Oscillator<float> lfoOSC;
-        // juce::dsp::Oscillator<float> vfoOSC;
+        // Buffers for processing
+        juce::AudioBuffer<float> dryBuffer;
+
+        // Audio Processors: Input, Delay Network, Reverb, Output
+        InputNode inputNode;
+        // DelayNetwork delayNetwork;
+        // Reverb reverb;
+        // OutputNode outputNode;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MyceliaModel)
 };

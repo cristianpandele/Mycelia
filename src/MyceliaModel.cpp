@@ -1,6 +1,8 @@
 #include "MyceliaModel.h"
 #include "Mycelia.h"
 
+#include "dsp/InputNode.h"
+
 MyceliaModel::MyceliaModel(Mycelia &p)
     : treeState(p, nullptr, "PARAMETERS", MyceliaModel::createParameterLayout())
 {
@@ -44,10 +46,24 @@ MyceliaModel::MyceliaModel(Mycelia &p)
     jassert(dryWet != nullptr);
     delayDuck = treeState.getRawParameterValue(IDs::delayDuck);
     jassert(delayDuck != nullptr);
+
+    // Add listeners to parameters that are not processed by the Controller
+    addParamListener(IDs::preampLevel, this);
+    addParamListener(IDs::reverbMix, this);
+    addParamListener(IDs::bandpassFreq, this);
+    addParamListener(IDs::bandpassWidth, this);
+    addParamListener(IDs::dryWet, this);
+    addParamListener(IDs::delayDuck, this);
 }
 
 MyceliaModel::~MyceliaModel()
 {
+    treeState.removeParameterListener(IDs::preampLevel, this);
+    treeState.removeParameterListener(IDs::reverbMix, this);
+    treeState.removeParameterListener(IDs::bandpassFreq, this);
+    treeState.removeParameterListener(IDs::bandpassWidth, this);
+    treeState.removeParameterListener(IDs::dryWet, this);
+    treeState.removeParameterListener(IDs::delayDuck, this);
 }
 
 juce::AudioProcessorValueTreeState::ParameterLayout MyceliaModel::createParameterLayout()
@@ -152,35 +168,23 @@ void MyceliaModel::addParamListener(juce::String id, juce::AudioProcessorValueTr
     treeState.addParameterListener(id, listener);
 }
 
-void MyceliaModel::setOscillator(const juce::String &id, MyceliaModel::WaveType type)
+void MyceliaModel::parameterChanged(const juce::String &parameterID, float newValue)
 {
-    // juce::dsp::Oscillator<float> *osc = nullptr;
-    // if (id == IDs::reverbMix)
-    //     osc = &mainOSC;
-    // else if (id == IDs::lfoType)
-    //     osc = &lfoOSC;
-    // else if (id == IDs::vfoType)
-    //     osc = &vfoOSC;
-
-    // if (osc != nullptr) // Check if the pointer is valid before using it
-    // {
-    //     if (type == MyceliaModel::WaveType::Sine)
-    //         osc->initialise([](auto in)
-    //                        { return std::sin(in); });
-    //     else if (type == MyceliaModel::WaveType::Triangle)
-    //         osc->initialise([](auto in)
-    //                        { return in / juce::MathConstants<float>::pi; });
-    //     else if (type == MyceliaModel::WaveType::Square)
-    //         osc->initialise([](auto in)
-    //                        { return in < 0 ? 1.0f : -1.0f; });
-    //     else
-    //         osc->initialise([](auto)
-    //                        { return 0.0f; });
-    // }
+    // Handle parameter changes here
+    if (parameterID == IDs::preampLevel)
+    {
+        inputNode.setParameters( (InputNode::Parameters) {newValue});
+    }
+    else if (parameterID == IDs::reverbMix)
+    {
+        DBG("Reverb Mix changed to: " << newValue);
+    }
+    // Add more cases for other parameters as needed
 }
 
 void MyceliaModel::prepareToPlay(juce::dsp::ProcessSpec spec)
 {
+    inputNode.prepare(spec);
     // mainOSC.prepare(spec);
     // lfoOSC.prepare(spec);
     // vfoOSC.prepare(spec);
@@ -200,6 +204,8 @@ void MyceliaModel::releaseResources()
     // mainOSC.reset();
     // lfoOSC.reset();
     // vfoOSC.reset();
+
+    inputNode.reset();
 
     // frequency = nullptr;
     // level = nullptr;
@@ -237,15 +243,23 @@ void MyceliaModel::releaseResources()
 
 void MyceliaModel::process(juce::AudioBuffer<float> &buffer)
 {
-    auto gain = juce::Decibels::decibelsToGain(/*level->load()*/ 0.0f);
+    // auto gain = juce::Decibels::decibelsToGain(/*level->load()*/ 0.0f);
+
+    // Keep dry signal
+    dryBuffer.makeCopyOf(buffer, true);
+    juce::dsp::AudioBlock<float> wetBlock(buffer);
+    juce::dsp::ProcessContextReplacing<float> wetContext(wetBlock);
+
+    inputNode.process(wetContext);
 
     // lfoOSC.setFrequency(*lfoFrequency);
     // vfoOSC.setFrequency(*vfoFrequency);
 
-    auto *channelData = buffer.getWritePointer(0);
-    for (int i = 0; i < buffer.getNumSamples(); ++i)
-    {
-        // mainOSC.setFrequency(frequency->load() * (1.0f + vfoOSC.processSample(0.0f) * vfoLevel->load()));
-        channelData[i] = juce::jlimit(-1.0f, 1.0f, /* mainOSC.processSample(0.0f)*/ 0 * gain * (1.0f - (/*lfoLevel->load() *   lfoOSC.processSample(0.0f) */ 0)));
-    }
+    // auto *channelData = buffer.getWritePointer(0);
+
+    // for (int i = 0; i < buffer.getNumSamples(); ++i)
+    // {
+    //     // mainOSC.setFrequency(frequency->load() * (1.0f + vfoOSC.processSample(0.0f) * vfoLevel->load()));
+    //     channelData[i] = juce::jlimit(-1.0f, 1.0f, /* mainOSC.processSample(0.0f)*/ 0 * gain * (1.0f - (/*lfoLevel->load() *   lfoOSC.processSample(0.0f) */ 0)));
+    // }
 }

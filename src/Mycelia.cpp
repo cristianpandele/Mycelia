@@ -22,6 +22,7 @@ Mycelia::Mycelia()
     myceliaModel.addParamListener(IDs::treeDensity, this);
     //
     myceliaModel.addParamListener(IDs::stretch, this);
+    myceliaModel.addParamListener(IDs::abundanceScarcity, this);
     myceliaModel.addParamListener(IDs::foldPosition, this);
     myceliaModel.addParamListener(IDs::foldWindowShape, this);
     myceliaModel.addParamListener(IDs::foldWindowSize, this);
@@ -50,7 +51,9 @@ Mycelia::~Mycelia()
 
 void Mycelia::parameterChanged(const juce::String &param, float value)
 {
-    myceliaModel.setOscillator(param, MyceliaModel::WaveType(juce::roundToInt(value)));
+    // Pass the parameter change to the model
+    myceliaModel.parameterChanged(param, value);
+    // TODO: pass the parameter change to the GUI
 }
 
 //==============================================================================
@@ -196,7 +199,7 @@ void Mycelia::processBlock(juce::AudioBuffer<float> &buffer, juce::MidiBuffer &m
     // Process audio block
     myceliaModel.process(buffer);
 
-    for (int i = 1; i < getTotalNumOutputChannels(); ++i)
+    for (int i = 1; i < totalNumOutputChannels; ++i)
         buffer.copyFrom(i, 0, buffer.getReadPointer(0), buffer.getNumSamples());
 
     // MAGIC GUI: push the samples to be displayed
