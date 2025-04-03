@@ -56,6 +56,14 @@ MyceliaModel::MyceliaModel(Mycelia &p)
     addParamListener(IDs::bandpassWidth, this);
     addParamListener(IDs::dryWet, this);
     addParamListener(IDs::delayDuck, this);
+
+    // Initialize current parameter values
+    currentInputParams.gainLevel = *preampLevel;
+    currentInputParams.bandpassFreq = *bandpassFreq;
+    currentInputParams.bandpassWidth = *bandpassWidth;
+
+    currentOutputParams.dryWetMixLevel = *dryWet;
+    currentOutputParams.delayDuckLevel = *delayDuck;
 }
 
 MyceliaModel::~MyceliaModel()
@@ -141,29 +149,35 @@ void MyceliaModel::parameterChanged(const juce::String &parameterID, float newVa
     // Handle parameter changes here
     if (parameterID == IDs::preampLevel)
     {
-        inputNode.setParameters( (InputNode::Parameters) {newValue});
+        currentInputParams.gainLevel = newValue;
+        inputNode.setParameters(currentInputParams);
     }
     else if (parameterID == IDs::reverbMix)
     {
-        DBG("Reverb Mix changed to: " << newValue);
+        currentInputParams.reverbMix = newValue;
+        inputNode.setParameters(currentInputParams);
     }
     else if (parameterID == IDs::bandpassFreq)
     {
-        DBG("Bandpass Frequency changed to: " << newValue);
+        currentInputParams.bandpassFreq = newValue;
+        inputNode.setParameters(currentInputParams);
     }
     else if (parameterID == IDs::bandpassWidth)
     {
-        DBG("Bandpass Width changed to: " << newValue);
+        currentInputParams.bandpassWidth = newValue;
+        inputNode.setParameters(currentInputParams);
     }
     else if (parameterID == IDs::dryWet)
     {
-        outputNode.setParameters( (OutputNode::Parameters) {newValue});
+        currentOutputParams.dryWetMixLevel = newValue;
+        outputNode.setParameters(currentOutputParams);
     }
     else if (parameterID == IDs::delayDuck)
     {
+        currentOutputParams.delayDuckLevel = newValue;
+        outputNode.setParameters(currentOutputParams);
         DBG("Delay Duck changed to: " << newValue);
     }
-
 }
 
 void MyceliaModel::prepareToPlay(juce::dsp::ProcessSpec spec)

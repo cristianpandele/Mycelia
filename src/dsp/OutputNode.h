@@ -6,30 +6,31 @@
  */
 class OutputNode
 {
-public:
-    OutputNode();
+    public:
+        struct Parameters
+        {
+            float dryWetMixLevel;
+            float delayDuckLevel;
+        };
 
-    // processing functions
-    void prepare (const juce::dsp::ProcessSpec& spec);
-    void reset();
+        OutputNode();
 
-    template <typename ProcessContext>
-    void process (const ProcessContext &wetContext, const ProcessContext &dryContext);
+        // processing functions
+        void prepare (const juce::dsp::ProcessSpec& spec);
+        void reset();
 
-    struct Parameters
-    {
-        float dryWetMixLevel;
-    };
+        template <typename ProcessContext>
+        void process (const ProcessContext &wetContext, const ProcessContext &dryContext);
 
-    void setParameters (const Parameters& params);
+        void setParameters (const Parameters& params);
 
-private:
-    float fs = 44100.0f;
+    private:
+        float fs = 44100.0f;
 
-    float inDryWetMixLevel;
+        float inDryWetMixLevel;
 
-    juce::dsp::Gain<float> wetGain;
-    juce::dsp::Gain<float> dryGain;
+        juce::dsp::Gain<float> wetGain;
+        juce::dsp::Gain<float> dryGain;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (OutputNode)
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (OutputNode)
 };

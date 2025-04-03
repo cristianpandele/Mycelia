@@ -112,5 +112,9 @@ class MyceliaModel :
         // Reverb reverb;
         OutputNode outputNode;
 
+        // Parameters for processors
+        InputNode::Parameters currentInputParams;
+        OutputNode::Parameters currentOutputParams;
+
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MyceliaModel)
 };
