@@ -1,4 +1,5 @@
 #include "InputNode.h"
+#include "util/ParameterRanges.h"
 
 InputNode::InputNode()
 {
@@ -32,8 +33,7 @@ void InputNode::process (const ProcessContext& context)
 
 void InputNode::setParameters (const Parameters& params)
 {
-    const auto maxGain = 1.2f; //TODO
-    // using namespace ParamHelpers;
+    const auto maxGain = ParameterRanges::preampLevel.getRange().getEnd();
 
     inGainLevel = params.gainLevel >= maxGain ? maxGain : params.gainLevel;
 

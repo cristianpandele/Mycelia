@@ -3,6 +3,7 @@
 
 #include "dsp/InputNode.h"
 #include "dsp/OutputNode.h"
+#include "util/ParameterRanges.h"
 
 MyceliaModel::MyceliaModel(Mycelia &p)
     : treeState(p, nullptr, "PARAMETERS", MyceliaModel::createParameterLayout())
@@ -72,79 +73,45 @@ juce::AudioProcessorValueTreeState::ParameterLayout MyceliaModel::createParamete
 
     auto preampLevelRange   = juce::NormalisableRange<float>(0.0f, 1.2f, 0.01f);
     auto reverbMixRange     = juce::NormalisableRange<float>(0.0f, 100.0f, 0.1f);
-    //
-    auto freqRange          = juce::NormalisableRange<float>{20.0f, 20000.0f, [](float start, float end, float normalised)
-                                                    { return start + (std::pow(2.0f, normalised * 10.0f) - 1.0f) * (end - start) / 1023.0f; },
-                                                    [](float start, float end, float value)
-                                                    { return (std::log(((value - start) * 1023.0f / (end - start)) + 1.0f) / std::log(2.0f)) / 10.0f; },
-                                                    [](float start, float end, float value)
-                                                    {
-                                                        if (value > 3000.0f)
-                                                            return juce::jlimit(start, end, 100.0f * juce::roundToInt(value / 100.0f));
-
-                                                        if (value > 1000.0f)
-                                                            return juce::jlimit(start, end, 10.0f * juce::roundToInt(value / 10.0f));
-
-                                                        return juce::jlimit(start, end, float(juce::roundToInt(value)));
-                                                    }};
-    auto bandpassWidthRange     = juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f);
-    //
-    auto treeSizeRange          = juce::NormalisableRange<float>(0.2f, 1.8f, 0.01f);
-    auto treeDensityRange       = juce::NormalisableRange<float>(0.0f, 100.0f, 0.1f);
-    //
-    auto stretchRange           = juce::NormalisableRange<float>(-80.0f, 400.0f, 0.1f);
-    auto abundanceScarcityRange = juce::NormalisableRange<float>(-80.0f, 400.0f, 0.1f);
-    auto foldPositionRange      = juce::NormalisableRange<float>(-1.0f, 1.0f, 0.01f);
-    auto foldWindowShapeRange   = juce::NormalisableRange<float>(-1.0f, 1.0f, 0.01f);
-    auto foldWindowSize         = juce::NormalisableRange<float>(0.1f, 0.8f, 0.01f);
-    //
-    auto entanglementRange      = juce::NormalisableRange<float>(0.0f, 100.0f, 0.01f);
-    auto growthRateRange        = juce::NormalisableRange<float>(0.0f, 100.0f, 0.01f);
-    //
-    auto skyHumidityRange       = juce::NormalisableRange<float>(0.0f, 100.0f, 0.01f);
-    auto skyHeightRange         = juce::NormalisableRange<float>(0.0f, 100.0f, 0.01f);
-    //
-    auto dryWetRange           = juce::NormalisableRange<float>(-1.0f, 1.0f, 0.01f);
-    auto delayDuckRange        = juce::NormalisableRange<float>(0.0f, 100.0f, 0.01f);
 
     auto inputLevels = std::make_unique<juce::AudioProcessorParameterGroup>("Input Levels", juce::translate("Input Levels"), "|");
     inputLevels->addChild(
-        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::preampLevel, 1), "Preamp Level", preampLevelRange, 0.8f),
-        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::reverbMix, 1), "Reverb Mix", reverbMixRange, 0.0f));
+        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::preampLevel, 1), "Preamp Level", ParameterRanges::preampLevel, 0.8f),
+        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::reverbMix, 1), "Reverb Mix", ParameterRanges::reverbMix, 0.0f));
     //
     auto inputSculpt = std::make_unique<juce::AudioProcessorParameterGroup>("Input Sculpt", juce::translate("Input Sculpt"), "|");
     inputSculpt->addChild(
-        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::bandpassFreq, 1), "Freq", freqRange, 4000.0f),
-        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::bandpassWidth, 1), "Width", bandpassWidthRange, 0.5f));
+        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::bandpassFreq, 1), "Freq", ParameterRanges::bandpassFrequency, 4000.0f),
+        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::bandpassWidth, 1), "Width", ParameterRanges::bandpassWidth, 0.5f));
     //
     auto trees = std::make_unique<juce::AudioProcessorParameterGroup>("Trees", juce::translate("Trees"), "|");
     trees->addChild(
-        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::treeSize, 1), "Size", treeSizeRange, 1.0f),
-        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::treeDensity, 1), "Density", treeDensityRange, 50.0f));
+        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::treeSize, 1), "Size", ParameterRanges::treeSize, 1.0f),
+        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::treeDensity, 1), "Density", ParameterRanges::treeDensity, 50.0f));
     //
     auto universeCtrls = std::make_unique<juce::AudioProcessorParameterGroup>("Universe Controls", juce::translate("Universe Controls"), "|");
     universeCtrls->addChild(
-        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::stretch, 1), "Stretch", stretchRange, 100.0f),
-        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::abundanceScarcity, 1), "Abundance/Scarcity", abundanceScarcityRange, 0.0f),
-        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::foldPosition, 1), "Fold Position", foldPositionRange, 0.0f),
-        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::foldWindowShape, 1), "Fold Window Shape", foldWindowShapeRange, 0.0f),
-        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::foldWindowSize, 1), "Fold Window Size", foldWindowSize, 0.2f));
+        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::stretch, 1), "Stretch", ParameterRanges::stretch, 100.0f),
+        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::abundanceScarcity, 1), "Abundance/Scarcity", ParameterRanges::abundanceScarcity, 0.0f),
+        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::foldPosition, 1), "Fold Position", ParameterRanges::foldPosition, 0.0f),
+        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::foldWindowShape, 1), "Fold Window Shape", ParameterRanges::foldWindowShape, 0.0f),
+        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::foldWindowSize, 1), "Fold Window Size", ParameterRanges::foldWindowSize, 0.2f));
     // TODO: Add checkboxes
     //
     auto mycelia = std::make_unique<juce::AudioProcessorParameterGroup>("Mycelia", juce::translate("Mycelia"), "|");
     mycelia->addChild(
-        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::entanglement, 1), "Entanglement", entanglementRange, 50.0f),
-        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::growthRate, 1), "Growth Rate", growthRateRange, 50.0f));
+        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::entanglement, 1), "Entanglement", ParameterRanges::entanglement, 50.0f),
+        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::growthRate, 1), "Growth Rate", ParameterRanges::growthRate, 50.0f));
     //
     auto sky = std::make_unique<juce::AudioProcessorParameterGroup>("Sky", juce::translate("Sky"), "|");
     sky->addChild(
-        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::skyHumidity, 1), "Humidity", skyHumidityRange, 50.0f),
-        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::skyHeight, 1), "Height", skyHeightRange, 75.0f));
+        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::skyHumidity, 1), "Humidity", ParameterRanges::skyHumidity, 50.0f),
+        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::skyHeight, 1), "Height", ParameterRanges::skyHeight, 75.0f));
     //
     auto outputSculpt = std::make_unique<juce::AudioProcessorParameterGroup>("Output Sculpt", juce::translate("Output Sculpt"), "|");
     outputSculpt->addChild(
-        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::dryWet, 1), "Dry/Wet", dryWetRange, 0.0f),
-        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::delayDuck, 1), "Delay Duck", delayDuckRange, 33.33f));
+        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::dryWet, 1), "Dry/Wet", ParameterRanges::dryWet, 0.0f),
+        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::delayDuck, 1), "Delay Duck", ParameterRanges::delayDuck, 33.33f));
 
     juce::AudioProcessorValueTreeState::ParameterLayout layout;
     layout.add(std::move(inputLevels), std::move(inputSculpt), std::move(trees), std::move(universeCtrls), std::move(mycelia), std::move(sky), std::move(outputSculpt));

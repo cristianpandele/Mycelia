@@ -1,4 +1,5 @@
 #include "OutputNode.h"
+#include "util/ParameterRanges.h"
 
 OutputNode::OutputNode()
 {
@@ -40,14 +41,9 @@ void OutputNode::process(const ProcessContext &dryContext, const ProcessContext 
     wetBlock.replaceWithSumOf (wetBlock, dryBlock);
 }
 
-void OutputNode::setParameters (const Parameters& params)
+void OutputNode::setParameters(const Parameters &params)
 {
-    // TODO: these should be defined in the header
-    juce::NormalisableRange<float> dryWetRange (-1.0f, 1.0f);
-
-    // Scale the mix level to a range of 0.0 to 1.0
-    inDryWetMixLevel = dryWetRange.convertTo0to1(params.dryWetMixLevel);
-
+    inDryWetMixLevel = ParameterRanges::normalizeParameter(ParameterRanges::dryWet, params.dryWetMixLevel);
     // Set the gain for the wet and dry signals (linear gain)
     wetGain.setGainLinear(inDryWetMixLevel);
     dryGain.setGainLinear(1.0f - inDryWetMixLevel);
