@@ -2,6 +2,7 @@
 
 #include "BinaryData.h"
 #include "dsp/InputNode.h"
+#include "dsp/OutputNode.h"
 
 #include <juce_dsp/juce_dsp.h>
 #include <juce_audio_processors/juce_audio_processors.h>
@@ -109,7 +110,7 @@ class MyceliaModel :
         InputNode inputNode;
         // DelayNetwork delayNetwork;
         // Reverb reverb;
-        // OutputNode outputNode;
+        OutputNode outputNode;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MyceliaModel)
 };

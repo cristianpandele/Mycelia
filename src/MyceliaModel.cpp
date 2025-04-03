@@ -2,6 +2,7 @@
 #include "Mycelia.h"
 
 #include "dsp/InputNode.h"
+#include "dsp/OutputNode.h"
 
 MyceliaModel::MyceliaModel(Mycelia &p)
     : treeState(p, nullptr, "PARAMETERS", MyceliaModel::createParameterLayout())
@@ -179,12 +180,29 @@ void MyceliaModel::parameterChanged(const juce::String &parameterID, float newVa
     {
         DBG("Reverb Mix changed to: " << newValue);
     }
-    // Add more cases for other parameters as needed
+    else if (parameterID == IDs::bandpassFreq)
+    {
+        DBG("Bandpass Frequency changed to: " << newValue);
+    }
+    else if (parameterID == IDs::bandpassWidth)
+    {
+        DBG("Bandpass Width changed to: " << newValue);
+    }
+    else if (parameterID == IDs::dryWet)
+    {
+        outputNode.setParameters( (OutputNode::Parameters) {newValue});
+    }
+    else if (parameterID == IDs::delayDuck)
+    {
+        DBG("Delay Duck changed to: " << newValue);
+    }
+
 }
 
 void MyceliaModel::prepareToPlay(juce::dsp::ProcessSpec spec)
 {
     inputNode.prepare(spec);
+    outputNode.prepare(spec);
     // mainOSC.prepare(spec);
     // lfoOSC.prepare(spec);
     // vfoOSC.prepare(spec);
@@ -206,6 +224,7 @@ void MyceliaModel::releaseResources()
     // vfoOSC.reset();
 
     inputNode.reset();
+    outputNode.reset();
 
     // frequency = nullptr;
     // level = nullptr;
@@ -245,12 +264,19 @@ void MyceliaModel::process(juce::AudioBuffer<float> &buffer)
 {
     // auto gain = juce::Decibels::decibelsToGain(/*level->load()*/ 0.0f);
 
-    // Keep dry signal
+    juce::dsp::AudioBlock<float> inBlock(buffer);
+    juce::dsp::ProcessContextReplacing<float> inContext(inBlock);
+    inputNode.process(inContext);
+
+    // Keep "dry" signal - post input conditioning
     dryBuffer.makeCopyOf(buffer, true);
+
+    juce::dsp::AudioBlock<float> dryBlock(dryBuffer);
+    juce::dsp::ProcessContextReplacing<float> dryContext(dryBlock);
     juce::dsp::AudioBlock<float> wetBlock(buffer);
     juce::dsp::ProcessContextReplacing<float> wetContext(wetBlock);
 
-    inputNode.process(wetContext);
+    outputNode.process(dryContext, wetContext);
 
     // lfoOSC.setFrequency(*lfoFrequency);
     // vfoOSC.setFrequency(*vfoFrequency);

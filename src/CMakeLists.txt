@@ -12,6 +12,7 @@ target_sources(
     MyceliaModel.cpp
     MyceliaView.cpp
     dsp/InputNode.cpp
+    dsp/OutputNode.cpp
 
     # dsp/BaseNode.cpp
     # dsp/DelayNode.cpp
