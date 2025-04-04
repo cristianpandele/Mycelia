@@ -22,3 +22,19 @@
 	path = modules/visage
 	url = https://github.com/VitalAudio/visage.git
 	branch = main
+[submodule "modules/sst/sst-basic-blocks"]
+	path = modules/sst/sst-basic-blocks
+	url = git@github.com:surge-synthesizer/sst-basic-blocks.git
+	branch = main
+[submodule "modules/sst/sst-waveshapers"]
+	path = modules/sst/sst-waveshapers
+	url = git@github.com:surge-synthesizer/sst-waveshapers.git
+	branch = main
+[submodule "modules/sst/sst-filters"]
+	path = modules/sst/sst-filters
+	url = git@github.com:surge-synthesizer/sst-filters.git
+	branch = main
+[submodule "modules/sst/sst-effects"]
+	path = modules/sst/sst-effects
+	url = https://github.com/surge-synthesizer/sst-effects.git
+	branch = main
