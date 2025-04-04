@@ -202,7 +202,10 @@ void Mycelia::processBlock(juce::AudioBuffer<float> &buffer, juce::MidiBuffer &m
 
     // Process audio block
     inputMeter->pushSamples(buffer);
-    myceliaModel.process(buffer);
+
+    juce::dsp::AudioBlock<float> block(buffer);
+    juce::dsp::ProcessContextReplacing<float> context(block);
+    myceliaModel.process(context);
 
     for (int i = 1; i < totalNumOutputChannels; ++i)
     {

@@ -230,22 +230,38 @@ void MyceliaModel::releaseResources()
 
 //==============================================================================
 
-void MyceliaModel::process(juce::AudioBuffer<float> &buffer)
+template <typename ProcessContext>
+void MyceliaModel::process(const ProcessContext &context)
 {
-    // auto gain = juce::Decibels::decibelsToGain(/*level->load()*/ 0.0f);
+    // Manage audio context
+    const auto &inputBlock = context.getInputBlock();
+    auto &outputBlock = context.getOutputBlock();
+    const auto numChannels = outputBlock.getNumChannels();
+    const auto numSamples = outputBlock.getNumSamples();
 
-    juce::dsp::AudioBlock<float> inBlock(buffer);
-    juce::dsp::ProcessContextReplacing<float> inContext(inBlock);
-    inputNode.process(inContext);
+    jassert(inputBlock.getNumChannels() == numChannels);
+    jassert(inputBlock.getNumSamples() == numSamples);
+
+    if (context.isBypassed)
+    {
+        outputBlock.copyFrom(inputBlock);
+        return;
+    }
+
+    inputNode.process(context);
 
     // Keep "dry" signal - post input conditioning
-    dryBuffer.makeCopyOf(buffer, true);
+    dryBuffer.setSize(numChannels, numSamples);
+    context.getInputBlock().copyTo(dryBuffer, 0, 0, numSamples);
 
     juce::dsp::AudioBlock<float> dryBlock(dryBuffer);
     juce::dsp::ProcessContextReplacing<float> dryContext(dryBlock);
-    juce::dsp::AudioBlock<float> wetBlock(buffer);
-    juce::dsp::ProcessContextReplacing<float> wetContext(wetBlock);
+    juce::dsp::ProcessContextReplacing<float> wetContext(context.getOutputBlock());
 
     edgeTree.process(wetContext);
     outputNode.process(dryContext, wetContext);
 }
+
+//==================================================
+template void MyceliaModel::process<juce::dsp::ProcessContextReplacing<float>>(const juce::dsp::ProcessContextReplacing<float> &);
+template void MyceliaModel::process<juce::dsp::ProcessContextNonReplacing<float>>(const juce::dsp::ProcessContextNonReplacing<float> &);

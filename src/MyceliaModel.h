@@ -74,7 +74,8 @@ class MyceliaModel :
 
         void prepareToPlay(juce::dsp::ProcessSpec spec);
 
-        void process(juce::AudioBuffer<float> &buffer);
+        template <typename ProcessContext>
+        void process(const ProcessContext &context);
 
         void releaseResources();
 
