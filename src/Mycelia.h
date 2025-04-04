@@ -59,6 +59,8 @@ class Mycelia :
     private:
         // MAGIC GUI: this is a shorthand where the samples to display are fed to
         foleys::MagicPlotSource *oscilloscope = nullptr;
+        foleys::MagicLevelSource *inputMeter = nullptr;
+        foleys::MagicLevelSource *outputMeter = nullptr;
 
         // The underlying model used to perform the DSP processing
         MyceliaModel myceliaModel;

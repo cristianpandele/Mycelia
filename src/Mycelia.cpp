@@ -38,8 +38,10 @@ Mycelia::Mycelia()
     //            And we are only interested in channel 0
     oscilloscope = magicState.createAndAddObject<foleys::MagicOscilloscope>(IDs::oscilloscope, 0);
 
-    magicState.setGuiValueTree(BinaryData::sporadic_xml, BinaryData::sporadic_xmlSize);
+    inputMeter = magicState.createAndAddObject<foleys::MagicLevelSource>(IDs::inputMeter);
+    outputMeter = magicState.createAndAddObject<foleys::MagicLevelSource>(IDs::outputMeter);
 
+    magicState.setGuiValueTree(BinaryData::sporadic_xml, BinaryData::sporadic_xmlSize);
 }
 
 Mycelia::~Mycelia()
@@ -145,6 +147,8 @@ void Mycelia::prepareToPlay(double sampleRate, int samplesPerBlock)
     spec.maximumBlockSize = juce::uint32(samplesPerBlock);
     spec.numChannels = juce::uint32(numChannels);
 
+    inputMeter->setNumChannels(numChannels);
+    outputMeter->setNumChannels(numChannels);
     myceliaModel.prepareToPlay(spec);
 
     // MAGIC GUI: this will setup all internals like MagicPlotSources etc.
@@ -197,10 +201,14 @@ void Mycelia::processBlock(juce::AudioBuffer<float> &buffer, juce::MidiBuffer &m
         buffer.clear(i, 0, buffer.getNumSamples());
 
     // Process audio block
+    inputMeter->pushSamples(buffer);
     myceliaModel.process(buffer);
 
     for (int i = 1; i < totalNumOutputChannels; ++i)
+    {
         buffer.copyFrom(i, 0, buffer.getReadPointer(0), buffer.getNumSamples());
+    }
+    outputMeter->pushSamples(buffer);
 
     // MAGIC GUI: push the samples to be displayed
     oscilloscope->pushSamples(buffer);

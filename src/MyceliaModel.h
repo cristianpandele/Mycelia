@@ -38,6 +38,8 @@ namespace IDs
     static juce::String delayDuck{"delayduck"};
 
     static juce::Identifier oscilloscope{"oscilloscope"};
+    static juce::Identifier inputMeter{"inputMeter"};
+    static juce::Identifier outputMeter{"outputMeter"};
 } // namespace IDs
 
 class MyceliaModel :

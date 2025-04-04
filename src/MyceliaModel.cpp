@@ -200,9 +200,6 @@ void MyceliaModel::releaseResources()
     // When playback stops, you can use this as an opportunity to free up any
     // spare memory, etc. (although this may never be called, depending on the
     // host's settings)
-    // mainOSC.reset();
-    // lfoOSC.reset();
-    // vfoOSC.reset();
 
     inputNode.reset();
     outputNode.reset();

@@ -29,7 +29,7 @@
             radius="5" border-color="">
         <Meter bar-fill-color="FFEDED3E" outline-color="FF0D0E30" border-color="FF0E1056"
                pos-y="0%" pos-height="60%" padding="1" margin="2" border="2"
-               flex-align-self="center"/>
+               flex-align-self="center" source="inputMeter"/>
         <View flex-direction="row" caption="Input Levels" flex-align-self="center"
               display="contents" pos-height="40%" pos-y="60%" padding="1" border="2"
               margin="2" border-color="FFEDC818">
@@ -54,7 +54,7 @@
             radius="5">
         <Meter bar-fill-color="FFEDED3E" outline-color="FF0D0E30" border-color="FF0E1056"
                pos-y="0%" pos-height="60%" padding="1" margin="2" border="2"
-               flex-align-self="center"/>
+               flex-align-self="center" source="outputMeter"/>
         <View flex-direction="row" caption="Output Sculpt" flex-align-self="stretch"
               display="contents" pos-y="60%" pos-height="40%" margin="2" padding="1"
               border="2">
