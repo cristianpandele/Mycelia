@@ -2,6 +2,7 @@
 
 #include "BinaryData.h"
 #include "dsp/InputNode.h"
+#include "dsp/EdgeTree.h"
 #include "dsp/OutputNode.h"
 
 #include <juce_dsp/juce_dsp.h>
@@ -110,12 +111,14 @@ class MyceliaModel :
 
         // Audio Processors: Input, Delay Network, Reverb, Output
         InputNode inputNode;
+        EdgeTree edgeTree;
         // DelayNetwork delayNetwork;
         // Reverb reverb;
         OutputNode outputNode;
 
         // Parameters for processors
         InputNode::Parameters currentInputParams;
+        EdgeTree::Parameters currentEdgeTreeParams;
         OutputNode::Parameters currentOutputParams;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MyceliaModel)

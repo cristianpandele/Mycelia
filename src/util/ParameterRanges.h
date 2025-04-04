@@ -2,6 +2,24 @@
 
 #include <juce_dsp/juce_dsp.h>
 
+// Functions to convert between 0-1 and the actual range for ranges that are inverted
+static constexpr auto invertedConvertFrom0To1Func = [](float start, float end, float value)
+{
+    return  (start - value) * (end - start) + start;
+};
+static constexpr auto invertedConvertTo0To1Func = [](float start, float end, float value)
+{
+    return (start / (end - start)) * (end - value);
+};
+static constexpr auto invertedSnapToLegalValueFunction = [](float start, float end, float value)
+{
+    if (value <= start || end <= start)
+        return start;
+    if (value >= end)
+        return end;
+    return value;
+};
+
 namespace ParameterRanges
 {
     // Input parameters
@@ -22,6 +40,12 @@ namespace ParameterRanges
 
     // Tree parameters
     inline const juce::NormalisableRange<float> treeSize(0.2f, 1.8f, 0.01f);
+    inline const juce::NormalisableRange<float> attackTime(1.0f, 1500.0f, 0.01f);   // TODO: this should be a multiplication factor on the tempo
+    inline const juce::NormalisableRange<float> releaseTime(1.0f,                // TODO: this should be a multiplication factor on the tempo
+                                                            2000.0f,
+                                                            invertedConvertFrom0To1Func,
+                                                            invertedConvertTo0To1Func,
+                                                            invertedSnapToLegalValueFunction);
     inline const juce::NormalisableRange<float> treeDensity(0.0f, 100.0f, 0.1f);
 
     // Universe controls

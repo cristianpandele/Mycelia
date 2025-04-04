@@ -167,6 +167,13 @@ void MyceliaModel::parameterChanged(const juce::String &parameterID, float newVa
         currentInputParams.bandpassWidth = newValue;
         inputNode.setParameters(currentInputParams);
     }
+    //
+    else if (parameterID == IDs::treeSize)
+    {
+        currentEdgeTreeParams.treeSize = newValue;
+        edgeTree.setParameters(currentEdgeTreeParams);
+    }
+    //
     else if (parameterID == IDs::dryWet)
     {
         currentOutputParams.dryWetMixLevel = newValue;
@@ -176,7 +183,6 @@ void MyceliaModel::parameterChanged(const juce::String &parameterID, float newVa
     {
         currentOutputParams.delayDuckLevel = newValue;
         outputNode.setParameters(currentOutputParams);
-        DBG("Delay Duck changed to: " << newValue);
     }
 }
 
@@ -184,15 +190,7 @@ void MyceliaModel::prepareToPlay(juce::dsp::ProcessSpec spec)
 {
     inputNode.prepare(spec);
     outputNode.prepare(spec);
-    // mainOSC.prepare(spec);
-    // lfoOSC.prepare(spec);
-    // vfoOSC.prepare(spec);
-
-    // for (auto type_id : {IDs::mainType, IDs::lfoType, IDs::vfoType})
-    // {
-    //     auto type = juce::roundToInt(treeState.getRawParameterValue(type_id)->load());
-    //     setOscillator(type_id, WaveType(type));
-    // }
+    edgeTree.prepare(spec);
 }
 
 void MyceliaModel::releaseResources()
@@ -203,13 +201,7 @@ void MyceliaModel::releaseResources()
 
     inputNode.reset();
     outputNode.reset();
-
-    // frequency = nullptr;
-    // level = nullptr;
-    // lfoFrequency = nullptr;
-    // lfoLevel = nullptr;
-    // vfoFrequency = nullptr;
-    // vfoLevel = nullptr;
+    edgeTree.reset();
 
     preampLevel = nullptr;
     reverbMix = nullptr;
@@ -254,16 +246,6 @@ void MyceliaModel::process(juce::AudioBuffer<float> &buffer)
     juce::dsp::AudioBlock<float> wetBlock(buffer);
     juce::dsp::ProcessContextReplacing<float> wetContext(wetBlock);
 
+    edgeTree.process(wetContext);
     outputNode.process(dryContext, wetContext);
-
-    // lfoOSC.setFrequency(*lfoFrequency);
-    // vfoOSC.setFrequency(*vfoFrequency);
-
-    // auto *channelData = buffer.getWritePointer(0);
-
-    // for (int i = 0; i < buffer.getNumSamples(); ++i)
-    // {
-    //     // mainOSC.setFrequency(frequency->load() * (1.0f + vfoOSC.processSample(0.0f) * vfoLevel->load()));
-    //     channelData[i] = juce::jlimit(-1.0f, 1.0f, /* mainOSC.processSample(0.0f)*/ 0 * gain * (1.0f - (/*lfoLevel->load() *   lfoOSC.processSample(0.0f) */ 0)));
-    // }
 }
