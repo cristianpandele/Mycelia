@@ -242,9 +242,14 @@ void MyceliaModel::process(const ProcessContext &context)
     jassert(inputBlock.getNumChannels() == numChannels);
     jassert(inputBlock.getNumSamples() == numSamples);
 
-    if (context.isBypassed)
+    // Copy input to output if non-replacing
+    if (context.usesSeparateInputAndOutputBlocks())
     {
         outputBlock.copyFrom(inputBlock);
+    }
+
+    if (context.isBypassed)
+    {
         return;
     }
 

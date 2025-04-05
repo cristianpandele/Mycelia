@@ -30,6 +30,32 @@ void OutputNode::reset()
 template <typename ProcessContext>
 void OutputNode::process(const ProcessContext &dryContext, const ProcessContext &wetContext)
 {
+    // Manage audio context
+    const auto &inputDryBlock = dryContext.getInputBlock();
+    auto &outputDryBlock = dryContext.getOutputBlock();
+    const auto numDryChannels = outputDryBlock.getNumChannels();
+    const auto numDrySamples = outputDryBlock.getNumSamples();
+    const auto &inputWetBlock = wetContext.getInputBlock();
+    auto &outputWetBlock = wetContext.getOutputBlock();
+    const auto numWetChannels = outputWetBlock.getNumChannels();
+    const auto numWetSamples = outputWetBlock.getNumSamples();
+
+    jassert(inputDryBlock.getNumChannels() == numDryChannels);
+    jassert(inputDryBlock.getNumSamples() == numDrySamples);
+    jassert(inputWetBlock.getNumChannels() == numWetChannels);
+    jassert(inputWetBlock.getNumSamples() == numWetSamples);
+
+    // Copy input to output if non-replacing
+    if (wetContext.usesSeparateInputAndOutputBlocks())
+    {
+        outputWetBlock.copyFrom(inputDryBlock);
+    }
+
+    if (wetContext.isBypassed)
+    {
+        return;
+    }
+
     wetGain.process(wetContext);
     dryGain.process(dryContext);
 

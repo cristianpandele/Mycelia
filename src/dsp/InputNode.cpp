@@ -36,6 +36,26 @@ void InputNode::reset()
 template <typename ProcessContext>
 void InputNode::process (const ProcessContext& context)
 {
+    // Manage audio context
+    const auto &inputBlock = context.getInputBlock();
+    auto &outputBlock = context.getOutputBlock();
+    const auto numChannels = outputBlock.getNumChannels();
+    const auto numSamples = outputBlock.getNumSamples();
+
+    jassert(inputBlock.getNumChannels() == numChannels);
+    jassert(inputBlock.getNumSamples() == numSamples);
+
+    // Copy input to output if non-replacing
+    if (context.usesSeparateInputAndOutputBlocks())
+    {
+        outputBlock.copyFrom(inputBlock);
+    }
+
+    if (context.isBypassed)
+    {
+        return;
+    }
+
     // Process the input signal through the chain
     inputNodeChain.process(context);
 }
