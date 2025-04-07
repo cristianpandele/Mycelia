@@ -4,10 +4,22 @@
 InputNode::InputNode()
 {
     // Initialize the input nodes
-    inputNodeChain.get<0>().setGainLinear(0.0f); // Gain
-    inputNodeChain.get<0>().setRampDurationSeconds(0.05f); // Gain ramp time
+    gain.setGainLinear(inGainLevel);    // Gain
+    gain.setRampDurationSeconds(0.05f); // Gain ramp time
 
-    // Initialize filter with default values
+    // Initialize the waveshaper
+    waveShaper = std::make_unique<MyShaperType>();
+    waveShaper->initVoiceEffectParams();
+
+    // Initialize OJD waveshaper type
+    waveShaper->setIntParam(0, waveshaperType);
+
+    // Set initial parameters
+    using FloatParams = MyShaperType::WaveShaperFloatParams;
+    waveShaper->setFloatParam((int)FloatParams::drive, waveshaperDrive); // drive
+    waveShaper->setFloatParam((int)FloatParams::bias, waveshaperBias); // bias
+    waveShaper->setFloatParam((int)FloatParams::postgain, waveshaperPostgain); // postgain
+    // Set waveshaper filter parameters
     updateFilterCoefficients();
 }
 
@@ -17,24 +29,22 @@ InputNode::~InputNode()
 
 void InputNode::prepare(const juce::dsp::ProcessSpec &spec)
 {
-    fs = (float) spec.sampleRate;
+    fs = (float)spec.sampleRate;
 
     // Prepare all processors in the chain
-    inputNodeChain.prepare(spec);
+    gain.prepare(spec);
 
-    // Update filter coefficients with new sample rate
+    // Prepare the waveshaper
     updateFilterCoefficients();
 }
 
 void InputNode::reset()
 {
-    // Reset the input node chain
-    inputNodeChain.reset();
+    gain.reset();
 }
 
-
 template <typename ProcessContext>
-void InputNode::process (const ProcessContext& context)
+void InputNode::process(const ProcessContext &context)
 {
     // Manage audio context
     const auto &inputBlock = context.getInputBlock();
@@ -56,15 +66,32 @@ void InputNode::process (const ProcessContext& context)
         return;
     }
 
-    // Process the input signal through the chain
-    inputNodeChain.process(context);
+    // Process through gain stage
+    gain.process(context);
+
+
+    // Process through waveshaper
+    processWaveShaper(outputBlock);
+
 }
 
-void InputNode::setParameters (const Parameters& params)
+void InputNode::setParameters(const Parameters &params)
 {
     // Set gain level
     inGainLevel = ParameterRanges::preampLevel.snapToLegalValue(params.gainLevel);
-    inputNodeChain.get<0>().setGainLinear(inGainLevel);
+    gain.setGainLinear(inGainLevel/100.f);
+
+    // Set waveshaper parameters
+    if (params.gainLevel < ParameterRanges::preampOverdrive.start)
+    {
+        waveshaperDrive = ParameterRanges::waveshaperGain.start;
+    }
+    else
+    {
+        auto normValue = ParameterRanges::preampOverdrive.convertTo0to1(params.gainLevel);
+        waveshaperDrive = ParameterRanges::waveshaperGain.convertFrom0to1(normValue);
+    }
+    waveShaper->setFloatParam((int)MyShaperType::WaveShaperFloatParams::drive, waveshaperDrive);
 
     // Set reverb mix level
     inReverbMix = ParameterRanges::reverbMix.snapToLegalValue(params.reverbMix);
@@ -86,22 +113,48 @@ void InputNode::setParameters (const Parameters& params)
     }
 
     if (filterChanged)
+    {
         updateFilterCoefficients();
+    }
 }
 
 void InputNode::updateFilterCoefficients()
 {
-    // Convert width from 0-1 to Q value (1-10 is a good range for Q)
-    // Width of 0 means narrow (high Q), width of 1 means wide (low Q)
-    const float q = 1.0f + (1.0f - inBandpassWidth) * 9.0f;
+    waveshaperLowpass = std::min(inBandpassFreq + inBandpassWidth * 0.5f,
+                                 ParameterRanges::bandpassFrequency.end);
+    waveshaperHighpass = std::max(inBandpassFreq - inBandpassWidth * 0.5f,
+                                  ParameterRanges::bandpassFrequency.start);
 
-    // Create bandpass filter coefficients
-    auto &filter = inputNodeChain.get<filterIdx>();
-    *filter.state = *FilterCoefs::makeBandPass(fs, inBandpassFreq, q);
+    // Set the low pass and high pass filter coefficients with respect to A4 (MIDI note 69)
+    float lowpassPitch = std::round(std::log2(waveshaperLowpass / 440.0f) * 12.0f) - 69;
+    float highpassPitch = std::round(std::log2(waveshaperHighpass / 440.0f) * 12.0f) - 69;
 
-    inputNodeChain.get<1>().reset();
+    waveShaper->setFloatParam((int)MyShaperType::WaveShaperFloatParams::lowpass, lowpassPitch);
+    waveShaper->setFloatParam((int)MyShaperType::WaveShaperFloatParams::highpass, highpassPitch);
+}
+
+void InputNode::processWaveShaper(juce::dsp::AudioBlock<float> & buffer)
+{
+    const int numSamples = buffer.getNumSamples();
+    const int numChannels = buffer.getNumChannels();
+
+    // Use a fixed note number for processing (key tracking not used here)
+    const float noteNum = 0.0f;
+
+    // Process the audio through the waveshaper in blocks of WaveShaperConfig::blockSize
+    for (int pos = 0; pos < numSamples; pos += WaveshaperConfig::blockSize)
+    {
+        if (numChannels >= 2)
+        {
+            auto curSubBlock = buffer.getSubBlock(pos, WaveshaperConfig::blockSize);
+            float *leftChannel = curSubBlock.getChannelPointer(0);
+            float *rightChannel = curSubBlock.getChannelPointer(1);
+
+            waveShaper->processStereo(leftChannel, rightChannel, leftChannel, rightChannel, noteNum);
+        }
+    }
 }
 
 //==================================================
-template void InputNode::process<juce::dsp::ProcessContextReplacing<float>> (const juce::dsp::ProcessContextReplacing<float>&);
-template void InputNode::process<juce::dsp::ProcessContextNonReplacing<float>> (const juce::dsp::ProcessContextNonReplacing<float>&);
+template void InputNode::process<juce::dsp::ProcessContextReplacing<float>>(const juce::dsp::ProcessContextReplacing<float> &);
+template void InputNode::process<juce::dsp::ProcessContextNonReplacing<float>>(const juce::dsp::ProcessContextNonReplacing<float> &);
