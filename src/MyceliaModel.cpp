@@ -188,9 +188,13 @@ void MyceliaModel::parameterChanged(const juce::String &parameterID, float newVa
 
 void MyceliaModel::prepareToPlay(juce::dsp::ProcessSpec spec)
 {
+    // Prepare all processors
     inputNode.prepare(spec);
-    outputNode.prepare(spec);
     edgeTree.prepare(spec);
+    outputNode.prepare(spec);
+
+    // Initialize buffers
+    dryBuffer.setSize(spec.numChannels, spec.maximumBlockSize);
 }
 
 void MyceliaModel::releaseResources()
@@ -200,8 +204,8 @@ void MyceliaModel::releaseResources()
     // host's settings)
 
     inputNode.reset();
-    outputNode.reset();
     edgeTree.reset();
+    outputNode.reset();
 
     preampLevel = nullptr;
     reverbMix = nullptr;
@@ -253,16 +257,21 @@ void MyceliaModel::process(const ProcessContext &context)
         return;
     }
 
+    // Process through input node
     inputNode.process(context);
 
     // Keep "dry" signal - post input conditioning
-    dryBuffer.setSize(numChannels, numSamples);
-    context.getInputBlock().copyTo(dryBuffer, 0, 0, numSamples);
+    dryBuffer.setSize(numChannels, numSamples, false, false, true);
+    outputBlock.copyTo(dryBuffer, 0, 0, numSamples);
 
+    // Set up processing contexts
     juce::dsp::AudioBlock<float> dryBlock(dryBuffer);
-    juce::dsp::ProcessContextReplacing<float> dryContext(dryBlock);
-    juce::dsp::ProcessContextReplacing<float> wetContext(context.getOutputBlock());
+    juce::dsp::AudioBlock<float> wetBlock(context.getOutputBlock());
 
+    juce::dsp::ProcessContextReplacing<float> dryContext(dryBlock);
+    juce::dsp::ProcessContextReplacing<float> wetContext(wetBlock);
+
+    // Process "dry" signal through EdgeTree
     edgeTree.process(wetContext);
     outputNode.process(dryContext, wetContext);
 }
