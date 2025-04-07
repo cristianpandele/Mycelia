@@ -23,20 +23,40 @@ static constexpr auto invertedSnapToLegalValueFunction = [](float start, float e
 namespace ParameterRanges
 {
     // Input parameters
-    inline const juce::NormalisableRange<float> preampLevel(0.0f, 1.2f, 0.01f);
+    inline const juce::NormalisableRange<float> preampLevel(0.0f, 120.0f, 0.1f);
+    inline const juce::NormalisableRange<float> preampOverdrive(100.0f, 120.0f, 0.1f);
+    inline const juce::NormalisableRange<float> waveshaperGain(1.0f, 12.0f, 0.01f);
     inline const juce::NormalisableRange<float> reverbMix(0.0f, 100.0f, 0.1f);
 
     // Input sculpting
-    inline const juce::NormalisableRange<float> bandpassFrequency(20.0f, 20000.0f, [](float start, float end, float normalised)
-                                                                  { return start + (std::pow(2.0f, normalised * 10.0f) - 1.0f) * (end - start) / 1023.0f; }, [](float start, float end, float value)
-                                                                  { return (std::log(((value - start) * 1023.0f / (end - start)) + 1.0f) / std::log(2.0f)) / 10.0f; }, [](float start, float end, float value)
-                                                                  {
-            if (value > 3000.0f)
-                return juce::jlimit(start, end, 100.0f * juce::roundToInt(value / 100.0f));
-            if (value > 1000.0f)
-                return juce::jlimit(start, end, 10.0f * juce::roundToInt(value / 10.0f));
-            return juce::jlimit(start, end, float(juce::roundToInt(value))); });
-    inline const juce::NormalisableRange<float> bandpassWidth(0.0f, 1.0f, 0.01f);
+    inline const juce::NormalisableRange<float> bandpassFrequency(20.0f, 20000.0f,
+        [](float start, float end, float normalised)
+            { return start + (std::pow(2.0f, normalised * 10.0f) - 1.0f) * (end - start) / 1023.0f; },
+        [](float start, float end, float value)
+            { return (std::log(((value - start) * 1023.0f / (end - start)) + 1.0f) / std::log(2.0f)) / 10.0f; },
+        [](float start, float end, float value)
+            {
+                if (value > 3000.0f)
+                    return juce::jlimit(start, end, 100.0f * juce::roundToInt(value / 100.0f));
+                if (value > 1000.0f)
+                    return juce::jlimit(start, end, 10.0f * juce::roundToInt(value / 10.0f));
+                return juce::jlimit(start, end, float(juce::roundToInt(value)));
+            }
+    );
+    inline const juce::NormalisableRange<float> bandpassWidth(100.0f, 20000.0f,
+        [](float start, float end, float normalised)
+            { return start + (std::pow(2.0f, normalised * 10.0f) - 1.0f) * (end - start) / 1023.0f; },
+        [](float start, float end, float value)
+            { return (std::log(((value - start) * 1023.0f / (end - start)) + 1.0f) / std::log(2.0f)) / 10.0f; },
+        [](float start, float end, float value)
+            {
+                if (value > 3000.0f)
+                    return juce::jlimit(start, end, 100.0f * juce::roundToInt(value / 100.0f));
+                if (value > 1000.0f)
+                    return juce::jlimit(start, end, 10.0f * juce::roundToInt(value / 10.0f));
+                return juce::jlimit(start, end, float(juce::roundToInt(value)));
+            }
+    );
 
     // Tree parameters
     inline const juce::NormalisableRange<float> treeSize(0.2f, 1.8f, 0.01f);
