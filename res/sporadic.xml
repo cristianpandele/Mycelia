@@ -33,9 +33,9 @@
         <View flex-direction="row" caption="Input Levels" flex-align-self="center"
               display="contents" pos-height="40%" pos-y="60%" padding="1" border="2"
               margin="2" border-color="FFEDC818">
-          <Slider caption="Preamp" parameter="preamplevel" slider-type="rotary"
+          <Slider caption="Preamp Gain" parameter="preamplevel" slider-type="rotary"
                   pos-height="50%" flex-align-self="stretch" lookAndFeel="FoleysFinest"
-                  pos-y="0%" flex-grow="1.0" flex-shrink="1.0"/>
+                  pos-y="0%" flex-grow="1.0" flex-shrink="1.0" suffix="%"/>
           <Slider caption="Reverb Mix" parameter="reverbmix" lookAndFeel="FoleysFinest"
                   slider-type="rotary" caption-placement="centred-top" slider-textbox="textbox-below"
                   flex-align-self="stretch" pos-height="50%" pos-y="50%" suffix="%"/>
