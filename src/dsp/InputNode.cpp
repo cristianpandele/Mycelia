@@ -25,6 +25,7 @@ InputNode::InputNode()
 
 InputNode::~InputNode()
 {
+    // Clean up any resources
 }
 
 void InputNode::prepare(const juce::dsp::ProcessSpec &spec)
@@ -61,6 +62,7 @@ void InputNode::process(const ProcessContext &context)
         outputBlock.copyFrom(inputBlock);
     }
 
+    // Skip processing if bypassed
     if (context.isBypassed)
     {
         return;

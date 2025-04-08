@@ -62,6 +62,11 @@ MyceliaModel::MyceliaModel(Mycelia &p)
     currentInputParams.bandpassFreq = *bandpassFreq;
     currentInputParams.bandpassWidth = *bandpassWidth;
 
+    // Initialize DelayNetwork parameters
+    currentDelayNetworkParams.entanglement = *entanglement;
+    currentDelayNetworkParams.growthRate = *growthRate;
+
+    // Initialize Output parameters
     currentOutputParams.dryWetMixLevel = *dryWet;
     currentOutputParams.delayDuckLevel = *delayDuck;
 }
@@ -191,6 +196,7 @@ void MyceliaModel::prepareToPlay(juce::dsp::ProcessSpec spec)
     // Prepare all processors
     inputNode.prepare(spec);
     edgeTree.prepare(spec);
+    delayNetwork.prepare(spec);
     outputNode.prepare(spec);
 
     // Initialize buffers
@@ -252,6 +258,7 @@ void MyceliaModel::process(const ProcessContext &context)
         outputBlock.copyFrom(inputBlock);
     }
 
+    // Skip processing if bypassed
     if (context.isBypassed)
     {
         return;
@@ -273,6 +280,11 @@ void MyceliaModel::process(const ProcessContext &context)
 
     // Process "dry" signal through EdgeTree
     edgeTree.process(wetContext);
+
+    // Process through the DelayNetwork
+    delayNetwork.process(wetContext);
+
+    // Output mixing stage
     outputNode.process(dryContext, wetContext);
 }
 

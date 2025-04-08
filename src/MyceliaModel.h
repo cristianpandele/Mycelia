@@ -4,6 +4,7 @@
 #include "dsp/InputNode.h"
 #include "dsp/EdgeTree.h"
 #include "dsp/OutputNode.h"
+#include "dsp/DelayNetwork.h"
 
 #include <juce_dsp/juce_dsp.h>
 #include <juce_audio_processors/juce_audio_processors.h>
@@ -110,16 +111,16 @@ class MyceliaModel :
         // Buffers for processing
         juce::AudioBuffer<float> dryBuffer;
 
-        // Audio Processors: Input, Delay Network, Reverb, Output
+        // Audio Processors: Input, Sky, EdgeTree, DelayNetwork, Output
         InputNode inputNode;
         EdgeTree edgeTree;
-        // DelayNetwork delayNetwork;
-        // Reverb reverb;
+        DelayNetwork delayNetwork;
         OutputNode outputNode;
 
         // Parameters for processors
         InputNode::Parameters currentInputParams;
         EdgeTree::Parameters currentEdgeTreeParams;
+        DelayNetwork::Parameters currentDelayNetworkParams; // Parameters for DelayNetwork
         OutputNode::Parameters currentOutputParams;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MyceliaModel)

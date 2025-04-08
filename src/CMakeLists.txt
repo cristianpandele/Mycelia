@@ -13,6 +13,8 @@ target_sources(
     MyceliaView.cpp
     dsp/InputNode.cpp
     dsp/EdgeTree.cpp
+    dsp/DelayNetwork.cpp
+    dsp/DiffusionControl.cpp
     dsp/OutputNode.cpp
 
     # dsp/BaseNode.cpp

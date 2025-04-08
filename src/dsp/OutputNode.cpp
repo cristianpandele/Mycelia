@@ -51,6 +51,7 @@ void OutputNode::process(const ProcessContext &dryContext, const ProcessContext 
         outputWetBlock.copyFrom(inputDryBlock);
     }
 
+    // Skip processing if bypassed
     if (wetContext.isBypassed)
     {
         return;

@@ -36,6 +36,7 @@ void EdgeTree::process(const ProcessContext &context)
         outputBlock.copyFrom(inputBlock);
     }
 
+    // Skip processing if bypassed
     if (context.isBypassed)
     {
         return;
