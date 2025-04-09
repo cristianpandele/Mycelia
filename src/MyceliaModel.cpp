@@ -54,6 +54,10 @@ MyceliaModel::MyceliaModel(Mycelia &p)
     addParamListener(IDs::reverbMix, this);
     addParamListener(IDs::bandpassFreq, this);
     addParamListener(IDs::bandpassWidth, this);
+    //
+    addParamListener(IDs::entanglement, this);
+    addParamListener(IDs::growthRate, this);
+    //
     addParamListener(IDs::dryWet, this);
     addParamListener(IDs::delayDuck, this);
 
@@ -177,6 +181,17 @@ void MyceliaModel::parameterChanged(const juce::String &parameterID, float newVa
     {
         currentEdgeTreeParams.treeSize = newValue;
         edgeTree.setParameters(currentEdgeTreeParams);
+    }
+    //
+    else if (parameterID == IDs::entanglement)
+    {
+        currentDelayNetworkParams.entanglement = newValue;
+        delayNetwork.setParameters(currentDelayNetworkParams);
+    }
+    else if (parameterID == IDs::growthRate)
+    {
+        currentDelayNetworkParams.growthRate = newValue;
+        delayNetwork.setParameters(currentDelayNetworkParams);
     }
     //
     else if (parameterID == IDs::dryWet)
