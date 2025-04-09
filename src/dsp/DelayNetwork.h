@@ -37,7 +37,8 @@ class DelayNetwork
         DiffusionControl diffusionControl;
 
         // Output from diffusion control
-        std::array<juce::AudioBuffer<float>, 16> diffusionOutputs;
+        static constexpr int maxNutrientBands = 16;
+        std::array<juce::AudioBuffer<float>, maxNutrientBands> diffusionOutputs;
         int activeFilterBands = 4;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DelayNetwork)

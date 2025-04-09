@@ -3,8 +3,8 @@
 DiffusionControl::DiffusionControl()
 {
     // Set up default frequency bands - logarithmically spaced between 20Hz and 20kHz
-    const double minFreq = 80.0;
-    const double maxFreq = 8000.0;
+    const double minFreq = 250.0;
+    const double maxFreq = 3000.0;
 
     for (size_t i = 0; i < inNumActiveBands; ++i)
     {
@@ -27,38 +27,31 @@ void DiffusionControl::prepare(const juce::dsp::ProcessSpec &spec)
     // Prepare all filters
     for (size_t i = 0; i < inNumActiveBands; ++i)
     {
-        // Create bandpass filters for each band
-        auto &filter = filters[i];
+        coeffMaker[i] = sst::filters::FilterCoefficientMaker<>();
+        coeffMaker[i].setSampleRateAndBlockSize((float)fs, spec.maximumBlockSize);
 
-        // Create bandpass filter coefficients
-        auto coefficients =
-            juce::dsp::IIR::Coefficients<float>::makeBandPass(
-                fs,
-                bandFrequencies[i],
-                0.7f
-            );
-
-        // Update the filter with the new coefficients
-        filter.state = coefficients;
-
-        // Prepare the filter for processing
-        filter.prepare(spec);
+        filters[i] = sst::filters::GetQFPtrFilterUnit(sst::filters::fut_bp24, sst::filters::st_Standard);
     }
+
+    prepareCoefficients();
 }
 
 void DiffusionControl::reset()
 {
     // Reset all filters
-    for (auto &filter : filters)
+    for (size_t i = 0; i < inNumActiveBands; ++i)
     {
-        filter.reset();
+        // Reset filter state
+        memset(&filterState[i], 0, sizeof(sst::filters::QuadFilterUnitState));
+        // Reset the filter maker
+        coeffMaker[i].Reset();
     }
 }
 
 template <typename ProcessContext>
 void DiffusionControl::process(
     const ProcessContext &inContext,
-    std::array<juce::AudioBuffer<float>, MAX_BANDS> &outputs)
+    std::array<juce::AudioBuffer<float>, DiffusionControl::maxNutrientBands> &outputs)
 {
     // Manage audio context
     const auto &inputBlock = inContext.getInputBlock();
@@ -88,11 +81,50 @@ void DiffusionControl::process(
         // Create AudioBlock for filter processing
         juce::dsp::AudioBlock<float> outputBandBlock(outputs[band]);
 
-        // Create Context for filter processing
-        juce::dsp::ProcessContextReplacing<float> bandContext(outputBandBlock);
+        // Ensure filter bands are active
+        for (int ch = 0; ch < numChannels; ++ch)
+        {
+            filterState[band].active[ch] = 0xFFFFFFFF;
+        }
 
         // Apply filter
-        filters[band].process(bandContext);
+        for (int i = 0; i < numSamples; ++i)
+        {
+            float r alignas(16)[4];
+            r[0] = outputBandBlock.getChannelPointer(0)[i];
+            r[1] = outputBandBlock.getChannelPointer(1)[i];
+            r[2] = 0.f;
+            r[3] = 0.f;
+            auto yVec = filters[band](&filterState[band], SIMD_MM(load_ps)(r));
+
+            float yArr alignas(16)[4];
+            SIMD_MM(store_ps)(yArr, yVec);
+
+            outputBandBlock.getChannelPointer(0)[i] = yArr[0];
+            outputBandBlock.getChannelPointer(1)[i] = yArr[1];
+        }
+    }
+}
+
+inline float freq_hz_to_note_num(float freqHz)
+{
+    return 12.0f * std::log2(freqHz / 440.0f);
+}
+
+void DiffusionControl::prepareCoefficients()
+{
+    for (size_t i = 0; i < inNumActiveBands; ++i)
+    {
+        // Reset filter state
+        memset(&filterState[i], 0, sizeof(sst::filters::QuadFilterUnitState));
+        // Reset the filter maker
+        coeffMaker[i].Reset();
+        // Get the center frequency for this band
+        float centerFreq = bandFrequencies[i];
+
+        coeffMaker[i].MakeCoeffs(freq_hz_to_note_num(centerFreq), 0.5f, sst::filters::fut_bp24, sst::filters::st_Standard, nullptr, false);
+
+        coeffMaker[i].updateState(filterState[i]);
     }
 }
 
@@ -100,19 +132,7 @@ void DiffusionControl::setParameters(const Parameters &params)
 {
     // diffusionAmount = params.diffusion;
     inNumActiveBands = params.numActiveBands;
-
-    // Update filter coefficients if we have a valid sample rate
-    for (size_t i = 0; i < inNumActiveBands; ++i)
-    {
-        // Create new filter coefficients with updated Q based on diffusion
-        auto coefficients = juce::dsp::IIR::Coefficients<float>::makeBandPass(
-            fs,
-            bandFrequencies[i],
-            0.7f);
-
-        // Update the filter with the new coefficients
-        filters[i].state = coefficients;
-    }
 }
-template void DiffusionControl::process<juce::dsp::ProcessContextReplacing<float>>(const juce::dsp::ProcessContextReplacing<float> &, std::array<juce::AudioBuffer<float>, MAX_BANDS> &);
-template void DiffusionControl::process<juce::dsp::ProcessContextNonReplacing<float>>(const juce::dsp::ProcessContextNonReplacing<float> &, std::array<juce::AudioBuffer<float>, MAX_BANDS> &);
+
+template void DiffusionControl::process<juce::dsp::ProcessContextReplacing<float>>(const juce::dsp::ProcessContextReplacing<float> &, std::array<juce::AudioBuffer<float>, maxNutrientBands> &);
+template void DiffusionControl::process<juce::dsp::ProcessContextNonReplacing<float>>(const juce::dsp::ProcessContextNonReplacing<float> &, std::array<juce::AudioBuffer<float>, maxNutrientBands> &);

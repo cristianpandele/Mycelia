@@ -1,6 +1,6 @@
 #include <juce_dsp/juce_dsp.h>
-
-#define MAX_BANDS 16
+#include "sst/filters.h"
+#include "sst/filters/FilterCoefficientMaker_Impl.h"
 
 class DiffusionControl
 {
@@ -8,7 +8,7 @@ class DiffusionControl
         // Parameters
         struct Parameters
         {
-            int numActiveBands;  // Controls the number of filter bands to use (0-16)
+            int numActiveBands; // Controls the number of filter bands to use (0-MAX_NUTRIENT_BANDS)
         };
 
         DiffusionControl();
@@ -19,25 +19,24 @@ class DiffusionControl
 
         // Process the input context and output through multiple filter banks
         // Returns an array of processed audio blocks
+        static constexpr int maxNutrientBands = 16;
         template <typename ProcessContext>
         void process(const ProcessContext &context,
-                     std::array<juce::AudioBuffer<float>, MAX_BANDS> &outputs);
+                     std::array<juce::AudioBuffer<float>, DiffusionControl::maxNutrientBands> &outputs);
 
         void setParameters(const Parameters &params);
 
     private:
-        // Using ProcessorDuplicator for proper stereo processing
-        using Filter = juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>,
-                                                    juce::dsp::IIR::Coefficients<float>>;
-
-        // Filter bank implementation with proper stereo support
-        std::array<Filter, MAX_BANDS> filters;
-        std::array<float, MAX_BANDS> bandFrequencies;
-        std::array<float, MAX_BANDS> bandGains;
-
         // Diffusion parameters
         int inNumActiveBands = 4;
         double fs = 44100.0;
+
+        // Filter bank implementation
+        std::array<sst::filters::FilterCoefficientMaker<>, DiffusionControl::maxNutrientBands> coeffMaker;
+        std::array<sst::filters::QuadFilterUnitState, DiffusionControl::maxNutrientBands> filterState;
+        std::array<sst::filters::FilterUnitQFPtr, DiffusionControl::maxNutrientBands> filters;
+        std::array<float, DiffusionControl::maxNutrientBands> bandFrequencies;
+        void prepareCoefficients();
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DiffusionControl)
 };

@@ -2,8 +2,6 @@
 
 DelayNetwork::DelayNetwork()
 {
-    // Initialize default parameters
-    diffusionControl.setParameters(DiffusionControl::Parameters{activeFilterBands});
 }
 
 DelayNetwork::~DelayNetwork()
@@ -24,6 +22,9 @@ void DelayNetwork::prepare(const juce::dsp::ProcessSpec &spec)
 
     // Prepare the diffusion control
     diffusionControl.prepare(spec);
+
+    // Initialize default parameters
+    diffusionControl.setParameters(DiffusionControl::Parameters{activeFilterBands});
 }
 
 void DelayNetwork::reset()
