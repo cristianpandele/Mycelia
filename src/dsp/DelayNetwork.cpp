@@ -13,8 +13,15 @@ void DelayNetwork::prepare(const juce::dsp::ProcessSpec &spec)
 {
     fs = (float)spec.sampleRate;
 
-    // Initialize output buffers
+    // Initialize diffusion output buffers
     for (auto &buffer : diffusionOutputs)
+    {
+        buffer.setSize(spec.numChannels, spec.maximumBlockSize);
+        buffer.clear();
+    }
+
+    // Initialize delay output buffers
+    for (auto &buffer : delayOutputs)
     {
         buffer.setSize(spec.numChannels, spec.maximumBlockSize);
         buffer.clear();
@@ -24,16 +31,27 @@ void DelayNetwork::prepare(const juce::dsp::ProcessSpec &spec)
     diffusionControl.prepare(spec);
 
     // Initialize default parameters
-    diffusionControl.setParameters(DiffusionControl::Parameters{activeFilterBands});
+    diffusionControl.setParameters(DiffusionControl::Parameters{.numActiveBands = activeFilterBands});
+
+    // Initialize delay nodes with default parameters
+    delayNodes.setParameters(DelayNodes::Parameters{.growthRate = inGrowthRate,
+                                                    .entanglement = inEntanglement});
 }
 
 void DelayNetwork::reset()
 {
     // Reset all internal states
     diffusionControl.reset();
+    delayNodes.reset();
 
     // Clear output buffers
     for (auto &buffer : diffusionOutputs)
+    {
+        buffer.clear();
+    }
+
+    // Clear delay output buffers
+    for (auto &buffer : delayOutputs)
     {
         buffer.clear();
     }
@@ -73,7 +91,7 @@ void DelayNetwork::process(const ProcessContext &context)
     for (int band = 0; band < activeFilterBands; ++band)
     {
         // Create AudioBlock for band output
-        juce::dsp::AudioBlock<float> bandBlock(diffusionOutputs[band]);
+        juce::dsp::AudioBlock<float> bandBlock(delayOutputs[band]);
         // Sum band output to the main output block
         outputBlock.add(bandBlock);
     }
@@ -87,6 +105,13 @@ void DelayNetwork::setParameters(const Parameters &params)
 {
     inGrowthRate = params.growthRate;
     inEntanglement = params.entanglement;
+
+    // Update diffusion control parameters
+    // diffusionControl.setParameters(DiffusionControl::Parameters{static_cast<int>(inGrowthRate)});
+
+    // Update delay nodes parameters
+    delayNodes.setParameters(DelayNodes::Parameters{.growthRate = inGrowthRate,
+                                                    .entanglement = inEntanglement});
 }
 
 // Explicitly instantiate the templates for the supported context types

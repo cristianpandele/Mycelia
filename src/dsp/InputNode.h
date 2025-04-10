@@ -74,6 +74,7 @@ class InputNode
         using MyShaperType = sst::voice_effects::waveshaper::WaveShaper<WaveshaperConfig>;
         std::unique_ptr<MyShaperType> waveShaper;
         bool waveshaperBypass = false;
+
         // Waveshaper filter
         void updateFilterCoefficients();
 

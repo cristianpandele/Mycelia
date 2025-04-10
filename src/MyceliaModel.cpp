@@ -87,7 +87,6 @@ MyceliaModel::~MyceliaModel()
 
 juce::AudioProcessorValueTreeState::ParameterLayout MyceliaModel::createParameterLayout()
 {
-
     auto preampLevelRange   = juce::NormalisableRange<float>(0.0f, 1.2f, 0.01f);
     auto reverbMixRange     = juce::NormalisableRange<float>(0.0f, 100.0f, 0.1f);
 
