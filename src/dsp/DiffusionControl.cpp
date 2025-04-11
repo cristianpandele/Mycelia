@@ -51,7 +51,7 @@ void DiffusionControl::reset()
 template <typename ProcessContext>
 void DiffusionControl::process(
     const ProcessContext &inContext,
-    std::array<juce::AudioBuffer<float>, DiffusionControl::maxNutrientBands> &outputs)
+    juce::AudioBuffer<float> *outputBuffers)
 {
     // Manage audio context
     const auto &inputBlock = inContext.getInputBlock();
@@ -65,7 +65,7 @@ void DiffusionControl::process(
     // Copy input to all output bands
     for (int band = 0; band < inNumActiveBands; ++band)
     {
-        juce::dsp::AudioBlock<float> outputBandBlock(outputs[band]);
+        juce::dsp::AudioBlock<float> outputBandBlock(outputBuffers[band]);
         outputBandBlock.copyFrom(inputBlock);
     }
 
@@ -79,7 +79,7 @@ void DiffusionControl::process(
     for (int band = 0; band < inNumActiveBands; ++band)
     {
         // Create AudioBlock for filter processing
-        juce::dsp::AudioBlock<float> outputBandBlock(outputs[band]);
+        juce::dsp::AudioBlock<float> outputBandBlock(outputBuffers[band]);
 
         // Ensure filter bands are active
         for (int ch = 0; ch < numChannels; ++ch)
@@ -134,5 +134,5 @@ void DiffusionControl::setParameters(const Parameters &params)
     inNumActiveBands = params.numActiveBands;
 }
 
-template void DiffusionControl::process<juce::dsp::ProcessContextReplacing<float>>(const juce::dsp::ProcessContextReplacing<float> &, std::array<juce::AudioBuffer<float>, maxNutrientBands> &);
-template void DiffusionControl::process<juce::dsp::ProcessContextNonReplacing<float>>(const juce::dsp::ProcessContextNonReplacing<float> &, std::array<juce::AudioBuffer<float>, maxNutrientBands> &);
+template void DiffusionControl::process<juce::dsp::ProcessContextReplacing<float>>(const juce::dsp::ProcessContextReplacing<float> &, juce::AudioBuffer<float> *);
+template void DiffusionControl::process<juce::dsp::ProcessContextNonReplacing<float>>(const juce::dsp::ProcessContextNonReplacing<float> &, juce::AudioBuffer<float> *);

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "DiffusionControl.h"
+#include "DelayNodes.h"
 #include <juce_dsp/juce_dsp.h>
 #include <array>
 

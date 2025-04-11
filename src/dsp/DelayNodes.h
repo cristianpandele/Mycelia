@@ -1,0 +1,47 @@
+#pragma once
+
+#include "DelayProc.h"
+#include <juce_dsp/juce_dsp.h>
+#include <vector>
+
+/**
+ * Class to process multiple inputs through separate delay processors
+ * Each input gets its own DelayProc with different delay parameters
+ */
+class DelayNodes
+{
+    public:
+        // Parameters
+        struct Parameters
+        {
+            float growthRate;   // Controls how nodes age and grow
+            float entanglement; // Controls feedback interconnections between nodes
+            int   numColonies;  // Controls the number of colonies (delay processor lineages)
+        };
+
+        DelayNodes(size_t numBands = 4);
+        ~DelayNodes();
+
+        void prepare(const juce::dsp::ProcessSpec& spec);
+        void reset();
+
+        // Process each diffusion output with its own delay node
+        void process(juce::AudioBuffer<float> *diffusionBandBuffers);
+
+        void setParameters(const Parameters& params);
+
+    private:
+        // Array of delay processors, one for each band
+        std::vector<std::unique_ptr<DelayProc>> delayProcs;
+
+        // Parameters to control delay network behavior
+        float baseDelayMs = 100.0f;
+        float inGrowthRate = 0.5f;
+        float inEntanglement = 0.5f;
+        int   inNumColonies = 4;
+        float fs = 44100.0f;
+
+        void updateDelayParams();
+
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DelayNodes)
+};

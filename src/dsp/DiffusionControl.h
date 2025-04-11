@@ -22,7 +22,7 @@ class DiffusionControl
         static constexpr int maxNutrientBands = 16;
         template <typename ProcessContext>
         void process(const ProcessContext &context,
-                     std::array<juce::AudioBuffer<float>, DiffusionControl::maxNutrientBands> &outputs);
+                     juce::AudioBuffer<float> *outputBuffers);
 
         void setParameters(const Parameters &params);
 

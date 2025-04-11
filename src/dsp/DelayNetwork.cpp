@@ -13,15 +13,8 @@ void DelayNetwork::prepare(const juce::dsp::ProcessSpec &spec)
 {
     fs = (float)spec.sampleRate;
 
-    // Initialize diffusion output buffers
-    for (auto &buffer : diffusionOutputs)
-    {
-        buffer.setSize(spec.numChannels, spec.maximumBlockSize);
-        buffer.clear();
-    }
-
-    // Initialize delay output buffers
-    for (auto &buffer : delayOutputs)
+    // Initialize diffusion band buffers
+    for (auto &buffer : diffusionBandBuffers)
     {
         buffer.setSize(spec.numChannels, spec.maximumBlockSize);
         buffer.clear();
@@ -30,12 +23,16 @@ void DelayNetwork::prepare(const juce::dsp::ProcessSpec &spec)
     // Prepare the diffusion control
     diffusionControl.prepare(spec);
 
+    // Prepare the delay nodes
+    delayNodes.prepare(spec);
+
     // Initialize default parameters
     diffusionControl.setParameters(DiffusionControl::Parameters{.numActiveBands = activeFilterBands});
 
     // Initialize delay nodes with default parameters
     delayNodes.setParameters(DelayNodes::Parameters{.growthRate = inGrowthRate,
-                                                    .entanglement = inEntanglement});
+                                                    .entanglement = inEntanglement,
+                                                    .numColonies = activeFilterBands});
 }
 
 void DelayNetwork::reset()
@@ -44,14 +41,8 @@ void DelayNetwork::reset()
     diffusionControl.reset();
     delayNodes.reset();
 
-    // Clear output buffers
-    for (auto &buffer : diffusionOutputs)
-    {
-        buffer.clear();
-    }
-
-    // Clear delay output buffers
-    for (auto &buffer : delayOutputs)
+    // Clear the diffusion band buffers
+    for (auto &buffer : diffusionBandBuffers)
     {
         buffer.clear();
     }
@@ -82,7 +73,10 @@ void DelayNetwork::process(const ProcessContext &context)
     }
 
     // Process through diffusion control
-    diffusionControl.process(context, diffusionOutputs);
+    diffusionControl.process(context, diffusionBandBuffers.data());
+
+    // Process through delay nodes
+    delayNodes.process(diffusionBandBuffers.data());
 
     // Clear output before summing
     outputBlock.clear();
@@ -91,7 +85,7 @@ void DelayNetwork::process(const ProcessContext &context)
     for (int band = 0; band < activeFilterBands; ++band)
     {
         // Create AudioBlock for band output
-        juce::dsp::AudioBlock<float> bandBlock(delayOutputs[band]);
+        juce::dsp::AudioBlock<float> bandBlock(diffusionBandBuffers[band]);
         // Sum band output to the main output block
         outputBlock.add(bandBlock);
     }
@@ -107,11 +101,12 @@ void DelayNetwork::setParameters(const Parameters &params)
     inEntanglement = params.entanglement;
 
     // Update diffusion control parameters
-    // diffusionControl.setParameters(DiffusionControl::Parameters{static_cast<int>(inGrowthRate)});
+    diffusionControl.setParameters(DiffusionControl::Parameters{.numActiveBands = activeFilterBands});
 
     // Update delay nodes parameters
     delayNodes.setParameters(DelayNodes::Parameters{.growthRate = inGrowthRate,
-                                                    .entanglement = inEntanglement});
+                                                    .entanglement = inEntanglement,
+                                                    .numColonies = activeFilterBands});
 }
 
 // Explicitly instantiate the templates for the supported context types

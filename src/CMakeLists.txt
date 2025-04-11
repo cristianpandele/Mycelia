@@ -15,6 +15,8 @@ target_sources(
     dsp/EdgeTree.cpp
     dsp/DelayNetwork.cpp
     dsp/DiffusionControl.cpp
+    dsp/DelayNodes.cpp
+    dsp/DelayProc.cpp
     dsp/OutputNode.cpp
 
     # dsp/BaseNode.cpp
