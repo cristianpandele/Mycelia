@@ -1,4 +1,5 @@
 #include "DelayProc.h"
+#include "util/ParameterRanges.h"
 
 DelayProc::DelayProc()
 {
@@ -11,9 +12,10 @@ void DelayProc::prepare (const juce::dsp::ProcessSpec& spec)
     delay.prepare (spec);
     fs = (float) spec.sampleRate;
 
-    feedback.reset (spec.sampleRate, 0.05 * spec.numChannels);
-    inGain.reset (spec.sampleRate, 0.05 * spec.numChannels);
-    delaySmooth.reset (spec.sampleRate, 0.15 * spec.numChannels);
+    inFeedback.reset(fs, 0.05 * spec.numChannels);
+    inFilterFreq.reset(fs, 0.05 * spec.numChannels);
+    inFilterGainDb.reset(fs, 0.05 * spec.numChannels);
+    inDelayTime.reset(fs, 0.15 * spec.numChannels);
     state.resize (spec.numChannels, 0.0f);
 
     reset();
@@ -25,10 +27,8 @@ void DelayProc::prepare (const juce::dsp::ProcessSpec& spec)
 
 void DelayProc::reset()
 {
-    delay.reset();
-    procs.reset();
     // modSine.reset();
-    std::fill (state.begin(), state.end(), 0.0f);
+    flushDelay();
 }
 
 void DelayProc::flushDelay()
@@ -67,15 +67,25 @@ void DelayProc::process (const ProcessContext& context)
     {
         auto* inputSamples = inputBlock.getChannelPointer (channel);
         auto* outputSamples = outputBlock.getChannelPointer (channel);
-        delay.setDelay (delaySmooth.getNextValue());
 
-        if (delaySmooth.isSmoothing())
+        // Update delay time
+        delay.setDelay (inDelayTime.getNextValue());
+
+        // Check for changes in filter parameters and update if necessary
+        auto filterFreqChanged = (std::abs(inFilterFreq.getNextValue() - inFilterFreq.getCurrentValue()) / inFilterFreq.getCurrentValue() > 0.01f);
+        auto filterGainChanged = (std::abs(inFilterGainDb.getNextValue() - inFilterGainDb.getCurrentValue()) / inFilterGainDb.getCurrentValue() > 0.01f);
+        if (filterFreqChanged || filterGainChanged)
+        {
+            updateFilterCoefficients();
+        }
+
+        if (inDelayTime.isSmoothing())
         {
             for (size_t i = 0; i < numSamples; ++i)
             {
                 // delayModValue = modDepth * modDepthFactor * modSine.processSample();
                 delayModValue = 0.0f;
-                delay.setDelay (juce::jmax (0.0f, delaySmooth.getNextValue() + delayModValue));
+                delay.setDelay (juce::jmax (0.0f, inDelayTime.getNextValue() + delayModValue));
                 outputSamples[i] = processSampleSmooth (inputSamples[i], channel);
             }
         }
@@ -95,35 +105,36 @@ void DelayProc::process (const ProcessContext& context)
 template <typename SampleType>
 inline SampleType DelayProc::processSample (SampleType x, size_t ch)
 {
-    auto input = inGain.getNextValue() * x;
-    input = procs.processSample (input + state[ch]); // process input + feedback state
-    delay.pushSample ((int) ch, input); // push input to delay line
-    auto y = delay.popSample ((int) ch); // pop output from delay line
-    state[ch] = y * feedback.getNextValue(); // save feedback state
+    auto input = x;
+    input = procs.processSample (input + state[ch]); // Process input + Feedback state
+    delay.pushSample ((int) ch, input);              // Push input to delay line
+    auto y = delay.popSample ((int) ch);             // Pop output from delay line
+    state[ch] = y * inFeedback.getNextValue();       // Save feedback state
     return y;
 }
 
 template <typename SampleType>
 inline SampleType DelayProc::processSampleSmooth (SampleType x, size_t ch)
 {
-    auto input = /*inGain.getNextValue() * */ x;
-    input = procs.processSample(input + state[ch]); // process input + feedback state //TODO: Change to sample by sample
-    delay.pushSample ((int) ch, input); // push input to delay line
-    auto y = delay.popSample ((int) ch); // pop output from delay line
-    state[ch] = y * feedback.getNextValue(); // save feedback state
+    auto input = x;
+    input = procs.processSample(input + state[ch]);  // Process input + feedback state
+    delay.setDelay(inDelayTime.getNextValue());      // Update delay time
+    delay.pushSample ((int) ch, input);              // Push input to delay line
+    auto y = delay.popSample ((int) ch);             // Pop output from delay line
+    state[ch] = y * inFeedback.getNextValue();       // Save feedback state
     return y;
 }
 
-using IIRCoefs = juce::dsp::IIR::Coefficients<float>;
-
 void DelayProc::setParameters (const Parameters& params, bool force)
 {
-    // using namespace ParamHelpers;
-    auto delayVal = (params.delayMs / 1000.0f) * fs;
-    auto gainVal = params.feedback >= maxFeedback ? 0.0f : 1.0f;
-    auto fbVal = params.feedback >= maxFeedback ? 1.0f
-                                                : std::pow (juce::jmin (params.feedback, 0.95f), 0.9f);
+    auto delayVal = (ParameterRanges::delayRange.snapToLegalValue(params.delayMs) / 1000.0f) * fs;
+    auto fbVal = params.feedback >= ParameterRanges::fbRange.end ? 1.0f
+                                                                 : std::pow(juce::jmin(params.feedback, 0.95f), 0.9f);
 
+    auto delayChanged = (std::abs(inDelayTime.getTargetValue() - delayVal) / delayVal > 0.01f);
+    auto fbChanged = (std::abs(inFeedback.getTargetValue() - fbVal) / fbVal > 0.01f);
+    auto filterFreqChanged = (std::abs(inFilterFreq.getTargetValue() - params.filterFreq) / params.filterFreq > 0.01f);
+    auto filterGainChanged = (std::abs(inFilterGainDb.getTargetValue() - params.filterGainDb) / params.filterGainDb > 0.01f);
     // modDepth = std::pow (params.modDepth, 2.5f);
     // if (params.lfoSynced)
     //     modSine.setFreqSynced (params.modFreq, params.tempoBPM);
@@ -133,24 +144,52 @@ void DelayProc::setParameters (const Parameters& params, bool force)
 
     if (force)
     {
-        delaySmooth.setCurrentAndTargetValue (delayVal);
-        inGain.setCurrentAndTargetValue (gainVal);
-        feedback.setCurrentAndTargetValue (fbVal);
-        delay.setDelay (delayVal);
+        if (delayChanged)
+        {
+            inDelayTime.setCurrentAndTargetValue(delayVal);
+            delay.setDelay (delayVal);
+        }
+        if (fbChanged)
+        {
+            inFeedback.setCurrentAndTargetValue(fbVal);
+        }
+        if (filterFreqChanged || filterGainChanged)
+        {
+            inFilterFreq.setCurrentAndTargetValue(params.filterFreq);
+            inFilterGainDb.setCurrentAndTargetValue(params.filterGainDb);
+            updateFilterCoefficients();
+        }
     }
     else
     {
-        delaySmooth.setTargetValue (delayVal);
-        inGain.setTargetValue (gainVal);
-        feedback.setTargetValue (fbVal);
+        if (delayChanged)
+        {
+            inDelayTime.setTargetValue(delayVal);
+        }
+        if (fbChanged)
+        {
+            inFeedback.setTargetValue(fbVal);
+        }
+        if (filterFreqChanged || filterGainChanged)
+        {
+            inFilterFreq.setTargetValue(params.filterFreq);
+            inFilterGainDb.setTargetValue(params.filterGainDb);
+            updateFilterCoefficients();
+        }
     }
 
-    procs.get<lpfIdx>().coefficients = IIRCoefs::makeFirstOrderLowPass ((double) fs, params.lpfFreq);
-    procs.get<hpfIdx>().coefficients = IIRCoefs::makeFirstOrderHighPass ((double) fs, params.hpfFreq);
     // procs.get<diffusionIdx>().setDepth (params.dispAmt, force);
     // procs.get<distortionIdx>().setGain (19.5f * std::pow (params.distortion, 2.0f) + 0.5f);
     // procs.get<pitchIdx>().setPitchSemitones (params.pitchSt, force);
     // procs.get<reverserIdx>().setReverseTime (params.revTimeMs);
+}
+
+void DelayProc::updateFilterCoefficients()
+{
+    procs.get<lpfIdx>().coefficients = juce::dsp::IIR::Coefficients<float>::makeLowShelf(
+        fs, inFilterFreq.getNextValue(), 0.4f, juce::Decibels::decibelsToGain(inFilterGainDb.getNextValue() * -1.0f));
+    procs.get<hpfIdx>().coefficients = juce::dsp::IIR::Coefficients<float>::makeHighShelf(
+        fs, inFilterFreq.getNextValue(), 0.4f, juce::Decibels::decibelsToGain(inFilterGainDb.getNextValue()));
 }
 
 //==================================================

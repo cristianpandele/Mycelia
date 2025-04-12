@@ -77,9 +77,9 @@ void EdgeTree::setParameters(const Parameters &params)
         // Set tree size
         inTreeSize = ParameterRanges::treeSize.snapToLegalValue(params.treeSize);
 
-        auto temp = ParameterRanges::treeSize.convertTo0to1(inTreeSize);
-        attackMs  = ParameterRanges::attackTime.convertFrom0to1(temp);
-        releaseMs = ParameterRanges::releaseTime.convertFrom0to1(temp);
+        auto temp = ParameterRanges::normalizeParameter(ParameterRanges::treeSize, inTreeSize);
+        attackMs  = ParameterRanges::denormalizeParameter(ParameterRanges::attackTime, temp);
+        releaseMs = ParameterRanges::denormalizeParameter(ParameterRanges::releaseTime, temp);
 
         envelopeFollower->setAttackTime(attackMs);
         envelopeFollower->setReleaseTime(releaseMs);

@@ -91,8 +91,8 @@ void DelayNetwork::process(const ProcessContext &context)
     }
 
     // Apply normalization based on the number of bands
-    const float normalizationGain = 1.0f / static_cast<float>(activeFilterBands);
-    outputBlock.multiplyBy(normalizationGain);
+    // const float normalizationGain = 1.0f / std::sqrtf(static_cast<float>(activeFilterBands));
+    // outputBlock.multiplyBy(normalizationGain);
 }
 
 void DelayNetwork::setParameters(const Parameters &params)

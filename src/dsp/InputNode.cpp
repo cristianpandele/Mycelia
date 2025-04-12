@@ -90,8 +90,8 @@ void InputNode::setParameters(const Parameters &params)
     }
     else
     {
-        auto normValue = ParameterRanges::preampOverdrive.convertTo0to1(params.gainLevel);
-        waveshaperDrive = ParameterRanges::waveshaperGain.convertFrom0to1(normValue);
+        auto normValue = ParameterRanges::normalizeParameter(ParameterRanges::preampOverdrive, params.gainLevel);
+        waveshaperDrive = ParameterRanges::denormalizeParameter(ParameterRanges::waveshaperGain, normValue);
     }
     waveShaper->setFloatParam((int)MyShaperType::WaveShaperFloatParams::drive, waveshaperDrive);
 

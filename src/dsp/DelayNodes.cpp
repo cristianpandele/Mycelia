@@ -72,8 +72,8 @@ void DelayNodes::updateDelayParams()
         DelayProc::Parameters params;
         params.delayMs = delayTimeMs;
         params.feedback = 0.5f - (0.05f * i); // Decreasing feedback for higher bands
-        params.lpfFreq = 20000.0f;
-        params.hpfFreq = 20.0f;
+        params.filterFreq = 4000.0f;
+        params.filterGainDb = 0.0f;
         params.distortion = 0.1f;
         params.pitchSt = 0.0f;
         params.dispAmt = 0.2f;
