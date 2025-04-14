@@ -58,7 +58,7 @@ void DelayNodes::process(juce::AudioBuffer<float> *diffusionBandBuffers)
     }
 }
 
-void DelayNodes::updateDelayParams()
+void DelayNodes::updateDelayProcParams()
 {
     // Update parameters for all delay processors
     for (size_t i = 0; i < delayProcs.size(); ++i)
@@ -74,14 +74,14 @@ void DelayNodes::updateDelayParams()
         params.feedback = 0.5f - (0.05f * i); // Decreasing feedback for higher bands
         params.filterFreq = inBandFrequencies[i];
         params.filterGainDb = 0.0f;
-        params.distortion = 0.1f;
-        params.pitchSt = 0.0f;
+        // params.distortion = 0.1f;
+        // params.pitchSt = 0.0f;
         params.dispAmt = 0.2f;
         params.revTimeMs = 0.0f;
         // params.modFreq = nullptr;
         // params.modDepth = 0.0f;
         params.tempoBPM = 120.0f;
-        params.lfoSynced = false;
+        // params.lfoSynced = false;
         params.playhead = nullptr;
 
         delayProcs[i]->setParameters(params, false);
@@ -95,5 +95,5 @@ void DelayNodes::setParameters(const Parameters &params)
     inNumColonies = params.numColonies;
     inBandFrequencies = params.bandFrequencies;
 
-    updateDelayParams();
+    updateDelayProcParams();
 }

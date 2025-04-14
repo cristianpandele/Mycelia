@@ -43,7 +43,7 @@ class DelayNodes
         std::vector<float> inBandFrequencies;
         float fs = 44100.0f;
 
-        void updateDelayParams();
+        void updateDelayProcParams();
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DelayNodes)
 };
