@@ -27,12 +27,12 @@ void DelayNetwork::prepare(const juce::dsp::ProcessSpec &spec)
     delayNodes.prepare(spec);
 
     // Initialize default parameters
-    diffusionControl.setParameters(DiffusionControl::Parameters{.numActiveBands = activeFilterBands});
+    diffusionControl.setParameters(DiffusionControl::Parameters{.numActiveBands = inActiveFilterBands});
 
     // Initialize delay nodes with default parameters
     delayNodes.setParameters(DelayNodes::Parameters{.growthRate = inGrowthRate,
                                                     .entanglement = inEntanglement,
-                                                    .numColonies = activeFilterBands});
+                                                    .numColonies = inActiveFilterBands});
 }
 
 void DelayNetwork::reset()
@@ -82,7 +82,7 @@ void DelayNetwork::process(const ProcessContext &context)
     outputBlock.clear();
 
     // Sum all active band outputs into the output block
-    for (int band = 0; band < activeFilterBands; ++band)
+    for (int band = 0; band < inActiveFilterBands; ++band)
     {
         // Create AudioBlock for band output
         juce::dsp::AudioBlock<float> bandBlock(diffusionBandBuffers[band]);
@@ -103,11 +103,15 @@ void DelayNetwork::setParameters(const Parameters &params)
 
     // Update diffusion control parameters
     diffusionControl.setParameters(DiffusionControl::Parameters{.numActiveBands = inActiveFilterBands});
+    // Get band frequencies from the diffusion control
+    auto dataPtr = diffusionBandFrequencies.data();
+    diffusionControl.getBandFrequencies(dataPtr, &inActiveFilterBands);
 
     // Update delay nodes parameters
     delayNodes.setParameters(DelayNodes::Parameters{.growthRate = inGrowthRate,
                                                     .entanglement = inEntanglement,
-                                                    .numColonies = activeFilterBands});
+                                                    .numColonies = inActiveFilterBands,
+                                                    .bandFrequencies = std::vector<float>(dataPtr, dataPtr + inActiveFilterBands)});
 }
 
 // Explicitly instantiate the templates for the supported context types

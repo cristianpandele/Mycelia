@@ -14,9 +14,10 @@ class DelayNodes
         // Parameters
         struct Parameters
         {
-            float growthRate;   // Controls how nodes age and grow
-            float entanglement; // Controls feedback interconnections between nodes
-            int   numColonies;  // Controls the number of colonies (delay processor lineages)
+            float growthRate;                         // Controls how nodes age and grow
+            float entanglement;                       // Controls feedback interconnections between nodes
+            int   numColonies;                        // Controls the number of colonies (delay processor lineages)
+            std::vector<float> bandFrequencies;       // Controls the frequency processed by each colony
         };
 
         DelayNodes(size_t numBands = 4);
@@ -39,6 +40,7 @@ class DelayNodes
         float inGrowthRate = 0.5f;
         float inEntanglement = 0.5f;
         int   inNumColonies = 4;
+        std::vector<float> inBandFrequencies;
         float fs = 44100.0f;
 
         void updateDelayParams();

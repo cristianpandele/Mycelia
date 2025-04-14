@@ -2,16 +2,7 @@
 
 DiffusionControl::DiffusionControl()
 {
-    // Set up default frequency bands - logarithmically spaced between 20Hz and 20kHz
-    const double minFreq = 250.0;
-    const double maxFreq = 3000.0;
-
-    for (size_t i = 0; i < inNumActiveBands; ++i)
-    {
-        // Calculate logarithmically spaced frequency
-        double t = static_cast<double>(i) / static_cast<double>(inNumActiveBands - 1);
-        bandFrequencies[i] = static_cast<float>(minFreq * std::pow(maxFreq / minFreq, t));
-    }
+    updateBandFrequencies(minFreq, maxFreq, inNumActiveBands);
 }
 
 DiffusionControl::~DiffusionControl()
@@ -111,6 +102,20 @@ inline float freq_hz_to_note_num(float freqHz)
     return 12.0f * std::log2(freqHz / 440.0f);
 }
 
+void DiffusionControl::updateBandFrequencies(double minFreq, double maxFreq, int numBands)
+{
+    for (size_t i = 0; i < inNumActiveBands; ++i)
+    {
+        // Calculate logarithmically spaced frequency bands
+        double t = 0.0;
+        if (inNumActiveBands > 1)
+        {
+            t = static_cast<double>(i) / static_cast<double>(inNumActiveBands - 1);
+        }
+        bandFrequencies[i] = static_cast<float>(minFreq * std::pow(maxFreq / minFreq, t));
+    }
+}
+
 void DiffusionControl::prepareCoefficients()
 {
     for (size_t i = 0; i < inNumActiveBands; ++i)
@@ -131,7 +136,21 @@ void DiffusionControl::prepareCoefficients()
 void DiffusionControl::setParameters(const Parameters &params)
 {
     // diffusionAmount = params.diffusion;
-    inNumActiveBands = params.numActiveBands;
+    inNumActiveBands = ParameterRanges::nutrientBandsRange.snapToLegalValue(params.numActiveBands);
+    updateBandFrequencies(minFreq, maxFreq, inNumActiveBands);
+}
+
+void DiffusionControl::getBandFrequencies(float *outBandFrequencies, int *numActiveBands)
+{
+    *numActiveBands = inNumActiveBands;
+
+    jassert(numActiveBands != nullptr);
+    jassert(*numActiveBands > 0);
+    jassert(*numActiveBands <= ParameterRanges::maxNutrientBands);
+    jassert(bandFrequencies.size() >= *numActiveBands);
+    jassert(bandFrequencies.data() != nullptr);
+    jassert(outBandFrequencies != nullptr);
+    std::memcpy(outBandFrequencies, bandFrequencies.data(), *numActiveBands * sizeof(float));
 }
 
 template void DiffusionControl::process<juce::dsp::ProcessContextReplacing<float>>(const juce::dsp::ProcessContextReplacing<float> &, juce::AudioBuffer<float> *);

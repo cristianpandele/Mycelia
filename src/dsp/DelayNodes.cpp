@@ -72,7 +72,7 @@ void DelayNodes::updateDelayParams()
         DelayProc::Parameters params;
         params.delayMs = delayTimeMs;
         params.feedback = 0.5f - (0.05f * i); // Decreasing feedback for higher bands
-        params.filterFreq = 4000.0f;
+        params.filterFreq = inBandFrequencies[i];
         params.filterGainDb = 0.0f;
         params.distortion = 0.1f;
         params.pitchSt = 0.0f;
@@ -93,6 +93,7 @@ void DelayNodes::setParameters(const Parameters &params)
     inGrowthRate = params.growthRate;
     inEntanglement = params.entanglement;
     inNumColonies = params.numColonies;
+    inBandFrequencies = params.bandFrequencies;
 
     updateDelayParams();
 }

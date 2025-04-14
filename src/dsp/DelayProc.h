@@ -63,24 +63,25 @@ class DelayProc
 
         float fs = 44100.0f;
 
-        juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear> inDelayTime;
-        juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear> inFeedback;
-        juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear> inFilterFreq;
-        juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear> inFilterGainDb;
+        // Parameters
+        juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear> inDelayTime {0.0f};
+        juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear> inFeedback {0.0f};
+        juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear> inFilterFreq {0.0f};
+        juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear> inFilterGainDb {0.0f};
         std::vector<float> state;
 
         enum
         {
             lpfIdx,
-            hpfIdx//,
-            // dispersionIdx,
+            hpfIdx,
+            dispersionIdx//,
             // reverserIdx
         };
 
         MyProcessorChain<
             juce::dsp::IIR::Filter<float>,
-            juce::dsp::IIR::Filter<float>>//,
-q            // Dispersion,
+            juce::dsp::IIR::Filter<float>,
+            Dispersion>//,
             // Reverser>
             procs;
 

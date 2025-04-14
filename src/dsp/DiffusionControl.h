@@ -20,12 +20,12 @@ class DiffusionControl
 
         // Process the input context and output through multiple filter banks
         // Returns an array of processed audio blocks
-        static constexpr int maxNutrientBands = 16;
         template <typename ProcessContext>
         void process(const ProcessContext &context,
                      juce::AudioBuffer<float> *outputBuffers);
 
         void setParameters(const Parameters &params);
+        void getBandFrequencies(float *outBandFrequencies, int *numActiveBands);
 
     private:
         // Diffusion parameters

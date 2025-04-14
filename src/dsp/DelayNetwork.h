@@ -11,8 +11,9 @@ class DelayNetwork
         // Parameters
         struct Parameters
         {
-            float growthRate;   // Controls the delay network growth (0-100)
-            float entanglement; // Controls the diffusion and cross-feedback (0-100)
+            float growthRate;               // Controls the delay network growth (0-100)
+            float entanglement;             // Controls the diffusion and cross-feedback (0-100)
+            int   numActiveFilterBands = 4; // Controls the number of filter bands (0-MAX_NUTRIENT_BANDS)
         };
 
         DelayNetwork();
@@ -33,6 +34,7 @@ class DelayNetwork
         // Parameters
         float inGrowthRate = 50.0f;
         float inEntanglement = 50.0f;
+        int   inActiveFilterBands = 4;
 
         // Diffusion control
         DiffusionControl diffusionControl;
@@ -41,9 +43,8 @@ class DelayNetwork
         DelayNodes delayNodes;
 
         // Output buffers
-        static constexpr int maxNutrientBands = 16;
-        std::array<juce::AudioBuffer<float>, maxNutrientBands> diffusionBandBuffers;
-        int activeFilterBands = 4;
+        std::array<float, ParameterRanges::maxNutrientBands>                    diffusionBandFrequencies;
+        std::array<juce::AudioBuffer<float>, ParameterRanges::maxNutrientBands> diffusionBandBuffers;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DelayNetwork)
 };

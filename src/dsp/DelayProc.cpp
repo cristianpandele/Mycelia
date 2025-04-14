@@ -180,7 +180,11 @@ void DelayProc::setParameters (const Parameters& params, bool force)
         }
     }
 
-    // procs.get<diffusionIdx>().setDepth (params.dispAmt, force);
+    Dispersion::Parameters dispParams;
+    dispParams.dispersionAmount = (ParameterRanges::dispRange.snapToLegalValue(params.dispAmt));
+    dispParams.smoothTime = smoothTimeSec;
+    dispParams.allpassFreq = filterFreq;
+    procs.get<dispersionIdx>().setParameters(dispParams, force);
     // procs.get<distortionIdx>().setGain (19.5f * std::pow (params.distortion, 2.0f) + 0.5f);
     // procs.get<pitchIdx>().setPitchSemitones (params.pitchSt, force);
     // procs.get<reverserIdx>().setReverseTime (params.revTimeMs);
