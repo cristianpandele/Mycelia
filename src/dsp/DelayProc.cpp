@@ -16,7 +16,10 @@ void DelayProc::prepare (const juce::dsp::ProcessSpec& spec)
     inFilterFreq.reset(fs, 0.05 * spec.numChannels);
     inFilterGainDb.reset(fs, 0.05 * spec.numChannels);
     inDelayTime.reset(fs, 0.15 * spec.numChannels);
-    state.resize (spec.numChannels, 0.0f);
+    for (auto numCh = 0; numCh < spec.numChannels; ++numCh)
+    {
+        state.push_back (0.0f);
+    }
 
     reset();
 
@@ -29,6 +32,7 @@ void DelayProc::reset()
 {
     // modSine.reset();
     flushDelay();
+    procs.reset();
 }
 
 void DelayProc::flushDelay()

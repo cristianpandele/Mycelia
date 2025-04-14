@@ -23,8 +23,8 @@ class DelayProc
             float feedback;
             float filterFreq;
             float filterGainDb;
-            float distortion;
-            float pitchSt;
+            // float distortion;
+            // float pitchSt;
             float dispAmt;
             float revTimeMs;
             // const AudioProcessorValueTreeState::Parameter* modFreq;
