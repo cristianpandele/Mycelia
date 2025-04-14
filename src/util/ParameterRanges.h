@@ -48,6 +48,9 @@ namespace ParameterRanges
     // Universe Control constants
     static constexpr float minStretch = -80.0f;
     static constexpr float maxStretch = 400.0f;
+    static constexpr float centreStretch = 100.0f;
+    static constexpr float minTempoSync = 0.0f;
+    static constexpr float maxTempoSync = 1.0f;
     static constexpr float minAbundanceScarcity = -1.0f;
     static constexpr float maxAbundanceScarcity = 1.0f;
     static constexpr float minFoldPosition = -1.0f;
@@ -132,6 +135,13 @@ namespace ParameterRanges
             }
     );
 
+    inline const juce::NormalisableRange<float> rangeWithSkewForCentre(float min, float max, float centre)
+    {
+        juce::NormalisableRange<float> range{min, max, 0.01f};
+        range.setSkewForCentre(centre);
+        return range;
+    }
+
     // Tree parameters
     inline const juce::NormalisableRange<float> treeSizeRange(minTreeSize, maxTreeSize, 0.01f);
     inline const juce::NormalisableRange<float> attackTimeRange(minAttackTime, maxAttackTime, 0.01f);   // TODO: this should be a multiplication factor on the tempo
@@ -143,7 +153,7 @@ namespace ParameterRanges
     inline const juce::NormalisableRange<float> treeDensityRange(minTreeDensity, maxTreeDensity, 0.1f);
 
     // Universe controls
-    inline const juce::NormalisableRange<float> stretchRange(minStretch, maxStretch, 0.1f);
+    inline const juce::NormalisableRange<float> stretchRange = rangeWithSkewForCentre(minStretch, maxStretch, centreStretch);
     inline const juce::NormalisableRange<float> abundanceScarcityRange(minAbundanceScarcity, maxAbundanceScarcity, 0.1f);
     inline const juce::NormalisableRange<float> foldPositionRange(minFoldPosition, maxFoldPosition, 0.01f);
     inline const juce::NormalisableRange<float> foldWindowShapeRange(minFoldWindowShape, maxFoldWindowShape, 0.01f);
@@ -155,12 +165,6 @@ namespace ParameterRanges
     inline const juce::NormalisableRange<int>   nutrientBandsRange(minNutrientBands, maxNutrientBands, 1.0f);
 
     // Delay Processor parameters
-    inline const juce::NormalisableRange<float> rangeWithSkewForCentre(float min, float max, float centre)
-    {
-        juce::NormalisableRange<float> range{min, max};
-        range.setSkewForCentre(centre);
-        return range;
-    }
     inline const juce::NormalisableRange<float> delayRange = rangeWithSkewForCentre(minDelayMs, maxDelayMs, centreDelay);
     inline const juce::NormalisableRange<float> panRange{-maxPan, maxPan};
     inline const juce::NormalisableRange<float> fbRange{minFeedback, maxFeedback};
