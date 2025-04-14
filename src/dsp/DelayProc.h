@@ -47,7 +47,7 @@ class DelayProc
         void flushDelay();
 
         void setParameters(const Parameters &params, bool force = false);
-        void updateFilterCoefficients();
+        void updateFilterCoefficients(bool force = false);
 
         // float getModDepth() const noexcept { return 1000.0f * delayModValue / fs; }
 
@@ -55,13 +55,11 @@ class DelayProc
         template <typename SampleType>
         inline SampleType processSample(SampleType x, size_t ch);
 
-        template <typename SampleType>
-        inline SampleType processSampleSmooth(SampleType x, size_t ch);
-
         juce::SharedResourcePointer<DelayStore> delayStore;
         juce::dsp::DelayLine<float, juce::dsp::DelayLineInterpolationTypes::Lagrange3rd> delay;
 
         float fs = 44100.0f;
+        static constexpr float smoothTimeSec = 1.0f;
 
         // Parameters
         juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear> inDelayTime {0.0f};

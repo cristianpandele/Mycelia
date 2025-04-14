@@ -72,33 +72,22 @@ void DelayProc::process (const ProcessContext& context)
         auto* inputSamples = inputBlock.getChannelPointer (channel);
         auto* outputSamples = outputBlock.getChannelPointer (channel);
 
-        // Update delay time
-        delay.setDelay (inDelayTime.getNextValue());
-
         // Check for changes in filter parameters and update if necessary
         auto filterFreqChanged = (std::abs(inFilterFreq.getNextValue() - inFilterFreq.getCurrentValue()) / inFilterFreq.getCurrentValue() > 0.01f);
         auto filterGainChanged = (std::abs(inFilterGainDb.getNextValue() - inFilterGainDb.getCurrentValue()) / inFilterGainDb.getCurrentValue() > 0.01f);
-        if (filterFreqChanged || filterGainChanged)
-        {
-            updateFilterCoefficients();
-        }
 
-        if (inDelayTime.isSmoothing())
+        updateFilterCoefficients();
+
+        for (size_t i = 0; i < numSamples; ++i)
         {
-            for (size_t i = 0; i < numSamples; ++i)
+            // delayModValue = modDepth * modDepthFactor * modSine.processSample();
+            // delayModValue = 0.0f;
+            if (inDelayTime.isSmoothing())
             {
-                // delayModValue = modDepth * modDepthFactor * modSine.processSample();
-                delayModValue = 0.0f;
-                delay.setDelay (juce::jmax (0.0f, inDelayTime.getNextValue() + delayModValue));
-                outputSamples[i] = processSampleSmooth (inputSamples[i], channel);
+                delay.setDelay(juce::jmax(0.0f, inDelayTime.getNextValue() /* + delayModValue */)); // Update delay time
             }
-        }
-        else
-        {
-            // modSine.reset();
-            delayModValue = 0.0f;
-            for (size_t i = 0; i < numSamples; ++i)
-                outputSamples[i] = processSample (inputSamples[i], channel);
+
+            outputSamples[i] = processSample(inputSamples[i], channel);
         }
     }
 
@@ -110,19 +99,9 @@ template <typename SampleType>
 inline SampleType DelayProc::processSample (SampleType x, size_t ch)
 {
     auto input = x;
-    input = procs.processSample (input + state[ch]); // Process input + Feedback state
-    delay.pushSample ((int) ch, input);              // Push input to delay line
-    auto y = delay.popSample ((int) ch);             // Pop output from delay line
-    state[ch] = y * inFeedback.getNextValue();       // Save feedback state
-    return y;
-}
-
-template <typename SampleType>
-inline SampleType DelayProc::processSampleSmooth (SampleType x, size_t ch)
-{
-    auto input = x;
-    input = procs.processSample(input + state[ch]);  // Process input + feedback state
-    delay.setDelay(inDelayTime.getNextValue());      // Update delay time
+    // input = procs.processSample(juce::jlimit(-1.0f, 1.0f, input + state[ch])); // Process input + Feedback state
+    // input = procs.processSample (input + state[ch]); // Process input + Feedback state
+    input = procs.processSample (input);             // Process input
     delay.pushSample ((int) ch, input);              // Push input to delay line
     auto y = delay.popSample ((int) ch);             // Pop output from delay line
     state[ch] = y * inFeedback.getNextValue();       // Save feedback state
@@ -139,8 +118,8 @@ void DelayProc::setParameters (const Parameters& params, bool force)
 
     auto delayChanged = (std::abs(inDelayTime.getTargetValue() - delayVal) / delayVal > 0.01f);
     auto fbChanged = (std::abs(inFeedback.getTargetValue() - fbVal) / fbVal > 0.01f);
-    auto filterFreqChanged = (std::abs(inFilterFreq.getTargetValue() - params.filterFreq) / params.filterFreq > 0.01f);
-    auto filterGainChanged = (std::abs(inFilterGainDb.getTargetValue() - params.filterGainDb) / params.filterGainDb > 0.01f);
+    auto filterFreqChanged = (std::abs(inFilterFreq.getTargetValue() - filterFreq) / filterFreq > 0.01f);
+    auto filterGainChanged = (std::abs(inFilterGainDb.getTargetValue() - filterGainDb) / filterGainDb > 0.01f);
     // modDepth = std::pow (params.modDepth, 2.5f);
     // if (params.lfoSynced)
     //     modSine.setFreqSynced (params.modFreq, params.tempoBPM);
@@ -152,8 +131,8 @@ void DelayProc::setParameters (const Parameters& params, bool force)
     {
         if (delayChanged)
         {
-            inDelayTime.setCurrentAndTargetValue(delayVal);
             delay.setDelay (delayVal);
+            inDelayTime.setCurrentAndTargetValue(delayVal);
         }
         if (fbChanged)
         {
@@ -161,26 +140,40 @@ void DelayProc::setParameters (const Parameters& params, bool force)
         }
         if (filterFreqChanged || filterGainChanged)
         {
-            inFilterFreq.setCurrentAndTargetValue(params.filterFreq);
-            inFilterGainDb.setCurrentAndTargetValue(params.filterGainDb);
-            updateFilterCoefficients();
+            inFilterFreq.setCurrentAndTargetValue(filterFreq);
+            inFilterGainDb.setCurrentAndTargetValue(filterGainDb);
+            updateFilterCoefficients(force);
         }
     }
     else
     {
         if (delayChanged)
         {
+            inDelayTime = juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear>(inDelayTime.getNextValue());
+            inDelayTime.reset(fs, smoothTimeSec);
             inDelayTime.setTargetValue(delayVal);
         }
         if (fbChanged)
         {
+            inFeedback = juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear>(inFeedback.getNextValue());
+            inFeedback.reset(fs, smoothTimeSec);
             inFeedback.setTargetValue(fbVal);
         }
         if (filterFreqChanged || filterGainChanged)
         {
-            inFilterFreq.setTargetValue(params.filterFreq);
-            inFilterGainDb.setTargetValue(params.filterGainDb);
-            updateFilterCoefficients();
+            inFilterFreq = juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear>(inFilterFreq.getNextValue());
+            inFilterFreq.reset(fs, smoothTimeSec);
+            inFilterFreq.setTargetValue(filterFreq);
+            inFilterGainDb = juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear>(inFilterGainDb.getNextValue());
+            inFilterGainDb.reset(fs, smoothTimeSec);
+            inFilterGainDb.setTargetValue(filterGainDb);
+            updateFilterCoefficients(force);
+        }
+        if (growthRateChanged)
+        {
+            inGrowthRate = juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear>(inGrowthRate.getNextValue());
+            inGrowthRate.reset(fs, smoothTimeSec);
+            inGrowthRate.setTargetValue(growthRate);
         }
     }
 
@@ -194,12 +187,21 @@ void DelayProc::setParameters (const Parameters& params, bool force)
     // procs.get<reverserIdx>().setReverseTime (params.revTimeMs);
 }
 
-void DelayProc::updateFilterCoefficients()
+void DelayProc::updateFilterCoefficients(bool force)
 {
+    float filterFreq = inFilterFreq.getNextValue();
+    float filterGain = inFilterGainDb.getNextValue();
+
+    if (force)
+    {
+        filterFreq = inFilterFreq.getTargetValue();
+        filterGain = inFilterGainDb.getTargetValue();
+    }
+
     procs.get<lpfIdx>().coefficients = juce::dsp::IIR::Coefficients<float>::makeLowShelf(
-        fs, inFilterFreq.getNextValue(), 0.4f, juce::Decibels::decibelsToGain(inFilterGainDb.getNextValue() * -1.0f));
+        fs, filterFreq, 0.4f, juce::Decibels::decibelsToGain(filterGain * -1.0f));
     procs.get<hpfIdx>().coefficients = juce::dsp::IIR::Coefficients<float>::makeHighShelf(
-        fs, inFilterFreq.getNextValue(), 0.4f, juce::Decibels::decibelsToGain(inFilterGainDb.getNextValue()));
+        fs, filterFreq, 0.4f, juce::Decibels::decibelsToGain(filterGain));
 }
 
 //==================================================
