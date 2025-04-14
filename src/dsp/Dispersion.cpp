@@ -8,7 +8,7 @@ Dispersion::Dispersion()
 
 void Dispersion::reset()
 {
-    std::fill (z, &z[maxNumStages + 1], 0.0f);
+    std::fill (stageFb, &stageFb[maxNumStages + 1], 0.0f);
 }
 
 float Dispersion::processSample(float x)
@@ -25,19 +25,21 @@ float Dispersion::processSample(float x)
     float stageFrac = numStages - numStagesInt;
     y = stageFrac * processStage(y, numStagesInt) + (1.0f - stageFrac) * y;
 
+    // Save the allpass path output for the next call
+    y1 = y;
+
     // Add the direct path + allpass path
     y = 0.5f * (x + y);
     // Apply the feedback path
     y = y - 0.4f * y1;
-    // Save the last output for the next call
-    y1 = y;
+
     return y;
 }
 
 float Dispersion::processStage(float x, size_t stage)
 {
-    float y = a[1] * x + z[stage];
-    z[stage] = x * a[0] - y * a[1];
+    float y = a[1] * x + stageFb[stage];
+    stageFb[stage] = x * a[0] - y * a[1];
     return y;
 }
 

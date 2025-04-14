@@ -8,6 +8,7 @@
  */
 #include <stddef.h>
 #include <juce_dsp/juce_dsp.h>
+
 class Dispersion
 {
     public:
@@ -25,27 +26,25 @@ class Dispersion
         void reset();
 
         float processSample(float x);
-        float processStage(float x, size_t stage);
         void  setParameters(const Parameters &params, bool force);
 
     private:
         void updateFilterCoefficients(bool force = false);
+        float processStage(float x, size_t stage);
 
+        // Parameters
         float inSmoothTime = 1000.f;
         juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear> inDispersionAmount = 0.0f;
         juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear> inAllpassFreq = 800.0f;
 
         static constexpr size_t maxNumStages = 100;
 
-        float a[2] = { 1.0f, 0.9f };
-        // float b[2] = { 1.0f, 0.0f };
-        float z[maxNumStages + 1];
-        float y1 = 0.0f;
+        float fs   = 44100.0f;
+        float a[2] = { 0.0f};
+        float y1   = 0.0f;
+        float stageFb[maxNumStages + 1];
 
         juce::dsp::IIR::Filter<float> allPassFilter;
-
-        float fs = 44100.0f;
-
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Dispersion)
 };
