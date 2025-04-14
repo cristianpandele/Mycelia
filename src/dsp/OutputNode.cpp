@@ -70,7 +70,7 @@ void OutputNode::process(const ProcessContext &dryContext, const ProcessContext 
 
 void OutputNode::setParameters(const Parameters &params)
 {
-    inDryWetMixLevel = ParameterRanges::normalizeParameter(ParameterRanges::dryWet, params.dryWetMixLevel);
+    inDryWetMixLevel = ParameterRanges::normalizeParameter(ParameterRanges::dryWetRange, params.dryWetMixLevel);
     // Set the gain for the wet and dry signals (linear gain)
     wetGain.setGainLinear(inDryWetMixLevel);
     dryGain.setGainLinear(1.0f - inDryWetMixLevel);

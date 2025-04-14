@@ -128,8 +128,10 @@ inline SampleType DelayProc::processSampleSmooth (SampleType x, size_t ch)
 void DelayProc::setParameters (const Parameters& params, bool force)
 {
     auto delayVal = (ParameterRanges::delayRange.snapToLegalValue(params.delayMs) / 1000.0f) * fs;
-    auto fbVal = params.feedback >= ParameterRanges::fbRange.end ? 1.0f
-                                                                 : std::pow(juce::jmin(params.feedback, 0.95f), 0.9f);
+    auto fbVal    = params.feedback >= ParameterRanges::fbRange.end ? 1.0f
+                                                                    : std::pow(juce::jmin(params.feedback, 0.95f), 0.9f);
+    auto filterFreq   = (ParameterRanges::filterFreqRange.snapToLegalValue(params.filterFreq));
+    auto filterGainDb = (ParameterRanges::filterGainRangeDb.snapToLegalValue(params.filterGainDb));
 
     auto delayChanged = (std::abs(inDelayTime.getTargetValue() - delayVal) / delayVal > 0.01f);
     auto fbChanged = (std::abs(inFeedback.getTargetValue() - fbVal) / fbVal > 0.01f);

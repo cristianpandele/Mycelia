@@ -97,11 +97,12 @@ void DelayNetwork::process(const ProcessContext &context)
 
 void DelayNetwork::setParameters(const Parameters &params)
 {
-    inGrowthRate = params.growthRate;
-    inEntanglement = params.entanglement;
+    inGrowthRate = ParameterRanges::growthRateRange.snapToLegalValue(params.growthRate);
+    inEntanglement = ParameterRanges::entanglementRange.snapToLegalValue(params.entanglement);
+    inActiveFilterBands = ParameterRanges::nutrientBandsRange.snapToLegalValue(params.numActiveFilterBands);
 
     // Update diffusion control parameters
-    diffusionControl.setParameters(DiffusionControl::Parameters{.numActiveBands = activeFilterBands});
+    diffusionControl.setParameters(DiffusionControl::Parameters{.numActiveBands = inActiveFilterBands});
 
     // Update delay nodes parameters
     delayNodes.setParameters(DelayNodes::Parameters{.growthRate = inGrowthRate,

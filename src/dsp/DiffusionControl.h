@@ -1,6 +1,7 @@
 #include <juce_dsp/juce_dsp.h>
 #include "sst/filters.h"
 #include "sst/filters/FilterCoefficientMaker_Impl.h"
+#include "util/ParameterRanges.h"
 
 class DiffusionControl
 {
@@ -31,12 +32,16 @@ class DiffusionControl
         int inNumActiveBands = 4;
         double fs = 44100.0;
 
+        static constexpr double minFreq = 250.0;
+        static constexpr double maxFreq = 3000.0;
+
         // Filter bank implementation
-        std::array<sst::filters::FilterCoefficientMaker<>, DiffusionControl::maxNutrientBands> coeffMaker;
-        std::array<sst::filters::QuadFilterUnitState, DiffusionControl::maxNutrientBands> filterState;
-        std::array<sst::filters::FilterUnitQFPtr, DiffusionControl::maxNutrientBands> filters;
-        std::array<float, DiffusionControl::maxNutrientBands> bandFrequencies;
+        std::array<sst::filters::FilterCoefficientMaker<>, ParameterRanges::maxNutrientBands> coeffMaker;
+        std::array<sst::filters::QuadFilterUnitState, ParameterRanges::maxNutrientBands> filterState;
+        std::array<sst::filters::FilterUnitQFPtr, ParameterRanges::maxNutrientBands> filters;
+        std::array<float, ParameterRanges::maxNutrientBands> bandFrequencies;
         void prepareCoefficients();
+        void updateBandFrequencies(double minFreq, double maxFreq, int numBands);
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DiffusionControl)
 };

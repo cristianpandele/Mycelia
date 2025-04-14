@@ -75,11 +75,11 @@ void EdgeTree::setParameters(const Parameters &params)
     if (std::abs(inTreeSize - params.treeSize) / params.treeSize > 0.01f)
     {
         // Set tree size
-        inTreeSize = ParameterRanges::treeSize.snapToLegalValue(params.treeSize);
+        inTreeSize = ParameterRanges::treeSizeRange.snapToLegalValue(params.treeSize);
 
-        auto temp = ParameterRanges::normalizeParameter(ParameterRanges::treeSize, inTreeSize);
-        attackMs  = ParameterRanges::denormalizeParameter(ParameterRanges::attackTime, temp);
-        releaseMs = ParameterRanges::denormalizeParameter(ParameterRanges::releaseTime, temp);
+        auto temp = ParameterRanges::normalizeParameter(ParameterRanges::treeSizeRange, inTreeSize);
+        attackMs  = ParameterRanges::denormalizeParameter(ParameterRanges::attackTimeRange, temp);
+        releaseMs = ParameterRanges::denormalizeParameter(ParameterRanges::releaseTimeRange, temp);
 
         envelopeFollower->setAttackTime(attackMs);
         envelopeFollower->setReleaseTime(releaseMs);

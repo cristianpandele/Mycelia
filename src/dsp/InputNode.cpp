@@ -80,23 +80,23 @@ void InputNode::process(const ProcessContext &context)
 void InputNode::setParameters(const Parameters &params)
 {
     // Set gain level
-    inGainLevel = ParameterRanges::preampLevel.snapToLegalValue(params.gainLevel);
+    inGainLevel = ParameterRanges::preampLevelRange.snapToLegalValue(params.gainLevel);
     gain.setGainLinear(inGainLevel/100.f);
 
     // Set waveshaper parameters
-    if (params.gainLevel < ParameterRanges::preampOverdrive.start)
+    if (params.gainLevel < ParameterRanges::preampOverdriveRange.start)
     {
-        waveshaperDrive = ParameterRanges::waveshaperGain.start;
+        waveshaperDrive = ParameterRanges::waveshaperGainRange.start;
     }
     else
     {
-        auto normValue = ParameterRanges::normalizeParameter(ParameterRanges::preampOverdrive, params.gainLevel);
-        waveshaperDrive = ParameterRanges::denormalizeParameter(ParameterRanges::waveshaperGain, normValue);
+        auto normValue = ParameterRanges::normalizeParameter(ParameterRanges::preampOverdriveRange, params.gainLevel);
+        waveshaperDrive = ParameterRanges::denormalizeParameter(ParameterRanges::waveshaperGainRange, normValue);
     }
     waveShaper->setFloatParam((int)MyShaperType::WaveShaperFloatParams::drive, waveshaperDrive);
 
     // Set reverb mix level
-    inReverbMix = ParameterRanges::reverbMix.snapToLegalValue(params.reverbMix);
+    inReverbMix = ParameterRanges::reverbMixRange.snapToLegalValue(params.reverbMix);
     // TODO: mix in reverb signal here
 
     // Handle bandpass parameters - only update if changed to avoid unnecessary recalculations
@@ -104,13 +104,13 @@ void InputNode::setParameters(const Parameters &params)
 
     if (std::abs(inBandpassFreq - params.bandpassFreq) / params.bandpassFreq > 0.01f)
     {
-        inBandpassFreq = ParameterRanges::bandpassFrequency.snapToLegalValue(params.bandpassFreq);
+        inBandpassFreq = ParameterRanges::bandpassFrequencyRange.snapToLegalValue(params.bandpassFreq);
         filterChanged = true;
     }
 
     if (std::abs(inBandpassWidth - params.bandpassWidth) / params.bandpassWidth > 0.01f)
     {
-        inBandpassWidth = ParameterRanges::bandpassWidth.snapToLegalValue(params.bandpassWidth);
+        inBandpassWidth = ParameterRanges::bandpassWidthRange.snapToLegalValue(params.bandpassWidth);
         filterChanged = true;
     }
 
@@ -123,9 +123,9 @@ void InputNode::setParameters(const Parameters &params)
 void InputNode::updateFilterCoefficients()
 {
     waveshaperLowpass = std::min(inBandpassFreq + inBandpassWidth * 0.5f,
-                                 ParameterRanges::bandpassFrequency.end);
+                                 ParameterRanges::bandpassFrequencyRange.end);
     waveshaperHighpass = std::max(inBandpassFreq - inBandpassWidth * 0.5f,
-                                  ParameterRanges::bandpassFrequency.start);
+                                  ParameterRanges::bandpassFrequencyRange.start);
 
     // Set the low pass and high pass filter coefficients with respect to A4 (MIDI note 69)
     float lowpassPitch = std::round(std::log2(waveshaperLowpass / 440.0f) * 12.0f) - 69;
