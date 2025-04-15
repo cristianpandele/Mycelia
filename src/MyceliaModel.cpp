@@ -103,8 +103,42 @@ juce::AudioProcessorValueTreeState::ParameterLayout MyceliaModel::createParamete
         std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::treeDensity, 1), "Density", ParameterRanges::treeDensityRange, 50.0f));
     //
     auto universeCtrls = std::make_unique<juce::AudioProcessorParameterGroup>("Universe Controls", juce::translate("Universe Controls"), "|");
+
+    // Create the stretch parameter with a custom value string function
+    auto stretchParamLabel = std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID(IDs::stretch, 1),
+        "Stretch",
+        ParameterRanges::stretchRange,
+        1.0f,
+        "x",
+        juce::AudioProcessorParameter::genericParameter,
+        // Custom string function to display musical divisions for negative values
+        // and limit decimal places for all values
+        [](float value, int) {
+            // For negative values (quantized musical intervals), show the rhythm label
+            if (value < 0.0f) {
+                float absValue = std::abs(value);
+
+                // Find the rhythm with the closest tempo factor
+                for (const auto& rhythm : TempoSyncUtils::rhythms) {
+                    if (std::abs(static_cast<float>(rhythm.tempoFactor) - absValue) < 0.01f) {
+                        return rhythm.getLabel();
+                    }
+                }
+
+                // If no match found (unlikely), display the value with 1 decimal place
+                return juce::String(value, 1);
+            }
+            // For positive values (continuous stretch), show with 2 decimal places
+            else {
+                return juce::String(value, 2);
+            }
+        }
+    );
+
     universeCtrls->addChild(
-        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::stretch, 1), "Stretch", ParameterRanges::stretchRange, 100.0f),
+        std::move(stretchParamLabel),
+        std::make_unique<juce::AudioParameterBool>(juce::ParameterID(IDs::tempoSync, 1), "Tempo Sync", false),
         std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::abundanceScarcity, 1), "Abundance/Scarcity", ParameterRanges::abundanceScarcityRange, 0.0f),
         std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::foldPosition, 1), "Fold Position", ParameterRanges::foldPositionRange, 0.0f),
         std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::foldWindowShape, 1), "Fold Window Shape", ParameterRanges::foldWindowShapeRange, 0.0f),

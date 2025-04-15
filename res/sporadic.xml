@@ -96,17 +96,13 @@
       <View caption="Universe Controls" padding="1" border="2" pos-y="" pos-width="20%"
             pos-x="40%" border-color="FFC877D1" display="contents">
         <Slider caption="Stretch" parameter="stretch" slider-type="rotary" pos-width="50%"
-                pos-height="80%" slider-textbox="textbox-below" flex-align-self="stretch"
-                pos-x="0%" pos-y="5%" suffix="%"/>
-        <ToggleButton text="BPM Sync" button-radio-group="4" parameter="stretch" button-radio-value="0"
-                      pos-x="0%" pos-y="80%" pos-width="50%" pos-height="20%" caption="Tempo Sync"
-                      caption-size="0" flex-align-self="center"/>
+                pos-height="80%" slider-textbox="textbox-below" flex-align-self="stretch" 
+                pos-x="0%" pos-y="5%" suffix="x"/>
         <Slider caption="Scarcity/Abundance" parameter="abundancescarcity" slider-type="rotary"
                 pos-width="50%" pos-height="80%" pos-x="50%%" pos-y="5%"/>
-        <ToggleButton text="Override" button-radio-group="5" parameter="abundancescarcity"
-                      button-radio-value="0" caption="Override" caption-size="0" pos-x="50%"
-                      pos-width="50%" pos-y="80%" pos-height="20%" flex-align-self="center"
-                      min-width="0.0" min-height="0.0"/>
+        <ToggleButton text="Override" parameter="abundancescarcityoverride" caption="Override"
+                      caption-size="0" pos-x="50%" pos-width="50%" pos-y="80%" pos-height="20%"
+                      flex-align-self="center" min-width="0.0" min-height="0.0"/>
       </View>
       <View caption="Mycelia" padding="1" border="2" pos-y="" pos-width="20%"
             border-color="FFA5680E" pos-x="60%" display="contents" flex-align-self="center">
@@ -130,4 +126,3 @@
     </View>
   </View>
 </magic>
- 

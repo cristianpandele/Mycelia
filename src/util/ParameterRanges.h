@@ -1,6 +1,7 @@
 #pragma once
 
 #include <juce_dsp/juce_dsp.h>
+#include "dsp/TempoSyncUtils.h"
 
 // Functions to convert between 0-1 and the actual range for ranges that are inverted
 static constexpr auto invertedConvertFrom0To1Func = [](float start, float end, float value)
@@ -46,9 +47,9 @@ namespace ParameterRanges
     static constexpr float minTreeDensity = 0.0f;
     static constexpr float maxTreeDensity = 100.0f;
     // Universe Control constants
-    static constexpr float minStretch = -80.0f;
-    static constexpr float maxStretch = 400.0f;
-    static constexpr float centreStretch = 100.0f;
+    static constexpr float minStretch = -4.0f;
+    static constexpr float maxStretch = 16.0f;
+    static constexpr float centreStretch = 0.25f;
     static constexpr float minTempoSync = 0.0f;
     static constexpr float maxTempoSync = 1.0f;
     static constexpr float minAbundanceScarcity = -1.0f;
@@ -152,8 +153,100 @@ namespace ParameterRanges
                                                                  invertedSnapToLegalValueFunction);
     inline const juce::NormalisableRange<float> treeDensityRange(minTreeDensity, maxTreeDensity, 0.1f);
 
+    // Helper functions for quantized stretch values
+    inline float getQuantizedStretchValue(float normalizedValue)
+    {
+        // This function handles the bottom half of the dial (0.0 - 0.5 normalized)
+        // Maps to quantized musical intervals as negative values
+
+        // Scale the 0.0-0.5 range to 0.0-1.0 to use with TempoSyncUtils
+        float tempoParam = 1.0f - (normalizedValue * 2.0f);
+
+        // Get the corresponding rhythm from TempoSyncUtils
+        const auto& rhythm = TempoSyncUtils::getRhythmForParam(tempoParam);
+
+        // Convert the rhythm's tempo factor to our stretch scale but make it negative
+        // Tempo factors in TempoSyncUtils range from 0.125 (1/32) to 8.0 (2/1)
+        return -static_cast<float>(rhythm.tempoFactor);
+    }
+
     // Universe controls
-    inline const juce::NormalisableRange<float> stretchRange = rangeWithSkewForCentre(minStretch, maxStretch, centreStretch);
+    inline const juce::NormalisableRange<float> stretchRange(minStretch, maxStretch,
+        // Convert from normalized 0-1 to actual value
+        [](float start, float end, float normalised) {
+            if (normalised > 0.5f) {
+                // Top half: continuous values from center to max
+                // Map 0.5-1.0 to center-max
+                float scaledNormalized = (normalised - 0.5f) * 2.0f;
+                return centreStretch + scaledNormalized * (end - centreStretch);
+            } else {
+                // Bottom half: quantized musical values as negative values
+                return getQuantizedStretchValue(normalised);
+            }
+        },
+        // Convert from actual value to normalized 0-1
+        [](float start, float end, float value) {
+            if (value >= centreStretch) {
+                // Values above center: map center-max to 0.5-1.0
+                return 0.5f + 0.5f * (value - centreStretch) / (end - centreStretch);
+            } else {
+                // For negative values, find the closest rhythm in our array
+                float absValue = std::abs(value);
+
+                // Find the rhythm with the closest tempo factor to our value
+                size_t closestIndex = 0;
+                float closestDiff = std::numeric_limits<float>::max();
+
+                for (size_t i = 0; i < TempoSyncUtils::rhythms.size(); ++i) {
+                    float diff = std::abs(static_cast<float>(TempoSyncUtils::rhythms[i].tempoFactor) - absValue);
+                    if (diff < closestDiff) {
+                        closestDiff = diff;
+                        closestIndex = i;
+                    }
+                }
+
+                // Inverting the formula from getRhythmForParam:
+                // idx = (rhythms.size() - 1) * std::pow(param01, 1.5f)
+                // param01 = std::pow(idx / (rhythms.size() - 1), 1.0f/1.5f)
+                float param01 = std::pow(static_cast<float>(closestIndex) /
+                                         static_cast<float>(TempoSyncUtils::rhythms.size() - 1),
+                                         1.0f / 1.5f);
+
+                return param01 * 0.5f; // Scale to 0-0.5 range
+            }
+        },
+        // Snap to legal value function
+        [](float start, float end, float value) {
+            // Always snap to exact quantized values in bottom half (negative values)
+            if (value < centreStretch) {
+                // Find the closest quantized musical interval
+                for (const auto& rhythm : TempoSyncUtils::rhythms) {
+                    if (std::abs(static_cast<float>(-rhythm.tempoFactor) - value) < 0.01f)
+                        return static_cast<float>(-rhythm.tempoFactor);
+                }
+
+                // If no close match, find closest rhythm
+                float closestDiff = std::numeric_limits<float>::max();
+                float closestValue = centreStretch;
+
+                for (const auto& rhythm : TempoSyncUtils::rhythms) {
+                    float rhythmValue = static_cast<float>(-rhythm.tempoFactor);
+                    float diff = std::abs(rhythmValue - value);
+                    if (diff < closestDiff) {
+                        closestDiff = diff;
+                        closestValue = rhythmValue;
+                    }
+                }
+
+                return closestValue;
+            }
+
+            // Top half is continuous, just constrain to range
+            return juce::jlimit(centreStretch, end, value);
+        }
+    );
+
+    inline const juce::NormalisableRange<float> tempoSyncRange(minTempoSync, maxTempoSync, 1.0f);
     inline const juce::NormalisableRange<float> abundanceScarcityRange(minAbundanceScarcity, maxAbundanceScarcity, 0.1f);
     inline const juce::NormalisableRange<float> foldPositionRange(minFoldPosition, maxFoldPosition, 0.01f);
     inline const juce::NormalisableRange<float> foldWindowShapeRange(minFoldWindowShape, maxFoldWindowShape, 0.01f);
