@@ -93,9 +93,36 @@ juce::AudioProcessorValueTreeState::ParameterLayout MyceliaModel::createParamete
         std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::reverbMix, 1), "Reverb Mix", ParameterRanges::reverbMixRange, 0.0f));
     //
     auto inputSculpt = std::make_unique<juce::AudioProcessorParameterGroup>("Input Sculpt", juce::translate("Input Sculpt"), "|");
+
+    auto bandpassFreqLabel = std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID(IDs::bandpassFreq, 1),
+        "Freq",
+        ParameterRanges::bandpassFrequencyRange,
+        ParameterRanges::defaultBandpassFrequency,
+        "Hz",
+        juce::AudioProcessorParameter::genericParameter,
+        // Custom string function to limit decimal places for all values
+        [](float value, int)
+        {
+            return juce::String(value, 2);
+        });
+
+    auto bandpassWidthLabel = std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID(IDs::bandpassWidth, 1),
+        "Width",
+        ParameterRanges::bandpassWidthRange,
+        ParameterRanges::defaultBandpassWidth,
+        "Hz",
+        juce::AudioProcessorParameter::genericParameter,
+        // Custom string function to limit decimal places for all values
+        [](float value, int)
+        {
+            return juce::String(value, 2);
+        });
+
     inputSculpt->addChild(
-        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::bandpassFreq, 1), "Freq", ParameterRanges::bandpassFrequencyRange, 4000.0f),
-        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::bandpassWidth, 1), "Width", ParameterRanges::bandpassWidthRange, 0.5f));
+        std::move(bandpassFreqLabel),
+        std::move(bandpassWidthLabel));
     //
     auto trees = std::make_unique<juce::AudioProcessorParameterGroup>("Trees", juce::translate("Trees"), "|");
     trees->addChild(

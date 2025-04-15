@@ -35,8 +35,10 @@ namespace ParameterRanges
     static constexpr float maxReverbMix = 100.0f;
     static constexpr float minBandpassFrequency = 20.0f;
     static constexpr float maxBandpassFrequency = 20000.0f;
-    static constexpr float minBandpassWidth = 100.0f;
-    static constexpr float maxBandpassWidth = 20000.0f;
+    static constexpr float defaultBandpassFrequency = 4000.0f;
+    static constexpr float minBandpassWidth = 200.0f;
+    static constexpr float maxBandpassWidth = 10000.0f;
+    static constexpr float defaultBandpassWidth = 1000.0f;
     // Tree Processor constants
     static constexpr float minTreeSize = 0.2f;
     static constexpr float maxTreeSize = 1.8f;
