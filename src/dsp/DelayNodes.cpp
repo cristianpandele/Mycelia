@@ -90,11 +90,12 @@ void DelayNodes::updateDelayProcParams()
 
 void DelayNodes::setParameters(const Parameters &params)
 {
-    inGrowthRate = params.growthRate;
-    inEntanglement = params.entanglement;
     inNumColonies = params.numColonies;
     inBandFrequencies = params.bandFrequencies;
     inStretch = params.stretch;
+    inScarcityAbundance = params.scarcityAbundance;
+    inGrowthRate = params.growthRate;
+    inEntanglement = params.entanglement;
 
     updateDelayProcParams();
 }

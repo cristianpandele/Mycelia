@@ -11,10 +11,13 @@ class DelayNetwork
         // Parameters
         struct Parameters
         {
-            float growthRate;               // Controls the delay network growth (0-100)
-            float entanglement;             // Controls the diffusion and cross-feedback (0-100)
-            int   numActiveFilterBands = 4; // Controls the number of filter bands (0-MAX_NUTRIENT_BANDS)
-            float stretch;                  // Controls the stretch of the delay network (0-100)
+            int   numActiveFilterBands = 4;  // Controls the number of filter bands (0-MAX_NUTRIENT_BANDS)
+            float stretch;                   // Controls the stretch of the delay network (0-100)
+            bool  tempoSync;                 // Controls the tempo sync of the delay network (true/false)
+            float scarcityAbundance;         // Controls the Scarcity/Abundance of the delay network (-1-1)
+            float scarcityAbundanceOverride; // Controls the Scarcity/Abundance override (0-1)
+            float entanglement;              // Controls the diffusion and cross-feedback (0-100)
+            float growthRate;                // Controls the delay network growth (0-100)
         };
 
         DelayNetwork();
@@ -33,10 +36,13 @@ class DelayNetwork
         float fs = 44100.0f;
 
         // Parameters
-        float inGrowthRate = 50.0f;
-        float inEntanglement = 50.0f;
         int   inActiveFilterBands = 4;
         float inStretch = 0.0f;
+        bool  inTempoSync = false;
+        float inScarcityAbundance = 0.0f;
+        float inScarcityAbundanceOverride = 0.0f;
+        float inEntanglement = 50.0f;
+        float inGrowthRate = 50.0f;
 
         // Diffusion control
         DiffusionControl diffusionControl;

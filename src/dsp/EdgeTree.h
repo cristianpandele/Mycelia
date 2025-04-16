@@ -17,6 +17,7 @@ class EdgeTree
         struct Parameters
         {
             float treeSize;         // Size of the tree (0.2 to 1.8)
+            float treeDensity;      // Density of the trees (0.0 to 100.0)
         };
 
         void prepare(const juce::dsp::ProcessSpec &spec);

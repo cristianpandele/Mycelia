@@ -29,11 +29,17 @@ void DelayNetwork::prepare(const juce::dsp::ProcessSpec &spec)
     // Initialize default parameters
     diffusionControl.setParameters(DiffusionControl::Parameters{.numActiveBands = inActiveFilterBands});
 
+    // Get band frequencies from the diffusion control
+    auto dataPtr = diffusionBandFrequencies.data();
+    diffusionControl.getBandFrequencies(dataPtr, &inActiveFilterBands);
+
     // Initialize delay nodes with default parameters
-    delayNodes.setParameters(DelayNodes::Parameters{.growthRate = inGrowthRate,
-                                                    .entanglement = inEntanglement,
-                                                    .numColonies = inActiveFilterBands,
-                                                    .stretch = inStretch});
+    delayNodes.setParameters(DelayNodes::Parameters{.numColonies = inActiveFilterBands,
+                                                    .bandFrequencies = std::vector<float>(dataPtr, dataPtr + inActiveFilterBands),
+                                                    .stretch = inStretch,
+                                                    .scarcityAbundance = inScarcityAbundance,
+                                                    .growthRate = inGrowthRate,
+                                                    .entanglement = inEntanglement});
 }
 
 void DelayNetwork::reset()
@@ -98,10 +104,14 @@ void DelayNetwork::process(const ProcessContext &context)
 
 void DelayNetwork::setParameters(const Parameters &params)
 {
-    inGrowthRate = ParameterRanges::growthRateRange.snapToLegalValue(params.growthRate);
-    inEntanglement = ParameterRanges::entanglementRange.snapToLegalValue(params.entanglement);
     inActiveFilterBands = ParameterRanges::nutrientBandsRange.snapToLegalValue(params.numActiveFilterBands);
     inStretch = ParameterRanges::stretchRange.snapToLegalValue(params.stretch);
+    inTempoSync = params.tempoSync;
+    inScarcityAbundance = ParameterRanges::scarcityAbundanceRange.snapToLegalValue(params.scarcityAbundance);
+    inScarcityAbundanceOverride = ParameterRanges::scarcityAbundanceRange.snapToLegalValue(params.scarcityAbundanceOverride);
+    inEntanglement = ParameterRanges::entanglementRange.snapToLegalValue(params.entanglement);
+    inGrowthRate = ParameterRanges::growthRateRange.snapToLegalValue(params.growthRate);
+
     // Update diffusion control parameters
     diffusionControl.setParameters(DiffusionControl::Parameters{.numActiveBands = inActiveFilterBands});
     // Get band frequencies from the diffusion control

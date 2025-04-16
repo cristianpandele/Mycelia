@@ -241,9 +241,19 @@ void MyceliaModel::parameterChanged(const juce::String &parameterID, float newVa
         edgeTree.setParameters(currentEdgeTreeParams);
     }
     //
+    else if (parameterID == IDs::treeDensity)
+    {
+        currentEdgeTreeParams.treeDensity = newValue;
+        edgeTree.setParameters(currentEdgeTreeParams);
+    }
     else if (parameterID == IDs::stretch)
     {
         currentDelayNetworkParams.stretch = newValue;
+        delayNetwork.setParameters(currentDelayNetworkParams);
+    }
+    else if (parameterID == IDs::tempoSync)
+    {
+        currentDelayNetworkParams.tempoSync = (newValue > 0.5f);
         delayNetwork.setParameters(currentDelayNetworkParams);
     }
     else if (parameterID == IDs::entanglement)
