@@ -76,11 +76,12 @@
             flex-grow="1.0" flex-shrink="1.0" pos-width="20%" pos-x="0%">
         <Slider caption="Freq" parameter="bandpassfreq" slider-type="rotary"
                 flex-align-self="stretch" lookAndFeel="FoleysFinest" flex-grow="1.0"
-                flex-shrink="1.0" pos-x="0%" pos-width="50%" pos-y="5%" pos-height="80%"/>
+                flex-shrink="1.0" pos-x="0%" pos-width="50%" pos-y="5%" pos-height="80%"
+                suffix=" Hz"/>
         <Slider caption="Width" parameter="bandpasswidth" lookAndFeel="FoleysFinest"
                 slider-type="rotary" caption-placement="centred-top" slider-textbox="textbox-below"
                 flex-align-self="stretch" flex-grow="1.0" flex-shrink="1.0" pos-x="50%"
-                pos-width="50%" pos-y="5%" pos-height="80%"/>
+                pos-width="50%" pos-y="5%" pos-height="80%" suffix=" Hz"/>
       </View>
       <View padding="1" border="2" caption="Trees" flex-align-content="center"
             display="contents" flex-align-self="center" border-color="FF48D067"
@@ -96,8 +97,8 @@
       <View caption="Universe Controls" padding="1" border="2" pos-y="" pos-width="20%"
             pos-x="40%" border-color="FFC877D1" display="contents">
         <Slider caption="Stretch" parameter="stretch" slider-type="rotary" pos-width="50%"
-                pos-height="80%" slider-textbox="textbox-below" flex-align-self="stretch" 
-                pos-x="0%" pos-y="5%" suffix="x"/>
+                pos-height="80%" slider-textbox="textbox-below" flex-align-self="stretch"
+                pos-x="0%" pos-y="5%" suffix=" x"/>
         <Slider caption="Scarcity/Abundance" parameter="abundancescarcity" slider-type="rotary"
                 pos-width="50%" pos-height="80%" pos-x="50%%" pos-y="5%"/>
         <ToggleButton text="Override" parameter="abundancescarcityoverride" caption="Override"
