@@ -5,6 +5,7 @@
 #include "util/ProcessorChain.h"
 #include "DelayStore.h"
 #include "Dispersion.h"
+#include "EnvelopeFollower.h"
 // #include "PitchShiftWrapper.h"
 // #include "Reverser.h"
 // #include "TempoSyncUtils.h"
@@ -32,6 +33,8 @@ class DelayProc
             float tempoBPM;
             bool lfoSynced;
             juce::AudioPlayHead *playhead;
+            float envelopeAttackMs = 20.0f;    // Attack time for envelope follower
+            float envelopeReleaseMs = 100.0f;  // Release time for envelope follower
         };
 
         DelayProc();
@@ -49,7 +52,7 @@ class DelayProc
         void setParameters(const Parameters &params, bool force = false);
         void updateFilterCoefficients(bool force = false);
 
-        // float getModDepth() const noexcept { return 1000.0f * delayModValue / fs; }
+        float getInputLevel() const { return inputLevel; }
 
     private:
         template <typename SampleType>
@@ -67,6 +70,12 @@ class DelayProc
         juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear> inFilterFreq {0.0f};
         juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear> inFilterGainDb {0.0f};
         std::vector<float> state;
+
+        // Envelope follower for input signal
+        EnvelopeFollower envelopeFollower;
+        float inputLevel = 0.0f;
+        float envelopeAttackMs = 20.0f;
+        float envelopeReleaseMs = 100.0f;
 
         enum
         {

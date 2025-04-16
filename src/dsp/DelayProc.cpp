@@ -21,6 +21,13 @@ void DelayProc::prepare (const juce::dsp::ProcessSpec& spec)
         state.push_back (0.0f);
     }
 
+    // Prepare envelope follower
+    envelopeFollower.prepare(spec);
+    EnvelopeFollower::Parameters envParams;
+    envParams.attackMs = envelopeAttackMs;
+    envParams.releaseMs = envelopeReleaseMs;
+    envelopeFollower.setParameters(envParams, true);
+
     reset();
 
     procs.prepare (spec);
@@ -33,6 +40,8 @@ void DelayProc::reset()
     // modSine.reset();
     flushDelay();
     procs.reset();
+    envelopeFollower.reset();
+    inputLevel = 0.0f;
 }
 
 void DelayProc::flushDelay()
@@ -53,6 +62,10 @@ void DelayProc::process (const ProcessContext& context)
 
     jassert(inputBlock.getNumChannels() == numChannels);
     jassert(inputBlock.getNumSamples() == numSamples);
+
+    // Process the input with the envelope follower
+    envelopeFollower.process(context);
+    inputLevel = envelopeFollower.getAverageLevel();
 
     // Copy input to output if non-replacing
     if (context.usesSeparateInputAndOutputBlocks())
@@ -120,6 +133,10 @@ void DelayProc::setParameters (const Parameters& params, bool force)
     auto fbChanged = (std::abs(inFeedback.getTargetValue() - fbVal) / fbVal > 0.01f);
     auto filterFreqChanged = (std::abs(inFilterFreq.getTargetValue() - filterFreq) / filterFreq > 0.01f);
     auto filterGainChanged = (std::abs(inFilterGainDb.getTargetValue() - filterGainDb) / filterGainDb > 0.01f);
+
+    auto envAttackChanged = (std::abs(envelopeAttackMs - params.envelopeAttackMs) / params.envelopeAttackMs > 0.01f);
+    auto envReleaseChanged = (std::abs(envelopeReleaseMs - params.envelopeReleaseMs) / params.envelopeReleaseMs > 0.01f);
+
     // modDepth = std::pow (params.modDepth, 2.5f);
     // if (params.lfoSynced)
     //     modSine.setFreqSynced (params.modFreq, params.tempoBPM);
@@ -175,6 +192,18 @@ void DelayProc::setParameters (const Parameters& params, bool force)
             inGrowthRate.reset(fs, smoothTimeSec);
             inGrowthRate.setTargetValue(growthRate);
         }
+    }
+
+    // Update envelope follower parameters
+    if (envAttackChanged || envReleaseChanged || force)
+    {
+        envelopeAttackMs = params.envelopeAttackMs;
+        envelopeReleaseMs = params.envelopeReleaseMs;
+
+        EnvelopeFollower::Parameters envParams;
+        envParams.attackMs = envelopeAttackMs;
+        envParams.releaseMs = envelopeReleaseMs;
+        envelopeFollower.setParameters(envParams, force);
     }
 
     Dispersion::Parameters dispParams;

@@ -3,7 +3,6 @@
 
 EdgeTree::EdgeTree()
 {
-    envelopeFollower = std::make_unique<juce::dsp::BallisticsFilter<float>>();
 }
 
 EdgeTree::~EdgeTree()
@@ -12,10 +11,14 @@ EdgeTree::~EdgeTree()
 
 void EdgeTree::prepare(const juce::dsp::ProcessSpec &spec)
 {
-    envelopeFollower->prepare(spec);
-    envelopeFollower->setLevelCalculationType(juce::dsp::BallisticsFilterLevelCalculationType::RMS);
-    envelopeFollower->setAttackTime(attackMs);
-    envelopeFollower->setReleaseTime(releaseMs);
+    // Set up the envelope follower with our parameters
+    EnvelopeFollower::Parameters params;
+    params.attackMs = attackMs;
+    params.releaseMs = releaseMs;
+    params.levelType = juce::dsp::BallisticsFilterLevelCalculationType::RMS;
+
+    envelopeFollower.prepare(spec);
+    envelopeFollower.setParameters(params);
 }
 
 template <typename ProcessContext>
@@ -52,21 +55,30 @@ void EdgeTree::process(const ProcessContext &context)
         dryBuffer.copyFrom(channel, 0, inputBlock.getChannelPointer(channel), numSamples);
     }
 
-    // Create an audio block for the analysis buffer
+    // Context for the envelope follower
     juce::dsp::AudioBlock<float> analyzeBlock(dryBuffer);
     juce::dsp::ProcessContextReplacing<float> analyzeContext(analyzeBlock);
 
-    // Process the envelope follower
-    envelopeFollower->process(analyzeContext);
+    // Process the analysis context using the EnvelopeFollower
+    envelopeFollower.process(analyzeContext);
+
     // Normalize the envelope output
-    analyzeBlock.multiplyBy(8.0f);
+    for (size_t channel = 0; channel < numChannels; ++channel)
+    {
+        auto* buffer = dryBuffer.getWritePointer(channel);
+        for (size_t i = 0; i < numSamples; ++i)
+        {
+            buffer[i] *= 8.0f;
+        }
+    }
+
     // Apply envelope modulation (VCA)
     outputBlock.multiplyBy(analyzeBlock);
 }
 
 void EdgeTree::reset()
 {
-    envelopeFollower->reset();
+    envelopeFollower.reset();
 }
 
 void EdgeTree::setParameters(const Parameters &params)
@@ -81,8 +93,12 @@ void EdgeTree::setParameters(const Parameters &params)
         attackMs  = ParameterRanges::denormalizeParameter(ParameterRanges::attackTimeRange, temp);
         releaseMs = ParameterRanges::denormalizeParameter(ParameterRanges::releaseTimeRange, temp);
 
-        envelopeFollower->setAttackTime(attackMs);
-        envelopeFollower->setReleaseTime(releaseMs);
+        // Update envelope follower parameters
+        EnvelopeFollower::Parameters envParams;
+        envParams.attackMs = attackMs;
+        envParams.releaseMs = releaseMs;
+        envParams.levelType = juce::dsp::BallisticsFilterLevelCalculationType::RMS;
+        envelopeFollower.setParameters(envParams);
     }
 }
 

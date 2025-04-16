@@ -1,6 +1,7 @@
 #pragma once
 
 #include <juce_dsp/juce_dsp.h>
+#include "EnvelopeFollower.h"
 
 /**
  * EdgeTree processes audio to extract envelope information
@@ -27,9 +28,10 @@ class EdgeTree
         void setParameters(const Parameters &params);
 
     private:
-        std::unique_ptr<juce::dsp::BallisticsFilter<float>> envelopeFollower;
+        EnvelopeFollower envelopeFollower;
 
         float inTreeSize = 1.0f;
+        float inTreeDensity = 0.0f;
 
         // Parameters
         float attackMs = 250.0f;
