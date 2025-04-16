@@ -25,8 +25,8 @@ MyceliaModel::MyceliaModel(Mycelia &p)
     //
     stretch = treeState.getRawParameterValue(IDs::stretch);
     jassert(stretch != nullptr);
-    abundanceScarcity = treeState.getRawParameterValue(IDs::abundanceScarcity);
-    jassert(abundanceScarcity != nullptr);
+    scarcityAbundance = treeState.getRawParameterValue(IDs::scarcityAbundance);
+    jassert(scarcityAbundance != nullptr);
     foldPosition = treeState.getRawParameterValue(IDs::foldPosition);
     jassert(foldPosition != nullptr);
     foldWindowShape = treeState.getRawParameterValue(IDs::foldWindowShape);
@@ -166,7 +166,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout MyceliaModel::createParamete
     universeCtrls->addChild(
         std::move(stretchParamLabel),
         std::make_unique<juce::AudioParameterBool>(juce::ParameterID(IDs::tempoSync, 1), "Tempo Sync", false),
-        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::abundanceScarcity, 1), "Abundance/Scarcity", ParameterRanges::abundanceScarcityRange, 0.0f),
+        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::scarcityAbundance, 1), "Scarcity/Abundance", ParameterRanges::scarcityAbundanceRange, 0.0f),
+        std::make_unique<juce::AudioParameterBool>(juce::ParameterID(IDs::scarcityAbundanceOverride, 1), "Override", false),
         std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::foldPosition, 1), "Fold Position", ParameterRanges::foldPositionRange, 0.0f),
         std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::foldWindowShape, 1), "Fold Window Shape", ParameterRanges::foldWindowShapeRange, 0.0f),
         std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::foldWindowSize, 1), "Fold Window Size", ParameterRanges::foldWindowSizeRange, 0.2f));
@@ -295,7 +296,7 @@ void MyceliaModel::releaseResources()
     treeDensity = nullptr;
     //
     stretch = nullptr;
-    abundanceScarcity = nullptr;
+    scarcityAbundance = nullptr;
     foldPosition = nullptr;
     foldWindowShape = nullptr;
     foldWindowSize = nullptr;

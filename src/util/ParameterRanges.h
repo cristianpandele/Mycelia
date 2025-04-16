@@ -54,8 +54,8 @@ namespace ParameterRanges
     static constexpr float centreStretch = 0.25f;
     static constexpr float minTempoSync = 0.0f;
     static constexpr float maxTempoSync = 1.0f;
-    static constexpr float minAbundanceScarcity = -1.0f;
-    static constexpr float maxAbundanceScarcity = 1.0f;
+    static constexpr float minScarcityAbundance = -1.0f;
+    static constexpr float maxScarcityAbundance = 1.0f;
     static constexpr float minFoldPosition = -1.0f;
     static constexpr float maxFoldPosition = 1.0f;
     static constexpr float minFoldWindowShape = -1.0f;
@@ -249,7 +249,7 @@ namespace ParameterRanges
     );
 
     inline const juce::NormalisableRange<float> tempoSyncRange(minTempoSync, maxTempoSync, 1.0f);
-    inline const juce::NormalisableRange<float> abundanceScarcityRange(minAbundanceScarcity, maxAbundanceScarcity, 0.1f);
+    inline const juce::NormalisableRange<float> scarcityAbundanceRange(minScarcityAbundance, maxScarcityAbundance, 0.1f);
     inline const juce::NormalisableRange<float> foldPositionRange(minFoldPosition, maxFoldPosition, 0.01f);
     inline const juce::NormalisableRange<float> foldWindowShapeRange(minFoldWindowShape, maxFoldWindowShape, 0.01f);
     inline const juce::NormalisableRange<float> foldWindowSizeRange(minFoldWindowSize, maxFoldWindowSize, 0.01f);

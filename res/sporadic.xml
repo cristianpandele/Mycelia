@@ -99,9 +99,9 @@
         <Slider caption="Stretch" parameter="stretch" slider-type="rotary" pos-width="50%"
                 pos-height="80%" slider-textbox="textbox-below" flex-align-self="stretch"
                 pos-x="0%" pos-y="5%" suffix=" x"/>
-        <Slider caption="Scarcity/Abundance" parameter="abundancescarcity" slider-type="rotary"
+        <Slider caption="Scarcity/Abundance" parameter="scarcityabundance" slider-type="rotary"
                 pos-width="50%" pos-height="80%" pos-x="50%%" pos-y="5%"/>
-        <ToggleButton text="Override" parameter="abundancescarcityoverride" caption="Override"
+        <ToggleButton text="Override" parameter="scarcityabundanceoverride" caption="Override"
                       caption-size="0" pos-x="50%" pos-width="50%" pos-y="80%" pos-height="20%"
                       flex-align-self="center" min-width="0.0" min-height="0.0"/>
       </View>

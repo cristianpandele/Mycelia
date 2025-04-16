@@ -22,7 +22,7 @@ Mycelia::Mycelia()
     myceliaModel.addParamListener(IDs::treeDensity, this);
     //
     myceliaModel.addParamListener(IDs::stretch, this);
-    myceliaModel.addParamListener(IDs::abundanceScarcity, this);
+    myceliaModel.addParamListener(IDs::scarcityAbundance, this);
     myceliaModel.addParamListener(IDs::foldPosition, this);
     myceliaModel.addParamListener(IDs::foldWindowShape, this);
     myceliaModel.addParamListener(IDs::foldWindowSize, this);

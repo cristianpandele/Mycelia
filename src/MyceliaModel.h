@@ -25,7 +25,8 @@ namespace IDs
     static juce::String treeDensity{"treedensity"};
     //
     static juce::String stretch{"stretch"};
-    static juce::String abundanceScarcity{"abundancescarcity"};
+    static juce::String scarcityAbundance{"scarcityabundance"};
+    static juce::String scarcityAbundanceOverride{"scarcityabundanceoverride"};
     static juce::String foldPosition{"foldposition"};
     static juce::String foldWindowShape{"foldwindowshape"};
     static juce::String foldWindowSize{"foldwindowsize"};
@@ -94,7 +95,7 @@ class MyceliaModel :
         std::atomic<float>* treeDensity = nullptr;
         //
         std::atomic<float>* stretch = nullptr;
-        std::atomic<float>* abundanceScarcity = nullptr;
+        std::atomic<float>* scarcityAbundance = nullptr;
         std::atomic<float>* foldPosition = nullptr;
         std::atomic<float>* foldWindowShape = nullptr;
         std::atomic<float>* foldWindowSize = nullptr;
