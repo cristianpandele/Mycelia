@@ -18,6 +18,7 @@ class DelayNodes
             float entanglement;                       // Controls feedback interconnections between nodes
             int   numColonies;                        // Controls the number of colonies (delay processor lineages)
             std::vector<float> bandFrequencies;       // Controls the frequency processed by each colony
+            float stretch;                            // Controls the stretch of the delay network
         };
 
         DelayNodes(size_t numBands = 4);
@@ -36,12 +37,11 @@ class DelayNodes
         std::vector<std::unique_ptr<DelayProc>> delayProcs;
 
         // Parameters to control delay network behavior
-        float baseDelayMs = 100.0f;
-        float inGrowthRate = 0.5f;
-        float inEntanglement = 0.5f;
+        float baseDelayMs = 1000.0f;
+        float fs = 44100.0f;
         int   inNumColonies = 4;
         std::vector<float> inBandFrequencies;
-        float fs = 44100.0f;
+        float inStretch = 0.0f;
 
         void updateDelayProcParams();
 

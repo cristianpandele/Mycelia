@@ -66,7 +66,7 @@ void DelayNodes::updateDelayProcParams()
         DelayProc::Parameters delayParams;
 
         // Configure initial delay parameters with increasing times
-        float delayTimeMs = baseDelayMs * std::pow(inGrowthRate, static_cast<float>(i));
+        float delayTimeMs = std::abs(inStretch) * baseDelayMs * (1 + 1.0f * i);
 
         // Set initial parameters
         DelayProc::Parameters params;
@@ -94,6 +94,7 @@ void DelayNodes::setParameters(const Parameters &params)
     inEntanglement = params.entanglement;
     inNumColonies = params.numColonies;
     inBandFrequencies = params.bandFrequencies;
+    inStretch = params.stretch;
 
     updateDelayProcParams();
 }

@@ -14,6 +14,7 @@ class DelayNetwork
             float growthRate;               // Controls the delay network growth (0-100)
             float entanglement;             // Controls the diffusion and cross-feedback (0-100)
             int   numActiveFilterBands = 4; // Controls the number of filter bands (0-MAX_NUTRIENT_BANDS)
+            float stretch;                  // Controls the stretch of the delay network (0-100)
         };
 
         DelayNetwork();
@@ -35,6 +36,7 @@ class DelayNetwork
         float inGrowthRate = 50.0f;
         float inEntanglement = 50.0f;
         int   inActiveFilterBands = 4;
+        float inStretch = 0.0f;
 
         // Diffusion control
         DiffusionControl diffusionControl;

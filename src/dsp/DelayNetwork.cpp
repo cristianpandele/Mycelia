@@ -32,7 +32,8 @@ void DelayNetwork::prepare(const juce::dsp::ProcessSpec &spec)
     // Initialize delay nodes with default parameters
     delayNodes.setParameters(DelayNodes::Parameters{.growthRate = inGrowthRate,
                                                     .entanglement = inEntanglement,
-                                                    .numColonies = inActiveFilterBands});
+                                                    .numColonies = inActiveFilterBands,
+                                                    .stretch = inStretch});
 }
 
 void DelayNetwork::reset()
@@ -100,7 +101,7 @@ void DelayNetwork::setParameters(const Parameters &params)
     inGrowthRate = ParameterRanges::growthRateRange.snapToLegalValue(params.growthRate);
     inEntanglement = ParameterRanges::entanglementRange.snapToLegalValue(params.entanglement);
     inActiveFilterBands = ParameterRanges::nutrientBandsRange.snapToLegalValue(params.numActiveFilterBands);
-
+    inStretch = ParameterRanges::stretchRange.snapToLegalValue(params.stretch);
     // Update diffusion control parameters
     diffusionControl.setParameters(DiffusionControl::Parameters{.numActiveBands = inActiveFilterBands});
     // Get band frequencies from the diffusion control
@@ -108,10 +109,12 @@ void DelayNetwork::setParameters(const Parameters &params)
     diffusionControl.getBandFrequencies(dataPtr, &inActiveFilterBands);
 
     // Update delay nodes parameters
-    delayNodes.setParameters(DelayNodes::Parameters{.growthRate = inGrowthRate,
-                                                    .entanglement = inEntanglement,
-                                                    .numColonies = inActiveFilterBands,
-                                                    .bandFrequencies = std::vector<float>(dataPtr, dataPtr + inActiveFilterBands)});
+    delayNodes.setParameters(DelayNodes::Parameters{.numColonies = inActiveFilterBands,
+                                                    .bandFrequencies = std::vector<float>(dataPtr, dataPtr + inActiveFilterBands),
+                                                    .stretch = inStretch,
+                                                    .scarcityAbundance = inScarcityAbundance,
+                                                    .growthRate = inGrowthRate,
+                                                    .entanglement = inEntanglement});
 }
 
 // Explicitly instantiate the templates for the supported context types
