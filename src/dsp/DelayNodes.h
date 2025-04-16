@@ -20,6 +20,7 @@ class DelayNodes
             float scarcityAbundance;                  // Controls the Scarcity/Abundance of the delay network
             float growthRate;                         // Controls how nodes age and grow
             float entanglement;                       // Controls feedback interconnections between nodes
+            float baseDelayMs;                        // Base delay time in milliseconds (quarter note time)
         };
 
         DelayNodes(size_t numBands = 4);
@@ -38,7 +39,6 @@ class DelayNodes
         std::vector<std::unique_ptr<DelayProc>> delayProcs;
 
         // Parameters to control delay network behavior
-        float baseDelayMs = 1000.0f;
         float fs = 44100.0f;
         int   inNumColonies = 4;
         std::vector<float> inBandFrequencies;
@@ -46,6 +46,7 @@ class DelayNodes
         float inScarcityAbundance = 0.0f;
         float inEntanglement = 0.5f;
         float inGrowthRate = 0.5f;
+        float inBaseDelayMs = 500.0f;
 
         void updateDelayProcParams();
 

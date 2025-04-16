@@ -66,7 +66,7 @@ void DelayNodes::updateDelayProcParams()
         DelayProc::Parameters delayParams;
 
         // Configure initial delay parameters with increasing times
-        float delayTimeMs = std::abs(inStretch) * baseDelayMs * (1 + 1.0f * i);
+        float delayTimeMs = std::abs(inStretch) * inBaseDelayMs * (1 + 1.0f * i);
 
         // Set initial parameters
         DelayProc::Parameters params;
@@ -96,6 +96,7 @@ void DelayNodes::setParameters(const Parameters &params)
     inScarcityAbundance = params.scarcityAbundance;
     inGrowthRate = params.growthRate;
     inEntanglement = params.entanglement;
+    inBaseDelayMs = params.baseDelayMs;
 
     updateDelayProcParams();
 }

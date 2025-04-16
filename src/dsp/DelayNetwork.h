@@ -13,11 +13,12 @@ class DelayNetwork
         {
             int   numActiveFilterBands = 4;  // Controls the number of filter bands (0-MAX_NUTRIENT_BANDS)
             float stretch;                   // Controls the stretch of the delay network (0-100)
-            bool  tempoSync;                 // Controls the tempo sync of the delay network (true/false)
+            float tempoValue;                // Controls the tempo value (30-300 BPM)
             float scarcityAbundance;         // Controls the Scarcity/Abundance of the delay network (-1-1)
             float scarcityAbundanceOverride; // Controls the Scarcity/Abundance override (0-1)
             float entanglement;              // Controls the diffusion and cross-feedback (0-100)
             float growthRate;                // Controls the delay network growth (0-100)
+            float baseDelayMs;               // Base delay time in milliseconds
         };
 
         DelayNetwork();
@@ -38,11 +39,12 @@ class DelayNetwork
         // Parameters
         int   inActiveFilterBands = 4;
         float inStretch = 0.0f;
-        bool  inTempoSync = false;
+        float inTempoValue = 120.0f;
         float inScarcityAbundance = 0.0f;
         float inScarcityAbundanceOverride = 0.0f;
         float inEntanglement = 50.0f;
         float inGrowthRate = 50.0f;
+        float baseDelayMs = 60.0f / inTempoValue * 1000.0f;
 
         // Diffusion control
         DiffusionControl diffusionControl;

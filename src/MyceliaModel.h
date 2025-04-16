@@ -25,7 +25,7 @@ namespace IDs
     static juce::String treeDensity{"treedensity"};
     //
     static juce::String stretch{"stretch"};
-    static juce::String tempoSync{"temposync"};
+    static juce::String tempoValue{"tempovalue"};
     static juce::String scarcityAbundance{"scarcityabundance"};
     static juce::String scarcityAbundanceOverride{"scarcityabundanceoverride"};
     static juce::String foldPosition{"foldposition"};

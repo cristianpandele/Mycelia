@@ -165,7 +165,6 @@ juce::AudioProcessorValueTreeState::ParameterLayout MyceliaModel::createParamete
 
     universeCtrls->addChild(
         std::move(stretchParamLabel),
-        std::make_unique<juce::AudioParameterBool>(juce::ParameterID(IDs::tempoSync, 1), "Tempo Sync", false),
         std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::scarcityAbundance, 1), "Scarcity/Abundance", ParameterRanges::scarcityAbundanceRange, 0.0f),
         std::make_unique<juce::AudioParameterBool>(juce::ParameterID(IDs::scarcityAbundanceOverride, 1), "Override", false),
         std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::foldPosition, 1), "Fold Position", ParameterRanges::foldPositionRange, 0.0f),
@@ -251,9 +250,9 @@ void MyceliaModel::parameterChanged(const juce::String &parameterID, float newVa
         currentDelayNetworkParams.stretch = newValue;
         delayNetwork.setParameters(currentDelayNetworkParams);
     }
-    else if (parameterID == IDs::tempoSync)
+    else if (parameterID == IDs::tempoValue)
     {
-        currentDelayNetworkParams.tempoSync = (newValue > 0.5f);
+        currentDelayNetworkParams.tempoValue = newValue;
         delayNetwork.setParameters(currentDelayNetworkParams);
     }
     else if (parameterID == IDs::entanglement)

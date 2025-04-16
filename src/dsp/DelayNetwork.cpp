@@ -39,7 +39,8 @@ void DelayNetwork::prepare(const juce::dsp::ProcessSpec &spec)
                                                     .stretch = inStretch,
                                                     .scarcityAbundance = inScarcityAbundance,
                                                     .growthRate = inGrowthRate,
-                                                    .entanglement = inEntanglement});
+                                                    .entanglement = inEntanglement,
+                                                    .baseDelayMs = baseDelayMs});
 }
 
 void DelayNetwork::reset()
@@ -106,11 +107,15 @@ void DelayNetwork::setParameters(const Parameters &params)
 {
     inActiveFilterBands = ParameterRanges::nutrientBandsRange.snapToLegalValue(params.numActiveFilterBands);
     inStretch = ParameterRanges::stretchRange.snapToLegalValue(params.stretch);
-    inTempoSync = params.tempoSync;
+    // inTempoValue = ParameterRanges::tempoValueRange.snapToLegalValue(params.tempoValue); //ignore tempo changes for now
     inScarcityAbundance = ParameterRanges::scarcityAbundanceRange.snapToLegalValue(params.scarcityAbundance);
     inScarcityAbundanceOverride = ParameterRanges::scarcityAbundanceRange.snapToLegalValue(params.scarcityAbundanceOverride);
     inEntanglement = ParameterRanges::entanglementRange.snapToLegalValue(params.entanglement);
     inGrowthRate = ParameterRanges::growthRateRange.snapToLegalValue(params.growthRate);
+
+    // Calculate base delay time from tempo (quarter note time in milliseconds)
+    // Quarter note time in ms = (60 seconds / tempo in BPM) * 1000 ms/second
+    baseDelayMs = (60.0f / inTempoValue) * 1000.0f;
 
     // Update diffusion control parameters
     diffusionControl.setParameters(DiffusionControl::Parameters{.numActiveBands = inActiveFilterBands});
@@ -124,7 +129,8 @@ void DelayNetwork::setParameters(const Parameters &params)
                                                     .stretch = inStretch,
                                                     .scarcityAbundance = inScarcityAbundance,
                                                     .growthRate = inGrowthRate,
-                                                    .entanglement = inEntanglement});
+                                                    .entanglement = inEntanglement,
+                                                    .baseDelayMs = baseDelayMs});
 }
 
 // Explicitly instantiate the templates for the supported context types
