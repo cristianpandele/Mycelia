@@ -12,10 +12,10 @@ void DelayProc::prepare (const juce::dsp::ProcessSpec& spec)
     delay.prepare (spec);
     fs = (float) spec.sampleRate;
 
-    inFeedback.reset(fs, 0.05 * spec.numChannels);
-    inFilterFreq.reset(fs, 0.05 * spec.numChannels);
-    inFilterGainDb.reset(fs, 0.05 * spec.numChannels);
-    inDelayTime.reset(fs, 0.15 * spec.numChannels);
+    inFeedback.reset(fs, smoothTimeSec);
+    inFilterFreq.reset(fs, smoothTimeSec);
+    inFilterGainDb.reset(fs, smoothTimeSec);
+    inDelayTime.reset(fs, 2*smoothTimeSec);
     for (auto numCh = 0; numCh < spec.numChannels; ++numCh)
     {
         state.push_back (0.0f);
@@ -38,10 +38,10 @@ void DelayProc::prepare (const juce::dsp::ProcessSpec& spec)
 void DelayProc::reset()
 {
     // modSine.reset();
+    inputLevel = 0.0f;
     flushDelay();
     procs.reset();
     envelopeFollower.reset();
-    inputLevel = 0.0f;
 }
 
 void DelayProc::flushDelay()
@@ -67,6 +67,15 @@ void DelayProc::process (const ProcessContext& context)
     envelopeFollower.process(context);
     inputLevel = envelopeFollower.getAverageLevel();
 
+    // The first time the input level exceeds a threshold, set the target age to 1.0f
+    if ((inputLevel > inputLevelThreshold) && (currentAge.getTargetValue() < 0.1f))
+    {
+        DBG("Threshold reached! " << inputLevel);
+        float rampTimeSec = (inBaseDelayMs * 100.0f / juce::jmax(0.1f, inGrowthRate.getNextValue())) / 1000.0f;
+        currentAge.reset(fs, rampTimeSec);
+        currentAge.setTargetValue(ParameterRanges::maxAge);
+    }
+
     // Copy input to output if non-replacing
     if (context.usesSeparateInputAndOutputBlocks())
     {
@@ -85,24 +94,31 @@ void DelayProc::process (const ProcessContext& context)
         auto* inputSamples = inputBlock.getChannelPointer (channel);
         auto* outputSamples = outputBlock.getChannelPointer (channel);
 
-        // Check for changes in filter parameters and update if necessary
-        auto filterFreqChanged = (std::abs(inFilterFreq.getNextValue() - inFilterFreq.getCurrentValue()) / inFilterFreq.getCurrentValue() > 0.01f);
-        auto filterGainChanged = (std::abs(inFilterGainDb.getNextValue() - inFilterGainDb.getCurrentValue()) / inFilterGainDb.getCurrentValue() > 0.01f);
-
-        updateFilterCoefficients();
-
-        for (size_t i = 0; i < numSamples; ++i)
+        // Update current aging rate and filter coefficients
+        if (inGrowthRate.isSmoothing())
         {
-            // delayModValue = modDepth * modDepthFactor * modSine.processSample();
-            // delayModValue = 0.0f;
-            if (inDelayTime.isSmoothing())
-            {
-                delay.setDelay(juce::jmax(0.0f, inDelayTime.getNextValue() /* + delayModValue */)); // Update delay time
-            }
-
-            outputSamples[i] = processSample(inputSamples[i], channel);
+            float rampTimeSec = (inBaseDelayMs * 100.0f / juce::jmax(0.1f, inGrowthRate.getNextValue())) / 1000.0f;
+            DBG("Ramp time: " << rampTimeSec);
+            currentAge.reset(fs, rampTimeSec);
         }
-    }
+
+        if (inFilterFreq.isSmoothing() || inFilterGainDb.isSmoothing())
+        {
+            updateFilterCoefficients();
+        }
+
+            for (size_t i = 0; i < numSamples; ++i)
+            {
+                // delayModValue = modDepth * modDepthFactor * modSine.processSample();
+                // delayModValue = 0.0f;
+                if (inDelayTime.isSmoothing())
+                {
+                    delay.setDelay(juce::jmax(0.0f, inDelayTime.getNextValue() /* + delayModValue */)); // Update delay time
+                }
+
+                outputSamples[i] = processSample(inputSamples[i], channel);
+            }
+        }
 
     procs.get<lpfIdx>().snapToZero();
     procs.get<hpfIdx>().snapToZero();
@@ -123,19 +139,25 @@ inline SampleType DelayProc::processSample (SampleType x, size_t ch)
 
 void DelayProc::setParameters (const Parameters& params, bool force)
 {
-    auto delayVal = (ParameterRanges::delayRange.snapToLegalValue(params.delayMs) / 1000.0f) * fs;
-    auto fbVal    = params.feedback >= ParameterRanges::fbRange.end ? 1.0f
+    auto delaySamples = (ParameterRanges::delayRange.snapToLegalValue(params.delayMs) / 1000.0f) * fs;
+    auto fbVal        = params.feedback >= ParameterRanges::fbRange.end ? 1.0f
                                                                     : std::pow(juce::jmin(params.feedback, 0.95f), 0.9f);
     auto filterFreq   = (ParameterRanges::filterFreqRange.snapToLegalValue(params.filterFreq));
     auto filterGainDb = (ParameterRanges::filterGainRangeDb.snapToLegalValue(params.filterGainDb));
 
-    auto delayChanged = (std::abs(inDelayTime.getTargetValue() - delayVal) / delayVal > 0.01f);
+    auto growthRate  = (ParameterRanges::growthRateRange.snapToLegalValue(params.growthRate));
+    auto baseDelayMs = (ParameterRanges::delayRange.snapToLegalValue(params.baseDelayMs));
+
+    auto delayChanged = (std::abs(inDelayTime.getTargetValue() - delaySamples) / delaySamples > 0.01f);
     auto fbChanged = (std::abs(inFeedback.getTargetValue() - fbVal) / fbVal > 0.01f);
     auto filterFreqChanged = (std::abs(inFilterFreq.getTargetValue() - filterFreq) / filterFreq > 0.01f);
     auto filterGainChanged = (std::abs(inFilterGainDb.getTargetValue() - filterGainDb) / filterGainDb > 0.01f);
 
     auto envAttackChanged = (std::abs(envelopeAttackMs - params.envelopeAttackMs) / params.envelopeAttackMs > 0.01f);
     auto envReleaseChanged = (std::abs(envelopeReleaseMs - params.envelopeReleaseMs) / params.envelopeReleaseMs > 0.01f);
+
+    auto growthRateChanged  = (std::abs(inGrowthRate.getTargetValue() - growthRate) / growthRate > 0.01f);
+    auto baseDelayMsChanged = (std::abs(inBaseDelayMs - baseDelayMs) / baseDelayMs > 0.01f);
 
     // modDepth = std::pow (params.modDepth, 2.5f);
     // if (params.lfoSynced)
@@ -148,8 +170,8 @@ void DelayProc::setParameters (const Parameters& params, bool force)
     {
         if (delayChanged)
         {
-            delay.setDelay (delayVal);
-            inDelayTime.setCurrentAndTargetValue(delayVal);
+            delay.setDelay (delaySamples);
+            inDelayTime.setCurrentAndTargetValue(delaySamples);
         }
         if (fbChanged)
         {
@@ -161,6 +183,10 @@ void DelayProc::setParameters (const Parameters& params, bool force)
             inFilterGainDb.setCurrentAndTargetValue(filterGainDb);
             updateFilterCoefficients(force);
         }
+        if (growthRateChanged)
+        {
+            inGrowthRate.setCurrentAndTargetValue(growthRate);
+        }
     }
     else
     {
@@ -168,7 +194,7 @@ void DelayProc::setParameters (const Parameters& params, bool force)
         {
             inDelayTime = juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear>(inDelayTime.getNextValue());
             inDelayTime.reset(fs, smoothTimeSec);
-            inDelayTime.setTargetValue(delayVal);
+            inDelayTime.setTargetValue(delaySamples);
         }
         if (fbChanged)
         {
@@ -195,7 +221,7 @@ void DelayProc::setParameters (const Parameters& params, bool force)
     }
 
     // Update envelope follower parameters
-    if (envAttackChanged || envReleaseChanged || force)
+    if (envAttackChanged || envReleaseChanged)
     {
         envelopeAttackMs = params.envelopeAttackMs;
         envelopeReleaseMs = params.envelopeReleaseMs;
@@ -206,8 +232,20 @@ void DelayProc::setParameters (const Parameters& params, bool force)
         envelopeFollower.setParameters(envParams, force);
     }
 
+    if (baseDelayMsChanged)
+    {
+        inBaseDelayMs = params.baseDelayMs;
+    }
+
+    // Update age parameter
+    if (growthRateChanged)
+    {
+        float rampTimeSec = (inBaseDelayMs * 100.0f / juce::jmax(0.1f, inGrowthRate.getNextValue())) / 1000.0f;
+        currentAge.reset(fs, rampTimeSec);
+    }
+
     Dispersion::Parameters dispParams;
-    dispParams.dispersionAmount = (ParameterRanges::dispRange.snapToLegalValue(params.dispAmt));
+    dispParams.dispersionAmount = currentAge.getCurrentValue();
     dispParams.smoothTime = smoothTimeSec;
     dispParams.allpassFreq = filterFreq;
     procs.get<dispersionIdx>().setParameters(dispParams, force);

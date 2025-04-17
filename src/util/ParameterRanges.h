@@ -70,6 +70,10 @@ namespace ParameterRanges
     static constexpr float maxGrowthRate = 100.0f;
     static constexpr int   minNutrientBands = 1;
     static constexpr int   maxNutrientBands = 16;
+    // DelayProc constants
+    static constexpr float minAge = 0.0f;
+    static constexpr float maxAge = 1.0f;
+    static constexpr float defaultAge = 0.0f;
     // Delay Processor constants
     static constexpr float minDelayMs = 0.0f;
     static constexpr float maxDelayMs = 4000.0f;
