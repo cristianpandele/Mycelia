@@ -70,10 +70,7 @@ void DelayProc::process (const ProcessContext& context)
     // The first time the input level exceeds a threshold, set the target age to 1.0f
     if ((inputLevel > inputLevelThreshold) && (currentAge.getTargetValue() < 0.1f))
     {
-        DBG("Threshold reached! " << inputLevel);
-        float rampTimeSec = (inBaseDelayMs * 100.0f / juce::jmax(0.1f, inGrowthRate.getNextValue())) / 1000.0f;
-        currentAge.reset(fs, rampTimeSec);
-        currentAge.setTargetValue(ParameterRanges::maxAge);
+        updateAgeingRate();
     }
 
     // Copy input to output if non-replacing
@@ -97,9 +94,7 @@ void DelayProc::process (const ProcessContext& context)
         // Update current aging rate and filter coefficients
         if (inGrowthRate.isSmoothing())
         {
-            float rampTimeSec = (inBaseDelayMs * 100.0f / juce::jmax(0.1f, inGrowthRate.getNextValue())) / 1000.0f;
-            DBG("Ramp time: " << rampTimeSec);
-            currentAge.reset(fs, rampTimeSec);
+            updateAgeingRate();
         }
 
         if (inFilterFreq.isSmoothing() || inFilterGainDb.isSmoothing())
@@ -107,18 +102,23 @@ void DelayProc::process (const ProcessContext& context)
             updateFilterCoefficients();
         }
 
-            for (size_t i = 0; i < numSamples; ++i)
+        for (size_t i = 0; i < numSamples; ++i)
+        {
+            // delayModValue = modDepth * modDepthFactor * modSine.processSample();
+            // delayModValue = 0.0f;
+            if (inDelayTime.isSmoothing())
             {
-                // delayModValue = modDepth * modDepthFactor * modSine.processSample();
-                // delayModValue = 0.0f;
-                if (inDelayTime.isSmoothing())
-                {
-                    delay.setDelay(juce::jmax(0.0f, inDelayTime.getNextValue() /* + delayModValue */)); // Update delay time
-                }
-
-                outputSamples[i] = processSample(inputSamples[i], channel);
+                delay.setDelay(juce::jmax(0.0f, inDelayTime.getNextValue() /* + delayModValue */)); // Update delay time
             }
+
+            if (currentAge.isSmoothing())
+            {
+                updateProcChainParameters();
+            }
+
+            outputSamples[i] = processSample(inputSamples[i], channel);
         }
+    }
 
     procs.get<lpfIdx>().snapToZero();
     procs.get<hpfIdx>().snapToZero();
@@ -240,18 +240,11 @@ void DelayProc::setParameters (const Parameters& params, bool force)
     // Update age parameter
     if (growthRateChanged)
     {
-        float rampTimeSec = (inBaseDelayMs * 100.0f / juce::jmax(0.1f, inGrowthRate.getNextValue())) / 1000.0f;
-        currentAge.reset(fs, rampTimeSec);
+        updateAgeingRate();
     }
 
-    Dispersion::Parameters dispParams;
-    dispParams.dispersionAmount = currentAge.getCurrentValue();
-    dispParams.smoothTime = smoothTimeSec;
-    dispParams.allpassFreq = filterFreq;
-    procs.get<dispersionIdx>().setParameters(dispParams, force);
-    // procs.get<distortionIdx>().setGain (19.5f * std::pow (params.distortion, 2.0f) + 0.5f);
-    // procs.get<pitchIdx>().setPitchSemitones (params.pitchSt, force);
-    // procs.get<reverserIdx>().setReverseTime (params.revTimeMs);
+    // Update delay processor parameters
+    updateProcChainParameters(force);
 }
 
 void DelayProc::updateFilterCoefficients(bool force)
@@ -269,6 +262,32 @@ void DelayProc::updateFilterCoefficients(bool force)
         fs, filterFreq, 0.4f, juce::Decibels::decibelsToGain(filterGain * -1.0f));
     procs.get<hpfIdx>().coefficients = juce::dsp::IIR::Coefficients<float>::makeHighShelf(
         fs, filterFreq, 0.4f, juce::Decibels::decibelsToGain(filterGain));
+}
+
+void DelayProc::updateProcChainParameters(bool force)
+{
+    Dispersion::Parameters dispParams;
+    dispParams.smoothTime = smoothTimeSec;
+    dispParams.allpassFreq = inFilterFreq.getNextValue();
+    dispParams.dispersionAmount = currentAge.getNextValue();
+    if (force)
+    {
+        dispParams.allpassFreq = inFilterFreq.getTargetValue();
+        dispParams.dispersionAmount = currentAge.getTargetValue();
+    }
+    procs.get<dispersionIdx>().setParameters(dispParams, force);
+
+    // procs.get<distortionIdx>().setGain (19.5f * std::pow (params.distortion, 2.0f) + 0.5f);
+    // procs.get<pitchIdx>().setPitchSemitones (params.pitchSt, force);
+    // procs.get<reverserIdx>().setReverseTime (params.revTimeMs);
+}
+
+void DelayProc::updateAgeingRate()
+{
+    float rampTimeSec = (inBaseDelayMs * 100.0f / juce::jmax(0.1f, inGrowthRate.getNextValue())) / 1000.0f;
+    currentAge = juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear>(currentAge.getNextValue());
+    currentAge.reset(fs, rampTimeSec);
+    currentAge.setTargetValue(ParameterRanges::maxAge);
 }
 
 //==================================================

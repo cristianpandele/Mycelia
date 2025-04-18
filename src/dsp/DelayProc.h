@@ -47,12 +47,7 @@ class DelayProc
 
         template <typename ProcessContext>
         void process(const ProcessContext &context);
-
-        // flush delay line state
-        void flushDelay();
-
         void setParameters(const Parameters &params, bool force = false);
-        void updateFilterCoefficients(bool force = false);
 
         float getInputLevel() const { return inputLevel; }
         float getAge() const { return currentAge.getCurrentValue(); } // Getter for the current age value
@@ -77,6 +72,13 @@ class DelayProc
 
         // Age control parameters
         juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear> currentAge {0.0f};
+
+        // flush delay line state
+        void flushDelay();
+
+        void updateFilterCoefficients(bool force = false);
+        void updateProcChainParameters(bool force = false);
+        void updateAgeingRate();
 
         // The base delay (quarter note time) in milliseconds
         float inBaseDelayMs = 0.0f;
