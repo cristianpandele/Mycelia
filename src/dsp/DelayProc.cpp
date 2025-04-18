@@ -283,7 +283,8 @@ void DelayProc::updateProcChainParameters(bool force)
 
 void DelayProc::updateAgeingRate()
 {
-    float rampTimeSec = (inBaseDelayMs * 100.0f / juce::jmax(0.1f, inGrowthRate.getNextValue())) / 1000.0f;
+    auto rampTimeMs = inBaseDelayMs * 100.0f / juce::jmax(0.001f, inGrowthRate.getNextValue());
+    float rampTimeSec = rampTimeMs / 1000.0f;
     currentAge = juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear>(currentAge.getNextValue());
     currentAge.reset(fs, rampTimeSec);
     currentAge.setTargetValue(ParameterRanges::maxAge);

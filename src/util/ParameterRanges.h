@@ -68,6 +68,7 @@ namespace ParameterRanges
     static constexpr float maxEntanglement = 100.0f;
     static constexpr float minGrowthRate = 0.0f;
     static constexpr float maxGrowthRate = 100.0f;
+    static constexpr float centerGrowthRate = 20.0f;
     static constexpr int   minNutrientBands = 1;
     static constexpr int   maxNutrientBands = 16;
     // DelayProc constants
@@ -261,7 +262,8 @@ namespace ParameterRanges
 
     // Mycelia parameters
     inline const juce::NormalisableRange<float> entanglementRange(minEntanglement, maxEntanglement, 0.01f);
-    inline const juce::NormalisableRange<float> growthRateRange(minGrowthRate, maxGrowthRate, 0.01f);
+    inline const juce::NormalisableRange<float> growthRateRange = rangeWithSkewForCentre(minGrowthRate, maxGrowthRate, centerGrowthRate);
+
     inline const juce::NormalisableRange<int>   nutrientBandsRange(minNutrientBands, maxNutrientBands, 1.0f);
 
     // Delay Processor parameters
