@@ -15,7 +15,6 @@ class Dispersion
         struct Parameters
         {
             float dispersionAmount;
-            float smoothTime;
             float allpassFreq;
         };
 
@@ -26,16 +25,15 @@ class Dispersion
         void reset();
 
         float processSample(float x);
-        void  setParameters(const Parameters &params, bool force);
+        void  setParameters(const Parameters &params);
 
     private:
-        void updateFilterCoefficients(bool force = false);
+        void  updateAllpassCoefficients();
         float processStage(float x, size_t stage);
 
         // Parameters
-        float inSmoothTime = 1000.f;
-        juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear> inDispersionAmount = 0.0f;
-        juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear> inAllpassFreq = 800.0f;
+        float inDispersionAmount = 0.0f;
+        float inAllpassFreq = 800.0f;
 
         static constexpr size_t maxNumStages = 100;
 

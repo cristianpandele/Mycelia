@@ -267,7 +267,6 @@ void DelayProc::updateFilterCoefficients(bool force)
 void DelayProc::updateProcChainParameters(bool force)
 {
     Dispersion::Parameters dispParams;
-    dispParams.smoothTime = smoothTimeSec;
     dispParams.allpassFreq = inFilterFreq.getNextValue();
     dispParams.dispersionAmount = currentAge.getNextValue();
     if (force)
@@ -275,7 +274,7 @@ void DelayProc::updateProcChainParameters(bool force)
         dispParams.allpassFreq = inFilterFreq.getTargetValue();
         dispParams.dispersionAmount = currentAge.getTargetValue();
     }
-    procs.get<dispersionIdx>().setParameters(dispParams, force);
+    procs.get<dispersionIdx>().setParameters(dispParams);
 
     // procs.get<distortionIdx>().setGain (19.5f * std::pow (params.distortion, 2.0f) + 0.5f);
     // procs.get<pitchIdx>().setPitchSemitones (params.pitchSt, force);

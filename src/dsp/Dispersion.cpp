@@ -13,7 +13,7 @@ void Dispersion::reset()
 
 float Dispersion::processSample(float x)
 {
-    auto numStages = inDispersionAmount.getNextValue() * maxNumStages;
+    auto numStages = inDispersionAmount * maxNumStages;
     const auto numStagesInt = static_cast<size_t>(numStages);
     float y = x;
 
@@ -43,66 +43,33 @@ float Dispersion::processStage(float x, size_t stage)
     return y;
 }
 
-void Dispersion::setParameters(const Parameters &params, bool force)
+void Dispersion::setParameters(const Parameters &params)
 {
     auto dispAmtVal = (ParameterRanges::dispRange.snapToLegalValue(params.dispersionAmount) / 100.0f) * maxNumStages;
-    auto dispAmtChanged = (std::abs(inDispersionAmount.getTargetValue() - dispAmtVal) / dispAmtVal > 0.01f);
-    auto smoothTimeChanged = (std::abs(inSmoothTime - params.smoothTime) / params.smoothTime > 0.01f);
-    auto allpassFreqChanged = (std::abs(inAllpassFreq.getTargetValue() - params.allpassFreq) / params.allpassFreq > 0.01f);
-
-    if (smoothTimeChanged)
-    {
-        inSmoothTime = params.smoothTime;
-    }
+    auto dispAmtChanged = (std::abs(inDispersionAmount - dispAmtVal) / dispAmtVal > 0.01f);
+    auto allpassFreqChanged = (std::abs(inAllpassFreq - params.allpassFreq) / params.allpassFreq > 0.01f);
 
     if (dispAmtChanged)
     {
-        if (force)
-        {
-            inDispersionAmount.setCurrentAndTargetValue(dispAmtVal);
-        }
-        else
-        {
-            inDispersionAmount.reset(fs, inSmoothTime);
-            inDispersionAmount.setTargetValue(dispAmtVal);
-        }
+        inDispersionAmount = dispAmtVal;
     }
 
     if (allpassFreqChanged)
     {
-        if (force)
-        {
-            inAllpassFreq.setCurrentAndTargetValue(params.allpassFreq);
-        }
-        else
-        {
-            inAllpassFreq.reset(fs, inSmoothTime);
-            inAllpassFreq.setTargetValue(params.allpassFreq);
-        }
-        updateFilterCoefficients(force);
+        updateAllpassCoefficients();
     }
 }
 
 void Dispersion::prepare (const juce::dsp::ProcessSpec& spec)
 {
     fs = (float) spec.sampleRate;
-    inDispersionAmount.setCurrentAndTargetValue(0.0f);
-    inDispersionAmount.reset (fs, inSmoothTime);
-    // inDispersionAmount.setTargetValue(1000.0f);
-
-    // updateFilterCoefficients();
     reset();
 }
 
-void Dispersion::updateFilterCoefficients(bool force)
+void Dispersion::updateAllpassCoefficients()
 {
     a[0] = 1.0f;
-    float freq = inAllpassFreq.getNextValue();
-    if (force)
-    {
-        freq = inAllpassFreq.getTargetValue();
-    }
 
-    float wT = juce::MathConstants<float>::twoPi * freq / fs;
+    float wT = juce::MathConstants<float>::twoPi * inAllpassFreq / fs;
     a[1] = -1.0f * wT;
 }
