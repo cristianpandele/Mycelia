@@ -26,21 +26,7 @@ void DelayNetwork::prepare(const juce::dsp::ProcessSpec &spec)
     // Prepare the delay nodes
     delayNodes.prepare(spec);
 
-    // Initialize default parameters
-    diffusionControl.setParameters(DiffusionControl::Parameters{.numActiveBands = inActiveFilterBands});
-
-    // Get band frequencies from the diffusion control
-    auto dataPtr = diffusionBandFrequencies.data();
-    diffusionControl.getBandFrequencies(dataPtr, &inActiveFilterBands);
-
-    // Initialize delay nodes with default parameters
-    delayNodes.setParameters(DelayNodes::Parameters{.numColonies = inActiveFilterBands,
-                                                    .bandFrequencies = std::vector<float>(dataPtr, dataPtr + inActiveFilterBands),
-                                                    .stretch = inStretch,
-                                                    .scarcityAbundance = inScarcityAbundance,
-                                                    .growthRate = inGrowthRate,
-                                                    .entanglement = inEntanglement,
-                                                    .baseDelayMs = baseDelayMs});
+    updateDiffusionDelayNodesParams();
 }
 
 void DelayNetwork::reset()
@@ -117,8 +103,14 @@ void DelayNetwork::setParameters(const Parameters &params)
     // Quarter note time in ms = (60 seconds / tempo in BPM) * 1000 ms/second
     baseDelayMs = (60.0f / inTempoValue) * 1000.0f;
 
+    updateDiffusionDelayNodesParams();
+}
+
+void DelayNetwork::updateDiffusionDelayNodesParams()
+{
     // Update diffusion control parameters
     diffusionControl.setParameters(DiffusionControl::Parameters{.numActiveBands = inActiveFilterBands});
+
     // Get band frequencies from the diffusion control
     auto dataPtr = diffusionBandFrequencies.data();
     diffusionControl.getBandFrequencies(dataPtr, &inActiveFilterBands);

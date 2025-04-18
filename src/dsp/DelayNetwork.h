@@ -32,7 +32,6 @@ class DelayNetwork
         void process(const ProcessContext &context);
 
         void setParameters(const Parameters &params);
-
     private:
         float fs = 44100.0f;
 
@@ -55,6 +54,8 @@ class DelayNetwork
         // Output buffers
         std::array<float, ParameterRanges::maxNutrientBands>                    diffusionBandFrequencies;
         std::array<juce::AudioBuffer<float>, ParameterRanges::maxNutrientBands> diffusionBandBuffers;
+
+        void updateDiffusionDelayNodesParams();
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DelayNetwork)
 };
