@@ -55,3 +55,5 @@ static inline const DelayRhythm& getRhythmForParam (float param01)
     auto idx = static_cast<size_t> ((rhythms.size() - 1) * std::pow (param01, 1.5f));
     return rhythms[idx];
 }
+
+} // namespace TempoSyncUtils

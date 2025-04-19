@@ -79,9 +79,11 @@ class DelayProc
         void updateFilterCoefficients(bool force = false);
         void updateProcChainParameters(bool force = false);
         void updateAgeingRate();
+        void updateModulationParameters();
 
         // The base delay (quarter note time) in milliseconds
         float inBaseDelayMs = 0.0f;
+        float rampTimeMs = 500.0f; // Default ramp time for gain modulation
 
         // Envelope follower for input signal
         EnvelopeFollower envelopeFollower;
@@ -104,6 +106,18 @@ class DelayProc
             Dispersion>//,
             // Reverser>
             procs;
+
+        // Modulation processor chain
+        enum
+        {
+            oscillatorIdx,
+            gainIdx
+        };
+
+        MyProcessorChain<
+            juce::dsp::Oscillator<float>,
+            juce::dsp::Gain<float>>
+            modProcs;
 
         // TempoSyncUtils::SyncedLFO modSine;
         float delayModValue = 0.0f;
