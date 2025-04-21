@@ -261,7 +261,7 @@ void DelayProc::updateFilterCoefficients(bool force)
     float x = 0.0f;
     x = modProcs.processSample(x);
     // Modulate the filter tilt
-    filterGain += x * 12.0f;
+    filterGain += x * 3.0f;
     filterGain = juce::jlimit(-12.0f, 12.0f, filterGain);
 
     procs.get<lpfIdx>().coefficients = juce::dsp::IIR::Coefficients<float>::makeLowShelf(
