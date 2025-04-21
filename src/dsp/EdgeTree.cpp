@@ -62,16 +62,6 @@ void EdgeTree::process(const ProcessContext &context)
     // Process the analysis context using the EnvelopeFollower
     envelopeFollower.process(analyzeContext);
 
-    // Normalize the envelope output
-    for (size_t channel = 0; channel < numChannels; ++channel)
-    {
-        auto* buffer = dryBuffer.getWritePointer(channel);
-        for (size_t i = 0; i < numSamples; ++i)
-        {
-            buffer[i] *= 8.0f;
-        }
-    }
-
     // Apply envelope modulation (VCA)
     outputBlock.multiplyBy(analyzeBlock);
 }
