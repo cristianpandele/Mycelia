@@ -25,11 +25,13 @@ void DelayProc::prepare (const juce::dsp::ProcessSpec& spec)
     }
 
     // Prepare envelope follower
-    envelopeFollower.prepare(spec);
+    inEnvelopeFollower.prepare(spec);
+    outEnvelopeFollower.prepare(spec);
     EnvelopeFollower::Parameters envParams;
     envParams.attackMs = envelopeAttackMs;
     envParams.releaseMs = envelopeReleaseMs;
-    envelopeFollower.setParameters(envParams, true);
+    inEnvelopeFollower.setParameters(envParams, true);
+    outEnvelopeFollower.setParameters(envParams, true);
 
     reset();
 
@@ -45,10 +47,12 @@ void DelayProc::reset()
 {
     // modSine.reset();
     inputLevel = 0.0f;
+    outputLevel = 0.0f;
     flushDelay();
     procs.reset();
     modProcs.reset();
-    envelopeFollower.reset();
+    inEnvelopeFollower.reset();
+    outEnvelopeFollower.reset();
 }
 
 void DelayProc::flushDelay()
@@ -72,8 +76,10 @@ void DelayProc::process (const ProcessContext& context)
     jassert(inputBlock.getNumSamples() == numSamples);
 
     // Process the input with the envelope follower
-    envelopeFollower.process(context);
-    inputLevel = envelopeFollower.getAverageLevel();
+    inEnvelopeFollower.process(context);
+    outEnvelopeFollower.process(context);
+    inputLevel = inEnvelopeFollower.getAverageLevel();
+    outputLevel = outEnvelopeFollower.getAverageLevel();
 
     // Copy input to output if non-replacing
     if (context.usesSeparateInputAndOutputBlocks())
@@ -227,7 +233,8 @@ void DelayProc::setParameters (const Parameters& params, bool force)
         EnvelopeFollower::Parameters envParams;
         envParams.attackMs = envelopeAttackMs;
         envParams.releaseMs = envelopeReleaseMs;
-        envelopeFollower.setParameters(envParams, force);
+        inEnvelopeFollower.setParameters(envParams, force);
+        outEnvelopeFollower.setParameters(envParams, force);
     }
 
     if (baseDelayMsChanged)

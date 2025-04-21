@@ -49,7 +49,13 @@ class DelayProc
         void process(const ProcessContext &context);
         void setParameters(const Parameters &params, bool force = false);
 
+        // Getter for the input level (envelope follower)
         float getInputLevel() const { return inputLevel; }
+        float getOutputLevel() const { return outputLevel; }
+
+        // Set external sidechain level for cross-band ducking
+        void setExternalSidechainLevel(float level) { externalSidechainLevel = level; }
+
         float getAge() const { return currentAge.getCurrentValue(); } // Getter for the current age value
 
     private:
@@ -86,8 +92,10 @@ class DelayProc
         float rampTimeMs = 500.0f; // Default ramp time for gain modulation
 
         // Envelope follower for input signal
-        EnvelopeFollower envelopeFollower;
+        EnvelopeFollower inEnvelopeFollower;
+        EnvelopeFollower outEnvelopeFollower;
         float inputLevel = 0.0f;
+        float outputLevel = 0.0f;
         static constexpr float inputLevelMetabolicThreshold = 0.01f;
         float envelopeAttackMs = 2.0f;
         float envelopeReleaseMs = 1.0f;
