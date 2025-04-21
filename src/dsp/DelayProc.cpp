@@ -96,7 +96,7 @@ void DelayProc::process (const ProcessContext& context)
         for (size_t i = 0; i < numSamples; ++i)
         {
             // Update current aging rate and modulation parameters
-            if (inGrowthRate.isSmoothing() || (inputLevel > inputLevelThreshold))
+            if (inGrowthRate.isSmoothing() || (inputLevel > inputLevelMetabolicThreshold))
             {
                 updateAgeingRate();
                 updateModulationParameters();
@@ -274,7 +274,7 @@ void DelayProc::updateProcChainParameters(bool force)
 {
     Dispersion::Parameters dispParams;
     dispParams.allpassFreq = inFilterFreq.getNextValue();
-    if (inputLevel > inputLevelThreshold)
+    if (inputLevel > inputLevelMetabolicThreshold)
     {
         dispParams.dispersionAmount = currentAge.getNextValue();
     }
@@ -297,7 +297,7 @@ void DelayProc::updateProcChainParameters(bool force)
 void DelayProc::updateAgeingRate()
 {
     rampTimeMs = inBaseDelayMs * 100.0f / juce::jmax(0.001f, inGrowthRate.getNextValue());
-    if (inputLevel > inputLevelThreshold)
+    if (inputLevel > inputLevelMetabolicThreshold)
     {
         float rampTimeSec = rampTimeMs / 1000.0f;
         currentAge = juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear>(currentAge.getNextValue());

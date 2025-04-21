@@ -88,9 +88,11 @@ class DelayProc
         // Envelope follower for input signal
         EnvelopeFollower envelopeFollower;
         float inputLevel = 0.0f;
-        static constexpr float inputLevelThreshold = 0.01f;
-        float envelopeAttackMs = 20.0f;
-        float envelopeReleaseMs = 100.0f;
+        static constexpr float inputLevelMetabolicThreshold = 0.01f;
+        float envelopeAttackMs = 2.0f;
+        float envelopeReleaseMs = 1.0f;
+
+
 
         enum
         {
