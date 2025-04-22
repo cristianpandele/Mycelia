@@ -44,10 +44,33 @@ void DelayNodes::reset()
 
 void DelayNodes::process(juce::AudioBuffer<float> *diffusionBandBuffers)
 {
+    // First, gather all input levels from all delay processors
+    std::vector<float> bandLevels(inNumColonies, 0.0f);
+    for (int band = 0; band < inNumColonies; ++band)
+    {
+        bandLevels[band] = delayProcs[band]->getOutputLevel();
+    }
+
     // Process each band through its corresponding delay processor
     for (int band = 0; band < inNumColonies; ++band)
     {
         auto &input = diffusionBandBuffers[band];
+
+        // Calculate the combined sidechain level from all OTHER bands
+        float combinedLevel = 0.0f;
+        int otherBandsCount = 0;
+
+        for (int otherBand = 0; otherBand < inNumColonies; ++otherBand)
+        {
+            if (otherBand != band)  // Skip the current band
+            {
+                combinedLevel += bandLevels[otherBand];
+                otherBandsCount++;
+            }
+        }
+
+        // Set the external sidechain level for this band's processor
+        delayProcs[band]->setExternalSidechainLevel(8 * combinedLevel);
 
         // Create audio blocks for processing
         juce::dsp::AudioBlock<float> inputBlock(const_cast<juce::AudioBuffer<float> &>(input));
@@ -71,7 +94,7 @@ void DelayNodes::updateDelayProcParams()
         // Set initial parameters
         DelayProc::Parameters params;
         params.delayMs = delayTimeMs;
-        params.feedback = 0.5f - (0.05f * i); // Decreasing feedback for higher bands
+        params.feedback = 1.0f - (0.05f * i); // Decreasing feedback for higher bands
         params.growthRate = inGrowthRate;
         params.baseDelayMs = inBaseDelayMs;
         params.filterFreq = inBandFrequencies[i];
@@ -81,9 +104,13 @@ void DelayNodes::updateDelayProcParams()
         params.revTimeMs = 0.0f;
         // params.modFreq = nullptr;
         // params.modDepth = 0.0f;
-        params.tempoBPM = 120.0f;
+        // params.tempoBPM = 120.0f;
         // params.lfoSynced = false;
         params.playhead = nullptr;
+
+        // Set compressor parameters
+        params.compressorParams = inCompressorParams;
+        params.useExternalSidechain = inUseExternalSidechain;
 
         delayProcs[i]->setParameters(params, false);
     }
@@ -98,6 +125,8 @@ void DelayNodes::setParameters(const Parameters &params)
     inGrowthRate = params.growthRate;
     inEntanglement = params.entanglement;
     inBaseDelayMs = params.baseDelayMs;
+    inCompressorParams = params.compressorParams;
+    inUseExternalSidechain = params.useExternalSidechain;
 
     updateDelayProcParams();
 }

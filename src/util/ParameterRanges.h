@@ -45,7 +45,7 @@ namespace ParameterRanges
     static constexpr float minAttackTime = 1.0f; // TODO: this should be a multiplication factor on the tempo
     static constexpr float maxAttackTime = 2500.0f;
     static constexpr float minReleaseTime = 1.0f; // TODO: this should be a multiplication factor on the tempo
-    static constexpr float maxReleaseTime = 3000.0f;
+    static constexpr float maxReleaseTime = 500.0f;
     static constexpr float minTreeDensity = 0.0f;
     static constexpr float maxTreeDensity = 100.0f;
     // Universe Control constants

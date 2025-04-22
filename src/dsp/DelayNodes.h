@@ -1,6 +1,7 @@
 #pragma once
 
 #include "DelayProc.h"
+#include "DuckingCompressor.h"
 #include <juce_dsp/juce_dsp.h>
 #include <vector>
 
@@ -21,6 +22,10 @@ class DelayNodes
             float growthRate;                         // Controls how nodes age and grow
             float entanglement;                       // Controls feedback interconnections between nodes
             float baseDelayMs;                        // Base delay time in milliseconds (quarter note time)
+
+            // Compressor parameters
+            DuckingCompressor::Parameters compressorParams; // Compressor parameters
+            bool useExternalSidechain = true;         // Whether to use cross-band sidechain input
         };
 
         DelayNodes(size_t numBands = 4);
@@ -47,6 +52,10 @@ class DelayNodes
         float inEntanglement = 0.5f;
         float inGrowthRate = 0.5f;
         float inBaseDelayMs = 500.0f;
+
+        // Compressor parameters
+        DuckingCompressor::Parameters inCompressorParams;
+        bool  inUseExternalSidechain = true;
 
         void updateDelayProcParams();
 

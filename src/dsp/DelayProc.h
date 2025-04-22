@@ -6,6 +6,7 @@
 #include "DelayStore.h"
 #include "Dispersion.h"
 #include "EnvelopeFollower.h"
+#include "DuckingCompressor.h"
 #include "util/ParameterRanges.h"
 // #include "PitchShiftWrapper.h"
 // #include "Reverser.h"
@@ -34,9 +35,13 @@ class DelayProc
             float revTimeMs;
             // const AudioProcessorValueTreeState::Parameter* modFreq;
             float modDepth;
-            float tempoBPM;
-            bool lfoSynced;
+            // float tempoBPM;
+            // bool lfoSynced;
             juce::AudioPlayHead *playhead;
+
+            // Compressor parameters
+            DuckingCompressor::Parameters compressorParams; // Compressor parameters
+            bool useExternalSidechain;         // Whether to use cross-band sidechain input
         };
 
         DelayProc();
@@ -64,6 +69,7 @@ class DelayProc
 
         juce::SharedResourcePointer<DelayStore> delayStore;
         juce::dsp::DelayLine<float, juce::dsp::DelayLineInterpolationTypes::Lagrange3rd> delay;
+        DuckingCompressor compressor;
 
         float fs = 44100.0f;
         static constexpr float smoothTimeSec = 0.1f;
@@ -94,13 +100,17 @@ class DelayProc
         // Envelope follower for input signal
         EnvelopeFollower inEnvelopeFollower;
         EnvelopeFollower outEnvelopeFollower;
-        float inputLevel = 0.0f;
+        float inputLevel  = 0.0f;
         float outputLevel = 0.0f;
         static constexpr float inputLevelMetabolicThreshold = 0.01f;
         float envelopeAttackMs = 2.0f;
         float envelopeReleaseMs = 1.0f;
 
+        DuckingCompressor::Parameters inCompressorParams;
 
+        // External sidechain level for cross-band ducking
+        float externalSidechainLevel = 0.0f;
+        bool inUseExternalSidechain = true;
 
         enum
         {

@@ -127,7 +127,7 @@ void DiffusionControl::prepareCoefficients()
         // Get the center frequency for this band
         float centerFreq = bandFrequencies[i];
 
-        coeffMaker[i].MakeCoeffs(freq_hz_to_note_num(centerFreq), 0.5f, sst::filters::fut_bp24, sst::filters::st_Standard, nullptr, false);
+        coeffMaker[i].MakeCoeffs(freq_hz_to_note_num(centerFreq), 0.7f, sst::filters::fut_bp24, sst::filters::st_Standard, nullptr, false);
 
         coeffMaker[i].updateState(filterState[i]);
     }

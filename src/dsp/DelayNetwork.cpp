@@ -84,16 +84,19 @@ void DelayNetwork::process(const ProcessContext &context)
         outputBlock.add(bandBlock);
     }
 
-    // Apply normalization based on the number of bands
-    // const float normalizationGain = 1.0f / std::sqrtf(static_cast<float>(activeFilterBands));
-    // outputBlock.multiplyBy(normalizationGain);
+    // // Apply normalization based on the number of bands
+    // const float normalizationGain = 1.0f / inActiveFilterBands;
+    // const float normalizationGain = 1.0f / std::sqrtf(static_cast<float>(inActiveFilterBands));
+
+    const float normalizationGain = inActiveFilterBands;
+    outputBlock.multiplyBy(normalizationGain);
 }
 
 void DelayNetwork::setParameters(const Parameters &params)
 {
     inActiveFilterBands = ParameterRanges::nutrientBandsRange.snapToLegalValue(params.numActiveFilterBands);
     inStretch = ParameterRanges::stretchRange.snapToLegalValue(params.stretch);
-    // inTempoValue = ParameterRanges::tempoValueRange.snapToLegalValue(params.tempoValue); //ignore tempo changes for now
+    inTempoValue = ParameterRanges::tempoValueRange.snapToLegalValue(params.tempoValue);
     inScarcityAbundance = ParameterRanges::scarcityAbundanceRange.snapToLegalValue(params.scarcityAbundance);
     inScarcityAbundanceOverride = ParameterRanges::scarcityAbundanceRange.snapToLegalValue(params.scarcityAbundanceOverride);
     inEntanglement = ParameterRanges::entanglementRange.snapToLegalValue(params.entanglement);
@@ -102,6 +105,12 @@ void DelayNetwork::setParameters(const Parameters &params)
     // Calculate base delay time from tempo (quarter note time in milliseconds)
     // Quarter note time in ms = (60 seconds / tempo in BPM) * 1000 ms/second
     baseDelayMs = (60.0f / inTempoValue) * 1000.0f;
+
+    // Calculate the compression threshold and ratio based on the scarcity/abundance value
+    auto normalizedScarAbundance = ParameterRanges::normalizeParameter(ParameterRanges::scarcityAbundanceRange, inScarcityAbundance);
+
+    compressorParams.threshold = -24.0f * (1 + normalizedScarAbundance);
+    compressorParams.ratio = 1.0f + 15.0f * normalizedScarAbundance;
 
     updateDiffusionDelayNodesParams();
 }
@@ -122,7 +131,9 @@ void DelayNetwork::updateDiffusionDelayNodesParams()
                                                     .scarcityAbundance = inScarcityAbundance,
                                                     .growthRate = inGrowthRate,
                                                     .entanglement = inEntanglement,
-                                                    .baseDelayMs = baseDelayMs});
+                                                    .baseDelayMs = baseDelayMs,
+                                                    .compressorParams = compressorParams,
+                                                    .useExternalSidechain = useExternalSidechain});
 }
 
 // Explicitly instantiate the templates for the supported context types

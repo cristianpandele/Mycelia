@@ -255,6 +255,11 @@ void MyceliaModel::parameterChanged(const juce::String &parameterID, float newVa
         currentDelayNetworkParams.tempoValue = newValue;
         delayNetwork.setParameters(currentDelayNetworkParams);
     }
+    else if (parameterID == IDs::scarcityAbundance)
+    {
+        currentDelayNetworkParams.scarcityAbundance = newValue;
+        delayNetwork.setParameters(currentDelayNetworkParams);
+    }
     else if (parameterID == IDs::entanglement)
     {
         currentDelayNetworkParams.entanglement = newValue;

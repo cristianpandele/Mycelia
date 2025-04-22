@@ -19,6 +19,7 @@ target_sources(
     dsp/DelayProc.cpp
     dsp/DiffusionControl.cpp
     dsp/Dispersion.cpp
+    dsp/DuckingCompressor.cpp
     dsp/OutputNode.cpp
 
     # dsp/BaseNode.cpp

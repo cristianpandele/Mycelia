@@ -36,14 +36,29 @@ class DelayNetwork
         float fs = 44100.0f;
 
         // Parameters
-        int   inActiveFilterBands = 4;
-        float inStretch = 0.0f;
-        float inTempoValue = 120.0f;
-        float inScarcityAbundance = 0.0f;
-        float inScarcityAbundanceOverride = 0.0f;
-        float inEntanglement = 50.0f;
-        float inGrowthRate = 50.0f;
-        float baseDelayMs = 60.0f / inTempoValue * 1000.0f;
+        int   inActiveFilterBands;
+        float inStretch;
+        float inTempoValue;
+        float inScarcityAbundance;
+        float inScarcityAbundanceOverride;
+        float inEntanglement;
+        float inGrowthRate;
+
+        // Base delay time in milliseconds (quarter note time)
+        float baseDelayMs = 60.0f / ParameterRanges::tempoValueRange.snapToLegalValue(inTempoValue) * 1000.0f;
+
+        // Compressor parameters
+        DuckingCompressor::Parameters compressorParams =
+            {
+                .threshold = -12.0f,
+                .ratio = 4.0f,
+                .attackTime = 100.0f,
+                .releaseTime = 250.0f,
+                .kneeWidth = 6.0f,
+                .makeupGain = 0.0f,
+                .enabled = true
+            };
+        bool  useExternalSidechain = true;
 
         // Diffusion control
         DiffusionControl diffusionControl;

@@ -122,7 +122,19 @@ class MyceliaModel :
         // Parameters for processors
         InputNode::Parameters currentInputParams;
         EdgeTree::Parameters currentEdgeTreeParams;
-        DelayNetwork::Parameters currentDelayNetworkParams; // Parameters for DelayNetwork
+        // Parameters for DelayNetwork
+        DelayNetwork::Parameters currentDelayNetworkParams =
+        {
+            .numActiveFilterBands = 4,
+            .stretch = 0.0f,
+            .tempoValue = 120.0f,
+            .scarcityAbundance = 0.0f,
+            .scarcityAbundanceOverride = 0.0f,
+            .entanglement = 50.0f,
+            .growthRate = 50.0f,
+            .baseDelayMs = 60.0f / 120.0f * 1000.0f,
+        };
+
         OutputNode::Parameters currentOutputParams;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MyceliaModel)

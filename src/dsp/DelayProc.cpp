@@ -33,6 +33,9 @@ void DelayProc::prepare (const juce::dsp::ProcessSpec& spec)
     inEnvelopeFollower.setParameters(envParams, true);
     outEnvelopeFollower.setParameters(envParams, true);
 
+    // Prepare compressor
+    compressor.prepare(spec);
+
     reset();
 
     procs.prepare (spec);
@@ -53,6 +56,7 @@ void DelayProc::reset()
     modProcs.reset();
     inEnvelopeFollower.reset();
     outEnvelopeFollower.reset();
+    compressor.reset();
 }
 
 void DelayProc::flushDelay()
@@ -140,11 +144,17 @@ inline SampleType DelayProc::processSample (SampleType x, size_t ch)
 {
     auto input = x;
     // input = procs.processSample(juce::jlimit(-1.0f, 1.0f, input + state[ch])); // Process input + Feedback state
-    // input = procs.processSample (input + state[ch]); // Process input + Feedback state
-    input = procs.processSample (input);             // Process input
+    input = procs.processSample (input + state[ch]); // Process input + Feedback state
+    // input = procs.processSample (input);             // Process input
     delay.pushSample ((int) ch, input);              // Push input to delay line
     auto y = delay.popSample ((int) ch);             // Pop output from delay line
-    state[ch] = y * inFeedback.getNextValue();       // Save feedback state
+
+    // Apply ducking compressor using either the input level or external sidechain
+    float sidechainLevel = inUseExternalSidechain ? externalSidechainLevel : inputLevel;
+    y = compressor.processSample(y, sidechainLevel, ch);
+
+    // state[ch] = y * inFeedback.getNextValue();       // Save feedback state
+    state[ch] = (x - y) * inFeedback.getNextValue();    // Save feedback state
     return y;
 }
 
@@ -251,6 +261,14 @@ void DelayProc::setParameters (const Parameters& params, bool force)
 
     // Update delay processor parameters
     updateProcChainParameters(force);
+
+    // Update compressor parameters
+    inCompressorParams = params.compressorParams;
+    compressor.setParameters(inCompressorParams, force);
+
+    // Update external sidechain usage flag
+    inUseExternalSidechain = params.useExternalSidechain;
+
 }
 
 void DelayProc::updateFilterCoefficients(bool force)
