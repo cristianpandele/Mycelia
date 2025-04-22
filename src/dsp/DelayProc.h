@@ -65,7 +65,7 @@ class DelayProc
 
     private:
         template <typename SampleType>
-        inline SampleType processSample(SampleType x, size_t ch);
+        inline SampleType processSample(SampleType x, size_t ch, size_t sample);
 
         juce::SharedResourcePointer<DelayStore> delayStore;
         juce::dsp::DelayLine<float, juce::dsp::DelayLineInterpolationTypes::Lagrange3rd> delay;
@@ -80,7 +80,7 @@ class DelayProc
         juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear> inFilterFreq {0.0f};
         juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear> inFilterGainDb {0.0f};
         juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear> inGrowthRate {0.0f};
-        std::vector<float> state;
+        std::vector<std::vector<float>> state;
 
         // Age control parameters
         juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear> currentAge {0.0f};

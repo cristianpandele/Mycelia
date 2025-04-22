@@ -19,9 +19,10 @@ void DelayProc::prepare (const juce::dsp::ProcessSpec& spec)
     inFilterFreq.reset(fs, smoothTimeSec);
     inFilterGainDb.reset(fs, smoothTimeSec);
     inDelayTime.reset(fs, 2*smoothTimeSec);
+    state.resize(spec.numChannels);
     for (auto numCh = 0; numCh < spec.numChannels; ++numCh)
     {
-        state.push_back (0.0f);
+        state[numCh].resize(spec.maximumBlockSize, 0.0f);
     }
 
     // Prepare envelope follower
@@ -62,7 +63,10 @@ void DelayProc::reset()
 void DelayProc::flushDelay()
 {
     delay.reset();
-    std::fill (state.begin(), state.end(), 0.0f);
+    for (auto& channel : state)
+    {
+        std::fill(channel.begin(), channel.end(), 0.0f);
+    }
     procs.reset();
     modProcs.reset();
 }
@@ -131,7 +135,7 @@ void DelayProc::process (const ProcessContext& context)
                 updateModulationParameters();
             }
 
-            outputSamples[i] = processSample(inputSamples[i], channel);
+            outputSamples[i] = processSample(inputSamples[i], channel, i);
         }
     }
 
@@ -140,21 +144,21 @@ void DelayProc::process (const ProcessContext& context)
 }
 
 template <typename SampleType>
-inline SampleType DelayProc::processSample (SampleType x, size_t ch)
+inline SampleType DelayProc::processSample(SampleType x, size_t ch, size_t sample)
 {
     auto input = x;
     // input = procs.processSample(juce::jlimit(-1.0f, 1.0f, input + state[ch])); // Process input + Feedback state
-    input = procs.processSample (input + state[ch]); // Process input + Feedback state
+    input = procs.processSample (input + state[ch][sample]); // Process input + Feedback state
     // input = procs.processSample (input);             // Process input
     delay.pushSample ((int) ch, input);              // Push input to delay line
-    auto y = delay.popSample ((int) ch);             // Pop output from delay line
+    auto delayOut = delay.popSample ((int) ch);             // Pop output from delay line
 
     // Apply ducking compressor using either the input level or external sidechain
     float sidechainLevel = inUseExternalSidechain ? externalSidechainLevel : inputLevel;
-    y = compressor.processSample(y, sidechainLevel, ch);
+    auto y = compressor.processSample(delayOut, sidechainLevel, ch);
 
     // state[ch] = y * inFeedback.getNextValue();       // Save feedback state
-    state[ch] = (x - y) * inFeedback.getNextValue();    // Save feedback state
+    state[ch][sample] = (y - delayOut) * inFeedback.getNextValue(); // Save feedback state
     return y;
 }
 
