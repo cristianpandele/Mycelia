@@ -18,7 +18,6 @@ class DelayNetwork
             float scarcityAbundanceOverride; // Controls the Scarcity/Abundance override (0-1)
             float entanglement;              // Controls the diffusion and cross-feedback (0-100)
             float growthRate;                // Controls the delay network growth (0-100)
-            float baseDelayMs;               // Base delay time in milliseconds
         };
 
         DelayNetwork();
@@ -32,6 +31,7 @@ class DelayNetwork
         void process(const ProcessContext &context);
 
         void setParameters(const Parameters &params);
+
     private:
         float fs = 44100.0f;
 
@@ -45,7 +45,7 @@ class DelayNetwork
         float inGrowthRate;
 
         // Base delay time in milliseconds (quarter note time)
-        float baseDelayMs = 60.0f / ParameterRanges::tempoValueRange.snapToLegalValue(inTempoValue) * 1000.0f;
+        float baseDelayMs = 0.0f;
 
         // Compressor parameters
         DuckingCompressor::Parameters compressorParams =

@@ -55,6 +55,8 @@ MyceliaModel::MyceliaModel(Mycelia &p)
     addParamListener(IDs::bandpassFreq, this);
     addParamListener(IDs::bandpassWidth, this);
     //
+    addParamListener(IDs::tempoValue, this);
+    //
     addParamListener(IDs::entanglement, this);
     addParamListener(IDs::growthRate, this);
     //
@@ -165,6 +167,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout MyceliaModel::createParamete
 
     universeCtrls->addChild(
         std::move(stretchParamLabel),
+        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::tempoValue, 1), "Tempo Value", ParameterRanges::tempoValueRange, 120.0f),
         std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::scarcityAbundance, 1), "Scarcity/Abundance", ParameterRanges::scarcityAbundanceRange, 0.0f),
         std::make_unique<juce::AudioParameterBool>(juce::ParameterID(IDs::scarcityAbundanceOverride, 1), "Override", false),
         std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::foldPosition, 1), "Fold Position", ParameterRanges::foldPositionRange, 0.0f),
@@ -280,6 +283,18 @@ void MyceliaModel::parameterChanged(const juce::String &parameterID, float newVa
     {
         currentOutputParams.delayDuckLevel = newValue;
         outputNode.setParameters(currentOutputParams);
+    }
+}
+
+void MyceliaModel::setParameterExplicitly(const juce::String& paramId, float newValue)
+{
+    // Get the parameter and update its value
+    auto* param = treeState.getParameter(paramId);
+    if (param != nullptr)
+    {
+        // Convert normalized value if needed
+        float normValue = param->convertTo0to1(newValue);
+        param->setValueNotifyingHost(normValue);
     }
 }
 

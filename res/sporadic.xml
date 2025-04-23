@@ -105,6 +105,10 @@
         <ToggleButton text="Override" parameter="scarcityabundanceoverride" caption="Override"
                       caption-size="0" pos-x="50%" pos-width="50%" pos-y="80%" pos-height="20%"
                       flex-align-self="center" min-width="0.0" min-height="0.0"/>
+        <Label text="MIDI Clock Sync Active" background-color="FFFF8800" property="midiClockStatus"
+               pos-height="15%" pos-x="0%" pos-width="50%" pos-y="85%" justification="centred"
+               font-size="12.0" border="1" border-color="FF000000" radius="5"
+               value="midiClockStatus" visibility="midiClockStatus"/>
       </View>
       <View caption="Mycelia" padding="1" border="2" pos-y="" pos-width="20%"
             border-color="FFA5680E" pos-x="60%" display="contents" flex-align-self="center">

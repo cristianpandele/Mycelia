@@ -99,13 +99,7 @@ void DelayNodes::updateDelayProcParams()
         params.baseDelayMs = inBaseDelayMs;
         params.filterFreq = inBandFrequencies[i];
         params.filterGainDb = 0.0f;
-        // params.distortion = 0.1f;
-        // params.pitchSt = 0.0f;
         params.revTimeMs = 0.0f;
-        // params.modFreq = nullptr;
-        // params.modDepth = 0.0f;
-        // params.tempoBPM = 120.0f;
-        // params.lfoSynced = false;
         params.playhead = nullptr;
 
         // Set compressor parameters

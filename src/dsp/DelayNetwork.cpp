@@ -103,7 +103,6 @@ void DelayNetwork::setParameters(const Parameters &params)
     inGrowthRate = ParameterRanges::growthRateRange.snapToLegalValue(params.growthRate);
 
     // Calculate base delay time from tempo (quarter note time in milliseconds)
-    // Quarter note time in ms = (60 seconds / tempo in BPM) * 1000 ms/second
     baseDelayMs = (60.0f / inTempoValue) * 1000.0f;
 
     // Calculate the compression threshold and ratio based on the scarcity/abundance value

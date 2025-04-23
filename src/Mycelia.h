@@ -62,6 +62,39 @@ class Mycelia :
         foleys::MagicLevelSource *inputMeter = nullptr;
         foleys::MagicLevelSource *outputMeter = nullptr;
 
+        // Add a timer to update MIDI clock sync status in the GUI
+        class MidiClockStatusUpdater : public juce::Timer
+        {
+        public:
+            MidiClockStatusUpdater(Mycelia& owner) : processor(owner) {}
+            void timerCallback() override
+            {
+                processor.updateMidiClockSyncStatus();
+            }
+        private:
+            Mycelia& processor;
+        };
+
+        MidiClockStatusUpdater midiClockStatusUpdater { *this };
+        void updateMidiClockSyncStatus();
+
+        // Process MIDI messages
+        void processMidiMessages(const juce::MidiBuffer &midiMessages);
+        // Process MIDI messages for MIDI clock sync
+        void processMidiClockMessage(const juce::MidiMessage &midiMessage, double currentTime);
+
+        // Check if MIDI clock sync is active
+        bool isMidiClockSyncActive() const;
+
+        // MIDI Clock sync variables
+        bool midiClockDetected = false;
+        double midiClockTempo = 0.0;
+        double lastMidiClockTime = 0.0;
+        int midiClockCounter = 0;
+        static constexpr int kDefaultTempo = 100;         // Default tempo in BPM
+        static constexpr int kClockCountReset = 24;       // MIDI sends 24 clock messages per quarter note
+        static constexpr double kMidiClockTimeout = 15.0; // Reset MIDI clock detection after 15 seconds of no messages
+
         // The underlying model used to perform the DSP processing
         MyceliaModel myceliaModel;
 

@@ -41,6 +41,9 @@ Mycelia::Mycelia()
     inputMeter = magicState.createAndAddObject<foleys::MagicLevelSource>(IDs::inputMeter);
     outputMeter = magicState.createAndAddObject<foleys::MagicLevelSource>(IDs::outputMeter);
 
+    // Start the timer to update MIDI clock sync status
+    midiClockStatusUpdater.startTimerHz(1); // Update 1 time per second
+
     magicState.setGuiValueTree(BinaryData::sporadic_xml, BinaryData::sporadic_xmlSize);
 }
 
@@ -67,11 +70,8 @@ const juce::String Mycelia::getName() const
 
 bool Mycelia::acceptsMidi() const
 {
-#if JucePlugin_WantsMidiInput
+    // Always accept MIDI input to support MIDI clock sync
     return true;
-#else
-    return false;
-#endif
 }
 
 bool Mycelia::producesMidi() const
@@ -185,7 +185,8 @@ bool Mycelia::isBusesLayoutSupported(const BusesLayout &layouts) const
 
 void Mycelia::processBlock(juce::AudioBuffer<float> &buffer, juce::MidiBuffer &midiMessages)
 {
-    juce::ignoreUnused(midiMessages);
+    // Process MIDI messages
+    processMidiMessages(midiMessages);
 
     juce::ScopedNoDenormals noDenormals;
     auto totalNumInputChannels = getTotalNumInputChannels();
@@ -232,6 +233,91 @@ void Mycelia::setStateInformation(const void *data, int sizeInBytes)
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
     myceliaModel.setStateInformation(data, sizeInBytes);
+}
+
+//==============================================================================
+
+void Mycelia::processMidiMessages(const juce::MidiBuffer &midiMessages)
+{
+    // Get the current time in seconds
+    const double currentTime = juce::Time::getMillisecondCounterHiRes() * 0.001;
+
+    // Check for MIDI clock timeout
+    if (midiClockDetected && (currentTime - lastMidiClockTime) > kMidiClockTimeout)
+    {
+        midiClockDetected = false;
+        midiClockCounter = 0;
+        myceliaModel.setParameterExplicitly(IDs::tempoValue, kDefaultTempo);
+    }
+
+    // Forward MIDI messages to the DelayNetwork for MIDI clock sync processing
+    if (!midiMessages.isEmpty())
+    {
+        for (const auto metadata : midiMessages)
+        {
+            const auto message = metadata.getMessage();
+
+            // Check for MIDI clock messages
+            if (message.isMidiClock())
+            {
+                processMidiClockMessage(message, currentTime);
+            }
+            // Also handle MIDI start/stop messages for transport control
+            else if (message.isMidiStart() || message.isMidiContinue())
+            {
+                // Reset counter when transport starts/continues
+                midiClockCounter = 0;
+            }
+            else if (message.isMidiStop())
+            {
+                // Stop tracking when transport stops
+                midiClockDetected = false;
+                midiClockCounter = 0;
+            }
+        }
+    }
+}
+
+void Mycelia::processMidiClockMessage(const juce::MidiMessage &midiMessage, double currentTime)
+{
+    // Calculate tempo from the timing of MIDI clock messages
+    midiClockCounter++;
+
+    if (midiClockCounter >= kClockCountReset)
+    {
+        if (!midiClockDetected)
+        {
+            midiClockDetected = true;
+            // First complete set of clock messages received, start tracking from here
+        }
+        else
+        {
+            // Calculate tempo based on time it took to receive 24 MIDI clock messages
+            midiClockTempo = 60.0 / (currentTime - lastMidiClockTime);
+        }
+        midiClockCounter = 0;
+        lastMidiClockTime = currentTime;
+    }
+}
+
+bool Mycelia::isMidiClockSyncActive() const
+{
+    // Forward the request to the DelayNetwork
+    return midiClockDetected;
+}
+
+void Mycelia::updateMidiClockSyncStatus()
+{
+    // Update the MIDI clock status property using the ValueTree API
+    bool isMidiClockActive = isMidiClockSyncActive();
+    if (isMidiClockActive)
+    {
+        magicState.getPropertyAsValue("midiClockStatus").setValue("MIDI Clock Sync Active");
+    }
+    else
+    {
+        magicState.getPropertyAsValue("midiClockStatus").setValue(isMidiClockActive);
+    }
 }
 
 //==============================================================================

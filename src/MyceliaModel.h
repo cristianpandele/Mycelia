@@ -44,6 +44,7 @@ namespace IDs
     static juce::Identifier oscilloscope{"oscilloscope"};
     static juce::Identifier inputMeter{"inputMeter"};
     static juce::Identifier outputMeter{"outputMeter"};
+    static juce::Identifier midiClockStatus{"midiClockStatus"};
 } // namespace IDs
 
 class MyceliaModel :
@@ -82,6 +83,9 @@ class MyceliaModel :
 
         void releaseResources();
 
+        // Change parameters programmatically, ensuring listeners are notified
+        void setParameterExplicitly(const juce::String& paramId, float newValue);
+
     private:
         // Parameters
         juce::AudioProcessorValueTreeState treeState;
@@ -112,6 +116,7 @@ class MyceliaModel :
 
         // Buffers for processing
         juce::AudioBuffer<float> dryBuffer;
+        juce::AudioBuffer<float> skyBuffer; // Added for sky processing
 
         // Audio Processors: Input, Sky, EdgeTree, DelayNetwork, Output
         InputNode inputNode;
@@ -131,8 +136,7 @@ class MyceliaModel :
             .scarcityAbundance = 0.0f,
             .scarcityAbundanceOverride = 0.0f,
             .entanglement = 50.0f,
-            .growthRate = 50.0f,
-            .baseDelayMs = 60.0f / 120.0f * 1000.0f,
+            .growthRate = 50.0f
         };
 
         OutputNode::Parameters currentOutputParams;

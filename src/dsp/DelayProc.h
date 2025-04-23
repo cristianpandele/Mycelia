@@ -30,13 +30,9 @@ class DelayProc
             float baseDelayMs;                 // Base delay time for calculating age ramp
             float filterFreq;
             float filterGainDb;
-            // float distortion;
-            // float pitchSt;
             float revTimeMs;
             // const AudioProcessorValueTreeState::Parameter* modFreq;
             float modDepth;
-            // float tempoBPM;
-            // bool lfoSynced;
             juce::AudioPlayHead *playhead;
 
             // Compressor parameters
