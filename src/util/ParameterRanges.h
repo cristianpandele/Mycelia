@@ -29,8 +29,8 @@ namespace ParameterRanges
     static constexpr float maxPreampLevel = 120.0f;
     static constexpr float minPreampOverdrive = 100.0f;
     static constexpr float maxPreampOverdrive = 120.0f;
-    static constexpr float minwaveshaperDrive = 1.0f;
-    static constexpr float maxwaveshaperDrive = 6.0f;
+    static constexpr float minWaveshaperDrive = 1.0f;
+    static constexpr float maxWaveshaperDrive = 6.0f;
     static constexpr float minReverbMix = 0.0f;
     static constexpr float maxReverbMix = 100.0f;
     static constexpr float minBandpassFrequency = 20.0f;
@@ -111,7 +111,7 @@ namespace ParameterRanges
     // Input parameters
     inline const juce::NormalisableRange<float> preampLevelRange(minPreampLevel, maxPreampLevel, 0.1f);
     inline const juce::NormalisableRange<float> preampOverdriveRange(minPreampOverdrive, maxPreampOverdrive, 0.1f);
-    inline const juce::NormalisableRange<float> waveshaperDriveRange(minwaveshaperDrive, maxwaveshaperDrive, 0.01f);
+    inline const juce::NormalisableRange<float> waveshaperDriveRange(minWaveshaperDrive, maxWaveshaperDrive, 0.01f);
     inline const juce::NormalisableRange<float> reverbMixRange(minReverbMix, maxReverbMix, 0.1f);
 
     // Input sculpting
