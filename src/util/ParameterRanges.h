@@ -93,9 +93,6 @@ namespace ParameterRanges
     static constexpr float maxDispersion = 1.0f;
     static constexpr float minReverse = 0.0f;
     static constexpr float maxReverse = 1000.0f;
-    // static constexpr float minModFreq = 0.0f;
-    // static constexpr float maxModFreq = 5.0f;
-
     // Sky constants
     static constexpr float minSkyHumidity = 0.0f;
     static constexpr float maxSkyHumidity = 100.0f;
@@ -106,6 +103,9 @@ namespace ParameterRanges
     static constexpr float maxDryWet = 1.0f;
     static constexpr float minDelayMsDuck = 0.0f;
     static constexpr float maxDelayMsDuck = 100.0f;
+    // MIDI Constants
+    static constexpr int   minMidiCcValue = 0;
+    static constexpr int   maxMidiCcValue = 127;
 
     /////////////////////////// RANGES ////////////////////////////////
     // Input parameters
@@ -255,15 +255,11 @@ namespace ParameterRanges
     );
 
     inline const juce::NormalisableRange<float> tempoValueRange(minTempoValue, maxTempoValue, 1.0f);
-    inline const juce::NormalisableRange<float> scarcityAbundanceRange(minScarcityAbundance, maxScarcityAbundance, 0.1f);
-    inline const juce::NormalisableRange<float> foldPositionRange(minFoldPosition, maxFoldPosition, 0.01f);
-    inline const juce::NormalisableRange<float> foldWindowShapeRange(minFoldWindowShape, maxFoldWindowShape, 0.01f);
-    inline const juce::NormalisableRange<float> foldWindowSizeRange(minFoldWindowSize, maxFoldWindowSize, 0.01f);
+    inline const juce::NormalisableRange<float> midiCcValueRange(minMidiCcValue, maxMidiCcValue, 0.01f);
 
     // Mycelia parameters
     inline const juce::NormalisableRange<float> entanglementRange(minEntanglement, maxEntanglement, 0.01f);
     inline const juce::NormalisableRange<float> growthRateRange = rangeWithSkewForCentre(minGrowthRate, maxGrowthRate, centerGrowthRate);
-
     inline const juce::NormalisableRange<int>   nutrientBandsRange(minNutrientBands, maxNutrientBands, 1.0f);
 
     // Delay Processor parameters
@@ -276,10 +272,13 @@ namespace ParameterRanges
     inline const juce::NormalisableRange<float> filterGainRangeDb{minFilterGainDb, maxFilterGainDb};
     inline const juce::NormalisableRange<float> dispRange{minDispersion, maxDispersion};
     inline const juce::NormalisableRange<float> revRange{minReverse, maxReverse};
-    // juce::NormalisableRange<float> modFreqRange{minModFreq, maxModFreq};
-    // modFreqRange.setSkewForCentre(2.0f);
-    // juce::NormalisableRange<float> delayModRange{0.0f, 1.0f};
     inline const juce::NormalisableRange<float> panModRange{-maxPan, maxPan};
+
+    // Universe parameters
+    inline const juce::NormalisableRange<float> scarcityAbundanceRange(minScarcityAbundance, maxScarcityAbundance, 0.1f);
+    inline const juce::NormalisableRange<float> foldPositionRange(minFoldPosition, maxFoldPosition, 0.01f);
+    inline const juce::NormalisableRange<float> foldWindowShapeRange(minFoldWindowShape, maxFoldWindowShape, 0.01f);
+    inline const juce::NormalisableRange<float> foldWindowSizeRange(minFoldWindowSize, maxFoldWindowSize, 0.01f);
 
     // Sky parameters
     inline const juce::NormalisableRange<float> skyHumidityRange(minSkyHumidity, maxSkyHumidity, 0.01f);

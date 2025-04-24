@@ -274,6 +274,11 @@ void Mycelia::processMidiMessages(const juce::MidiBuffer &midiMessages)
                 midiClockDetected = false;
                 midiClockCounter = 0;
             }
+            // Handle MIDI CC messages
+            else if (message.isController())
+            {
+                processMidiCcMessage(message);
+            }
         }
     }
 }
@@ -299,6 +304,77 @@ void Mycelia::processMidiClockMessage(const juce::MidiMessage &midiMessage, doub
         lastMidiClockTime = currentTime;
     }
 }
+
+void Mycelia::processMidiCcMessage(const juce::MidiMessage &midiMessage)
+{
+    // Get the controller number and value
+    int ccNumber = midiMessage.getControllerNumber();
+    int ccValue = midiMessage.getControllerValue();
+
+    // Store values for CCs 16, 17, 18, and 19
+    switch (ccNumber)
+    {
+        case 16:
+        {
+            // CC16 mapped to Fold Position
+            midiCC16Value = ParameterRanges::midiCcValueRange.snapToLegalValue(ccValue);
+            auto normCcValue = ParameterRanges::normalizeParameter(ParameterRanges::midiCcValueRange, midiCC16Value);
+            auto windowPositionVal = ParameterRanges::denormalizeParameter(ParameterRanges::foldPositionRange, normCcValue);
+            myceliaModel.setParameterExplicitly(IDs::foldPosition, windowPositionVal);
+            magicState.getPropertyAsValue("foldPosition").setValue(windowPositionVal);
+            break;
+        }
+        case 17:
+        {
+            // CC17 mapped to Fold Window Shape, positive half
+            midiCC17Value = ParameterRanges::midiCcValueRange.snapToLegalValue(ccValue);
+            // Only perform the action if CC17 is greater than CC18 (to avoid conflict)
+            // This is a workaround for Osmose's MIDI mapping
+            if (midiCC17Value > midiCC18Value)
+            {
+                auto normCcValue = ParameterRanges::normalizeParameter(ParameterRanges::midiCcValueRange, midiCC17Value);
+                auto windowShapeVal = ParameterRanges::denormalizeParameter(ParameterRanges::foldWindowShapeRange, normCcValue);
+                // Offset the value to the positive range
+                auto offset = ParameterRanges::midiCcValueRange.start - ParameterRanges::foldWindowShapeRange.start;
+                auto rate = 1.0f / (ParameterRanges::foldWindowShapeRange.end - ParameterRanges::foldWindowShapeRange.start);
+                windowShapeVal = (windowShapeVal + offset) * rate;
+                myceliaModel.setParameterExplicitly(IDs::foldWindowShape, windowShapeVal);
+                magicState.getPropertyAsValue("foldWindowShape").setValue(windowShapeVal);
+            }
+            break;
+        }
+        case 18:
+        {
+            // CC18 mapped to Fold Window Shape, negative half
+            midiCC18Value = ParameterRanges::midiCcValueRange.snapToLegalValue(ccValue);
+            // Only perform the action if CC18 is greater than CC17 (to avoid conflict)
+            // This is a workaround for Osmose's MIDI mapping
+            if (midiCC18Value > midiCC17Value)
+            {
+                auto normCcValue = ParameterRanges::normalizeParameter(ParameterRanges::midiCcValueRange, midiCC18Value);
+                auto windowShapeVal = ParameterRanges::denormalizeParameter(ParameterRanges::foldPositionRange, normCcValue);
+                // Offset the value to the negative range
+                auto offset = ParameterRanges::midiCcValueRange.start - ParameterRanges::foldWindowShapeRange.start;
+                auto rate = 1.0f / (ParameterRanges::foldWindowShapeRange.end - ParameterRanges::foldWindowShapeRange.start);
+                windowShapeVal = -(windowShapeVal + offset) * rate;
+                myceliaModel.setParameterExplicitly(IDs::foldWindowShape, windowShapeVal);
+                magicState.getPropertyAsValue("foldWindowShape").setValue(windowShapeVal);
+            }
+            break;
+        }
+        case 19:
+        {
+            midiCC19Value = ParameterRanges::midiCcValueRange.snapToLegalValue(ccValue);
+            // DBG("MIDI CC 19 received: " + juce::String(ccValue));
+            break;
+        }
+        default:
+            // Handle other CC messages if needed
+            break;
+    }
+}
+
+//==============================================================================
 
 bool Mycelia::isMidiClockSyncActive() const
 {

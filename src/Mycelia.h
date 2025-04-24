@@ -82,6 +82,8 @@ class Mycelia :
         void processMidiMessages(const juce::MidiBuffer &midiMessages);
         // Process MIDI messages for MIDI clock sync
         void processMidiClockMessage(const juce::MidiMessage &midiMessage, double currentTime);
+        // Process MIDI CC messages
+        void processMidiCcMessage(const juce::MidiMessage &midiMessage);
 
         // Check if MIDI clock sync is active
         bool isMidiClockSyncActive() const;
@@ -94,6 +96,12 @@ class Mycelia :
         static constexpr int kDefaultTempo = 100;         // Default tempo in BPM
         static constexpr int kClockCountReset = 24;       // MIDI sends 24 clock messages per quarter note
         static constexpr double kMidiClockTimeout = 15.0; // Reset MIDI clock detection after 15 seconds of no messages
+
+        // MIDI CC values
+        int midiCC16Value = 0;
+        int midiCC17Value = 0;
+        int midiCC18Value = 0;
+        int midiCC19Value = 0;
 
         // The underlying model used to perform the DSP processing
         MyceliaModel myceliaModel;
