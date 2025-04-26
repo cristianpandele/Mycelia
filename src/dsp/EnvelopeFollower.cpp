@@ -8,9 +8,9 @@ EnvelopeFollower::EnvelopeFollower()
 void EnvelopeFollower::prepare(const juce::dsp::ProcessSpec &spec)
 {
     filter->prepare(spec);
-    filter->setLevelCalculationType(juce::dsp::BallisticsFilterLevelCalculationType::RMS);
-    filter->setAttackTime(attackMs);
-    filter->setReleaseTime(releaseMs);
+    filter->setLevelCalculationType(inLevelType);
+    filter->setAttackTime(inAttackMs);
+    filter->setReleaseTime(inReleaseMs);
 
     numChannels = spec.numChannels;
     analysisBuffer.setSize(numChannels, spec.maximumBlockSize);
@@ -69,22 +69,27 @@ float EnvelopeFollower::processSample(int ch, float sample)
 
 void EnvelopeFollower::setParameters(const Parameters &params, bool force)
 {
-    bool attackChanged = std::abs(attackMs - params.attackMs) > 0.01f;
-    bool releaseChanged = std::abs(releaseMs - params.releaseMs) > 0.01f;
+    bool attackChanged = std::abs(inAttackMs - params.attackMs) > 0.01f;
+    bool releaseChanged = std::abs(inReleaseMs - params.releaseMs) > 0.01f;
+    bool levelTypeChanged = inLevelType != params.levelType;
 
     if (attackChanged || force)
     {
-        attackMs = params.attackMs;
-        filter->setAttackTime(attackMs);
+        inAttackMs = params.attackMs;
+        filter->setAttackTime(inAttackMs);
     }
 
     if (releaseChanged || force)
     {
-        releaseMs = params.releaseMs;
-        filter->setReleaseTime(releaseMs);
+        inReleaseMs = params.releaseMs;
+        filter->setReleaseTime(inReleaseMs);
     }
 
-    filter->setLevelCalculationType(params.levelType);
+    if (levelTypeChanged || force)
+    {
+        inLevelType = params.levelType;
+        filter->setLevelCalculationType(inLevelType);
+    }
 }
 
 float EnvelopeFollower::getCurrentLevel(int channel) const

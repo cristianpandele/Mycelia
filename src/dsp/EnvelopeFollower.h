@@ -16,7 +16,7 @@ public:
     {
         float attackMs = 20.0f;
         float releaseMs = 100.0f;
-        juce::dsp::BallisticsFilterLevelCalculationType levelType = juce::dsp::BallisticsFilterLevelCalculationType::RMS;
+        juce::dsp::BallisticsFilterLevelCalculationType levelType;
     };
 
     void prepare(const juce::dsp::ProcessSpec &spec);
@@ -38,8 +38,9 @@ private:
     std::unique_ptr<juce::dsp::BallisticsFilter<float>> filter;
     juce::AudioBuffer<float> analysisBuffer;
 
-    float attackMs = 20.0f;
-    float releaseMs = 100.0f;
+    float inAttackMs = 20.0f;
+    float inReleaseMs = 100.0f;
+    juce::dsp::BallisticsFilterLevelCalculationType inLevelType = juce::dsp::BallisticsFilterLevelCalculationType::RMS;
     float currentLevel = 0.0f;
     int numChannels = 2;
 
