@@ -35,8 +35,9 @@ class EdgeTree
         float inTreeDensity = 0.0f;
 
         // Parameters
-        float attackMs = 250.0f;
-        float releaseMs = 150.0f;
+        float inAttackMs = 250.0f;
+        float inReleaseMs = 150.0f;
+        const juce::dsp::BallisticsFilterLevelCalculationType levelType = juce::dsp::BallisticsFilterLevelCalculationType::RMS;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(EdgeTree)
 };

@@ -13,8 +13,8 @@ void EdgeTree::prepare(const juce::dsp::ProcessSpec &spec)
 {
     // Set up the envelope follower with our parameters
     EnvelopeFollower::Parameters params;
-    params.attackMs = attackMs;
-    params.releaseMs = releaseMs;
+    params.attackMs = inAttackMs;
+    params.releaseMs = inReleaseMs;
     params.levelType = juce::dsp::BallisticsFilterLevelCalculationType::RMS;
 
     envelopeFollower.prepare(spec);
@@ -80,14 +80,14 @@ void EdgeTree::setParameters(const Parameters &params)
         inTreeSize = ParameterRanges::treeSizeRange.snapToLegalValue(params.treeSize);
 
         auto temp = ParameterRanges::normalizeParameter(ParameterRanges::treeSizeRange, inTreeSize);
-        attackMs  = ParameterRanges::denormalizeParameter(ParameterRanges::attackTimeRange, temp);
-        releaseMs = ParameterRanges::denormalizeParameter(ParameterRanges::releaseTimeRange, temp);
+        inAttackMs  = ParameterRanges::denormalizeParameter(ParameterRanges::attackTimeRange, temp);
+        inReleaseMs = ParameterRanges::denormalizeParameter(ParameterRanges::releaseTimeRange, temp);
 
         // Update envelope follower parameters
         EnvelopeFollower::Parameters envParams;
-        envParams.attackMs = attackMs;
-        envParams.releaseMs = releaseMs;
-        envParams.levelType = juce::dsp::BallisticsFilterLevelCalculationType::RMS;
+        envParams.attackMs = inAttackMs;
+        envParams.releaseMs = inReleaseMs;
+        envParams.levelType = levelType;
         envelopeFollower.setParameters(envParams);
     }
 }
