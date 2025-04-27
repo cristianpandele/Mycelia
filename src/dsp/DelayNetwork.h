@@ -31,7 +31,9 @@ class DelayNetwork
         void reset();
 
         template <typename ProcessContext>
-        void process(const ProcessContext &context);
+        void process(const ProcessContext &context,
+                     juce::AudioBuffer<float> *diffusionBandBuffers,
+                     juce::AudioBuffer<float> *delayBandBuffers);
 
         void setParameters(const Parameters &params);
 
@@ -59,7 +61,7 @@ class DelayNetwork
                 .threshold = -12.0f,
                 .ratio = 4.0f,
                 .attackTime = 100.0f,
-                .releaseTime = 250.0f,
+                .releaseTime = 25.0f,
                 .kneeWidth = 6.0f,
                 .makeupGain = 0.0f,
                 .enabled = true
@@ -74,7 +76,8 @@ class DelayNetwork
 
         // Output buffers
         std::array<float, ParameterRanges::maxNutrientBands>                    diffusionBandFrequencies;
-        std::array<juce::AudioBuffer<float>, ParameterRanges::maxNutrientBands> diffusionBandBuffers;
+        std::array<std::unique_ptr<juce::AudioBuffer<float>>, ParameterRanges::maxNutrientBands> diffusionBandBuffers;
+        std::array<std::unique_ptr<juce::AudioBuffer<float>>, ParameterRanges::maxNutrientBands> delayBandBuffers;
 
         void updateDiffusionDelayNodesParams();
 

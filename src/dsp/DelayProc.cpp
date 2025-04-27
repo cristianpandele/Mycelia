@@ -28,11 +28,8 @@ void DelayProc::prepare (const juce::dsp::ProcessSpec& spec)
     // Prepare envelope follower
     inEnvelopeFollower.prepare(spec);
     outEnvelopeFollower.prepare(spec);
-    EnvelopeFollower::Parameters envParams;
-    envParams.attackMs = envelopeAttackMs;
-    envParams.releaseMs = envelopeReleaseMs;
-    inEnvelopeFollower.setParameters(envParams, true);
-    outEnvelopeFollower.setParameters(envParams, true);
+    inEnvelopeFollower.setParameters(inEnvelopeFollowerParams, true);
+    outEnvelopeFollower.setParameters(inEnvelopeFollowerParams, true);
 
     // Prepare compressor
     compressor.prepare(spec);
@@ -101,40 +98,38 @@ void DelayProc::process (const ProcessContext& context)
         return;
     }
 
-    // Process context
+    // Update current aging rate and modulation parameters
+    if (inGrowthRate.isSmoothing() || (inputLevel > inputLevelMetabolicThreshold))
+    {
+        updateAgeingRate();
+        updateModulationParameters();
+    }
+
+    // Update filter coefficients
+    if (inFilterFreq.isSmoothing() || inFilterGainDb.isSmoothing() || currentAge.isSmoothing())
+    {
+        updateFilterCoefficients();
+    }
+
+    // Update delay time
+    if (inDelayTime.isSmoothing())
+    {
+        delay.setDelay(juce::jmax(0.0f, inDelayTime.skip(numSamples) /* + delayModValue */));
+    }
+
+    // Update filter coefficients and modulation parameters
+    if (currentAge.isSmoothing())
+    {
+        updateProcChainParameters(numSamples);
+        updateModulationParameters();
+    }
+
     for (size_t channel = 0; channel < numChannels; ++channel)
     {
-        auto* inputSamples = inputBlock.getChannelPointer (channel);
-        auto* outputSamples = outputBlock.getChannelPointer (channel);
-
+        auto *inputSamples = inputBlock.getChannelPointer(channel);
+        auto *outputSamples = outputBlock.getChannelPointer(channel);
         for (size_t i = 0; i < numSamples; ++i)
         {
-            // Update current aging rate and modulation parameters
-            if (inGrowthRate.isSmoothing() || (inputLevel > inputLevelMetabolicThreshold))
-            {
-                updateAgeingRate();
-                updateModulationParameters();
-            }
-
-            // Update filter coefficients
-            if (inFilterFreq.isSmoothing() || inFilterGainDb.isSmoothing() || currentAge.isSmoothing())
-            {
-                updateFilterCoefficients();
-            }
-
-            // Update delay time
-            if (inDelayTime.isSmoothing())
-            {
-                delay.setDelay(juce::jmax(0.0f, inDelayTime.getNextValue() /* + delayModValue */));
-            }
-
-            // Update filter coefficients and modulation parameters
-            if (currentAge.isSmoothing())
-            {
-                updateProcChainParameters();
-                updateModulationParameters();
-            }
-
             outputSamples[i] = processSample(inputSamples[i], channel, i);
         }
     }
@@ -178,8 +173,10 @@ void DelayProc::setParameters (const Parameters& params, bool force)
     auto filterFreqChanged = (std::abs(inFilterFreq.getTargetValue() - filterFreq) / filterFreq > 0.01f);
     auto filterGainChanged = (std::abs(inFilterGainDb.getTargetValue() - filterGainDb) / filterGainDb > 0.01f);
 
-    auto envAttackChanged = (std::abs(envelopeAttackMs - params.envelopeAttackMs) / params.envelopeAttackMs > 0.01f);
-    auto envReleaseChanged = (std::abs(envelopeReleaseMs - params.envelopeReleaseMs) / params.envelopeReleaseMs > 0.01f);
+    auto envAttackChanged = (std::abs(inEnvelopeFollowerParams.attackMs - params.envParams.attackMs) / params.envParams.attackMs > 0.01f);
+    auto envReleaseChanged = (std::abs(inEnvelopeFollowerParams.releaseMs - params.envParams.releaseMs) / params.envParams.releaseMs > 0.01f);
+    auto levelTypeChanged = (inEnvelopeFollowerParams.levelType != params.envParams.levelType);
+    auto envParamsChanged = (envAttackChanged || envReleaseChanged || levelTypeChanged);
 
     auto growthRateChanged  = (std::abs(inGrowthRate.getTargetValue() - growthRate) / growthRate > 0.01f);
     auto baseDelayMsChanged = (std::abs(inBaseDelayMs - baseDelayMs) / baseDelayMs > 0.01f);
@@ -239,16 +236,11 @@ void DelayProc::setParameters (const Parameters& params, bool force)
     }
 
     // Update envelope follower parameters
-    if (envAttackChanged || envReleaseChanged)
+    if (envParamsChanged)
     {
-        envelopeAttackMs = params.envelopeAttackMs;
-        envelopeReleaseMs = params.envelopeReleaseMs;
-
-        EnvelopeFollower::Parameters envParams;
-        envParams.attackMs = envelopeAttackMs;
-        envParams.releaseMs = envelopeReleaseMs;
-        inEnvelopeFollower.setParameters(envParams, force);
-        outEnvelopeFollower.setParameters(envParams, force);
+        inEnvelopeFollowerParams = params.envParams;
+        inEnvelopeFollower.setParameters(inEnvelopeFollowerParams, force);
+        outEnvelopeFollower.setParameters(inEnvelopeFollowerParams, force);
     }
 
     if (baseDelayMsChanged)

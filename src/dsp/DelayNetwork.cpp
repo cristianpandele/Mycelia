@@ -16,8 +16,15 @@ void DelayNetwork::prepare(const juce::dsp::ProcessSpec &spec)
     // Initialize diffusion band buffers
     for (auto &buffer : diffusionBandBuffers)
     {
-        buffer.setSize(spec.numChannels, spec.maximumBlockSize);
-        buffer.clear();
+        buffer = std::make_unique<juce::AudioBuffer<float>>(spec.numChannels, spec.maximumBlockSize);
+        buffer->clear();
+    }
+
+    // Initialize delay band buffers
+    for (auto &buffer : delayBandBuffers)
+    {
+        buffer = std::make_unique<juce::AudioBuffer<float>>(spec.numChannels, spec.maximumBlockSize);
+        buffer->clear();
     }
 
     // Prepare the diffusion control
@@ -38,12 +45,20 @@ void DelayNetwork::reset()
     // Clear the diffusion band buffers
     for (auto &buffer : diffusionBandBuffers)
     {
-        buffer.clear();
+        buffer->clear();
+    }
+
+    // Clear the delay band buffers
+    for (auto &buffer : delayBandBuffers)
+    {
+        buffer->clear();
     }
 }
 
 template <typename ProcessContext>
-void DelayNetwork::process(const ProcessContext &context)
+void DelayNetwork::process(const ProcessContext &context,
+                           juce::AudioBuffer<float> *diffusionBandBuffers,
+                           juce::AudioBuffer<float> *delayBandBuffers)
 {
     // Manage audio context
     const auto &inputBlock = context.getInputBlock();
@@ -67,29 +82,19 @@ void DelayNetwork::process(const ProcessContext &context)
     }
 
     // Process through diffusion control
-    diffusionControl.process(context, diffusionBandBuffers.data());
+    diffusionControl.process(context, diffusionBandBuffers);
 
-    // Process through delay nodes
-    delayNodes.process(diffusionBandBuffers.data());
-
-    // Clear output before summing
-    outputBlock.clear();
-
-    // Sum all active band outputs into the output block
+    // Copy diffusion band buffers to delay band buffers
     for (int band = 0; band < inActiveFilterBands; ++band)
     {
-        // Create AudioBlock for band output
-        juce::dsp::AudioBlock<float> bandBlock(diffusionBandBuffers[band]);
-        // Sum band output to the main output block
-        outputBlock.add(bandBlock);
+        juce::dsp::AudioBlock<float> diffusionBlock(diffusionBandBuffers[band]);
+        juce::dsp::AudioBlock<float> delayBlock (delayBandBuffers[band]);
+
+        delayBlock.copyFrom(diffusionBlock);
     }
 
-    // // Apply normalization based on the number of bands
-    // const float normalizationGain = 1.0f / inActiveFilterBands;
-    // const float normalizationGain = 1.0f / std::sqrtf(static_cast<float>(inActiveFilterBands));
-
-    const float normalizationGain = inActiveFilterBands;
-    outputBlock.multiplyBy(normalizationGain);
+    // Process through delay nodes
+    delayNodes.process(delayBandBuffers);
 }
 
 void DelayNetwork::setParameters(const Parameters &params)
@@ -136,5 +141,7 @@ void DelayNetwork::updateDiffusionDelayNodesParams()
 }
 
 // Explicitly instantiate the templates for the supported context types
-template void DelayNetwork::process<juce::dsp::ProcessContextReplacing<float>>(const juce::dsp::ProcessContextReplacing<float> &);
-template void DelayNetwork::process<juce::dsp::ProcessContextNonReplacing<float>>(const juce::dsp::ProcessContextNonReplacing<float> &);
+template void DelayNetwork::process<juce::dsp::ProcessContextReplacing<float>>(const juce::dsp::ProcessContextReplacing<float> &,
+    juce::AudioBuffer<float> *, juce::AudioBuffer<float> *);
+template void DelayNetwork::process<juce::dsp::ProcessContextNonReplacing<float>>(const juce::dsp::ProcessContextNonReplacing<float> &,
+    juce::AudioBuffer<float> *, juce::AudioBuffer<float> *);

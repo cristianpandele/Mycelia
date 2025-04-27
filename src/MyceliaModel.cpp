@@ -356,6 +356,11 @@ void MyceliaModel::process(const ProcessContext &context)
     const auto numChannels = outputBlock.getNumChannels();
     const auto numSamples = outputBlock.getNumSamples();
 
+    std::array<juce::AudioBuffer<float>, ParameterRanges::maxNutrientBands> diffusionBandBuffers;
+    diffusionBandBuffers.fill(juce::AudioBuffer<float>(numChannels, numSamples));
+    std::array<juce::AudioBuffer<float>, ParameterRanges::maxNutrientBands> delayBandBuffers;
+    delayBandBuffers.fill(juce::AudioBuffer<float>(numChannels, numSamples));
+
     jassert(inputBlock.getNumChannels() == numChannels);
     jassert(inputBlock.getNumSamples() == numSamples);
 
@@ -389,10 +394,10 @@ void MyceliaModel::process(const ProcessContext &context)
     edgeTree.process(wetContext);
 
     // Process through the DelayNetwork
-    delayNetwork.process(wetContext);
+    delayNetwork.process(wetContext, diffusionBandBuffers.data(), delayBandBuffers.data());
 
     // Output mixing stage
-    outputNode.process(dryContext, wetContext);
+    outputNode.process(wetContext, dryContext, diffusionBandBuffers.data(), delayBandBuffers.data());
 }
 
 //==================================================

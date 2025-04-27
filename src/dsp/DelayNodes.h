@@ -41,12 +41,12 @@ class DelayNodes
 
     private:
         // Array of delay processors, one for each band
-        std::vector<std::unique_ptr<DelayProc>> delayProcs;
+        std::vector<std::vector<std::unique_ptr<DelayProc>>> delayProcs;
 
         // Parameters to control delay network behavior
         float fs = 44100.0f;
         int   inNumColonies = 4;
-        std::vector<float> inBandFrequencies;
+        std::vector<std::unique_ptr<float>> inBandFrequencies;
         float inStretch = 0.0f;
         float inScarcityAbundance = 0.0f;
         float inEntanglement = 0.5f;

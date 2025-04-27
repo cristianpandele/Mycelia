@@ -24,16 +24,14 @@ class DelayProc
         {
             float delayMs;
             float feedback;
-            float envelopeAttackMs;            // Attack time for envelope follower
-            float envelopeReleaseMs;           // Release time for envelope follower
             float growthRate;                  // Growth rate for aging (0-100)
             float baseDelayMs;                 // Base delay time for calculating age ramp
             float filterFreq;
             float filterGainDb;
             float revTimeMs;
-            // const AudioProcessorValueTreeState::Parameter* modFreq;
-            float modDepth;
-            juce::AudioPlayHead *playhead;
+
+            // Envelope follower parameters
+            EnvelopeFollower::Parameters envParams; // Envelope follower parameters
 
             // Compressor parameters
             DuckingCompressor::Parameters compressorParams; // Compressor parameters
