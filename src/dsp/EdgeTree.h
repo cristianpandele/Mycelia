@@ -17,7 +17,6 @@ class EdgeTree
         struct Parameters
         {
             float treeSize;         // Size of the tree (0.2 to 1.8)
-            float treeDensity;      // Density of the trees (0.0 to 100.0)
         };
 
         void prepare(const juce::dsp::ProcessSpec &spec);
@@ -34,10 +33,15 @@ class EdgeTree
         float inTreeSize = 1.0f;
         float inTreeDensity = 0.0f;
 
+        float compGain = 1.0f;
+
         // Parameters
-        float inAttackMs = 250.0f;
-        float inReleaseMs = 150.0f;
-        const juce::dsp::BallisticsFilterLevelCalculationType levelType = juce::dsp::BallisticsFilterLevelCalculationType::RMS;
+        EnvelopeFollower::Parameters envelopeFollowerParams =
+        {
+            .attackMs = 250.0f,
+            .releaseMs = 150.0f,
+            .levelType = juce::dsp::BallisticsFilterLevelCalculationType::peak
+        };
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(EdgeTree)
 };

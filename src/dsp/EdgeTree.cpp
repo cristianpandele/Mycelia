@@ -12,13 +12,8 @@ EdgeTree::~EdgeTree()
 void EdgeTree::prepare(const juce::dsp::ProcessSpec &spec)
 {
     // Set up the envelope follower with our parameters
-    EnvelopeFollower::Parameters params;
-    params.attackMs = inAttackMs;
-    params.releaseMs = inReleaseMs;
-    params.levelType = juce::dsp::BallisticsFilterLevelCalculationType::RMS;
-
     envelopeFollower.prepare(spec);
-    envelopeFollower.setParameters(params);
+    envelopeFollower.setParameters(envelopeFollowerParams);
 }
 
 template <typename ProcessContext>
@@ -45,25 +40,14 @@ void EdgeTree::process(const ProcessContext &context)
         return;
     }
 
-    // Create a copy of the input signal
-    juce::AudioBuffer<float> dryBuffer;
-    dryBuffer.setSize(numChannels, numSamples);
-
-    // Copy input data to our buffer
-    for (size_t channel = 0; channel < numChannels; ++channel)
-    {
-        dryBuffer.copyFrom(channel, 0, inputBlock.getChannelPointer(channel), numSamples);
-    }
-
-    // Context for the envelope follower
-    juce::dsp::AudioBlock<float> analyzeBlock(dryBuffer);
-    juce::dsp::ProcessContextReplacing<float> analyzeContext(analyzeBlock);
-
-    // Process the analysis context using the EnvelopeFollower
-    envelopeFollower.process(analyzeContext);
+    // Process the context using the EnvelopeFollower
+    outputBlock.multiplyBy(compGain);
+    envelopeFollower.process(context);
+    // Get the average level across all channels
+    float averageLevel = envelopeFollower.getAverageLevel();
 
     // Apply envelope modulation (VCA)
-    outputBlock.multiplyBy(analyzeBlock);
+    outputBlock.multiplyBy(averageLevel /* * compGain*/);
 }
 
 void EdgeTree::reset()
@@ -80,15 +64,12 @@ void EdgeTree::setParameters(const Parameters &params)
         inTreeSize = ParameterRanges::treeSizeRange.snapToLegalValue(params.treeSize);
 
         auto temp = ParameterRanges::normalizeParameter(ParameterRanges::treeSizeRange, inTreeSize);
-        inAttackMs  = ParameterRanges::denormalizeParameter(ParameterRanges::attackTimeRange, temp);
-        inReleaseMs = ParameterRanges::denormalizeParameter(ParameterRanges::releaseTimeRange, temp);
-
+        juce::NormalisableRange<float> compGainRange(8.0f, 16.0f, 0.001f);
+        envelopeFollowerParams.attackMs = ParameterRanges::denormalizeParameter(ParameterRanges::attackTimeRange, temp);
+        envelopeFollowerParams.releaseMs = ParameterRanges::denormalizeParameter(ParameterRanges::releaseTimeRange, temp);
+        compGain = compGainRange.convertFrom0to1(temp);
         // Update envelope follower parameters
-        EnvelopeFollower::Parameters envParams;
-        envParams.attackMs = inAttackMs;
-        envParams.releaseMs = inReleaseMs;
-        envParams.levelType = levelType;
-        envelopeFollower.setParameters(envParams);
+        envelopeFollower.setParameters(envelopeFollowerParams);
     }
 }
 
