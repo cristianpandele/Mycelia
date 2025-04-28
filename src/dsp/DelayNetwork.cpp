@@ -107,6 +107,11 @@ void DelayNetwork::setParameters(const Parameters &params)
     inEntanglement = ParameterRanges::entanglementRange.snapToLegalValue(params.entanglement);
     inGrowthRate = ParameterRanges::growthRateRange.snapToLegalValue(params.growthRate);
 
+    updateDiffusionDelayNodesParams();
+}
+
+void DelayNetwork::updateDiffusionDelayNodesParams()
+{
     // Calculate base delay time from tempo (quarter note time in milliseconds)
     baseDelayMs = (60.0f / inTempoValue) * 1000.0f;
 
@@ -116,11 +121,6 @@ void DelayNetwork::setParameters(const Parameters &params)
     compressorParams.threshold = -12.0f * (normalizedScarAbundance);
     compressorParams.ratio = 1.0f + (2.0f * normalizedScarAbundance);
 
-    updateDiffusionDelayNodesParams();
-}
-
-void DelayNetwork::updateDiffusionDelayNodesParams()
-{
     // Update diffusion control parameters
     diffusionControl.setParameters(DiffusionControl::Parameters{.numActiveBands = inActiveFilterBands});
 
