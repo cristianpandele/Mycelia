@@ -6,11 +6,11 @@
 // Functions to convert between 0-1 and the actual range for ranges that are inverted
 static constexpr auto invertedConvertFrom0To1Func = [](float start, float end, float value)
 {
-    return  (start - value) * (end - start) + start;
+    return  (1 - value) * (end - start) + start;
 };
 static constexpr auto invertedConvertTo0To1Func = [](float start, float end, float value)
 {
-    return (start / (end - start)) * (end - value);
+    return (1 / (end - start)) * (end - value);
 };
 static constexpr auto invertedSnapToLegalValueFunction = [](float start, float end, float value)
 {
@@ -43,9 +43,9 @@ namespace ParameterRanges
     static constexpr float minTreeSize = 0.2f;
     static constexpr float maxTreeSize = 1.8f;
     static constexpr float minAttackTime = 1.0f; // TODO: this should be a multiplication factor on the tempo
-    static constexpr float maxAttackTime = 2500.0f;
-    static constexpr float minReleaseTime = 1.0f; // TODO: this should be a multiplication factor on the tempo
-    static constexpr float maxReleaseTime = 500.0f;
+    static constexpr float maxAttackTime = 250.0f;
+    static constexpr float minReleaseTime = 25.0f; // TODO: this should be a multiplication factor on the tempo
+    static constexpr float maxReleaseTime = 2500.0f;
     static constexpr float minTreeDensity = 0.0f;
     static constexpr float maxTreeDensity = 100.0f;
     // Universe Control constants
