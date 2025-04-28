@@ -97,8 +97,11 @@ class DelayProc
         float inputLevel  = 0.0f;
         float outputLevel = 0.0f;
         static constexpr float inputLevelMetabolicThreshold = 0.01f;
-        float envelopeAttackMs = 2.0f;
-        float envelopeReleaseMs = 1.0f;
+        EnvelopeFollower::Parameters inEnvelopeFollowerParams = {
+            .attackMs = 2.0f,
+            .releaseMs = 1.0f,
+            .levelType = juce::dsp::BallisticsFilterLevelCalculationType::RMS
+        };
 
         DuckingCompressor::Parameters inCompressorParams;
 
