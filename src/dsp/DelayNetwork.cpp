@@ -113,8 +113,8 @@ void DelayNetwork::setParameters(const Parameters &params)
     // Calculate the compression threshold and ratio based on the scarcity/abundance value
     auto normalizedScarAbundance = ParameterRanges::normalizeParameter(ParameterRanges::scarcityAbundanceRange, inScarcityAbundance);
 
-    compressorParams.threshold = -24.0f * (1 + normalizedScarAbundance);
-    compressorParams.ratio = 1.0f + 15.0f * normalizedScarAbundance;
+    compressorParams.threshold = -12.0f * (normalizedScarAbundance);
+    compressorParams.ratio = 1.0f + (2.0f * normalizedScarAbundance);
 
     updateDiffusionDelayNodesParams();
 }
