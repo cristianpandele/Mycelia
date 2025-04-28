@@ -76,33 +76,8 @@ void DelayNodes::reset()
 
 void DelayNodes::process(juce::AudioBuffer<float> *diffusionBandBuffers)
 {
-    // First, gather all output levels from all delay processors
-    std::vector<float> bandLevels(inNumColonies, 0.0f);
-    for (int band = 0; band < inNumColonies; ++band)
-    {
-        // Get the output level from each final delay processor
-        bandLevels[band] = delayProcs[band].back()->getOutputLevel();
-    }
-
-    // Set external sidechain levels for all bands
-    for (int band = 0; band < inNumColonies; ++band)
-    {
-        // Calculate the combined sidechain level from all OTHER bands
-        float combinedLevel = 0.0f;
-        int otherBandsCount = 0;
-
-        for (int otherBand = 0; otherBand < inNumColonies; ++otherBand)
-        {
-            if (otherBand != band)  // Skip the current band
-            {
-                combinedLevel += bandLevels[otherBand];
-                otherBandsCount++;
-            }
-        }
-
-        // Set the external sidechain level for this band's final processor
-        delayProcs[band].back()->setExternalSidechainLevel(16 * combinedLevel);
-    }
+    // Update sidechain levels for all processors based on their positions
+    updateSidechainLevels();
 
     // Process each band
     for (int band = 0; band < inNumColonies; ++band)
@@ -219,11 +194,60 @@ juce::AudioBuffer<float>& DelayNodes::getProcessorBuffer(int band, size_t procId
 }
 
 // Get the processor node at a specific position in the matrix
-DelayProc &DelayNodes::getProcessorNode(int band, size_t procIdx)
+DelayProc& DelayNodes::getProcessorNode(int band, size_t procIdx)
 {
     // Make sure the indices are valid
     band = juce::jlimit(0, inNumColonies - 1, band);
     procIdx = juce::jlimit(static_cast<size_t>(0), delayProcs[band].size() - 1, procIdx);
 
     return *delayProcs[band][procIdx];
+}
+
+// Update sidechain levels for all processors in the matrix
+void DelayNodes::updateSidechainLevels()
+{
+    // First, gather all output levels from all delay processors into a matrix
+    bufferLevels.resize(inNumColonies);
+    for (int band = 0; band < inNumColonies; ++band)
+    {
+        bufferLevels[band].resize(delayProcs[band].size());
+        for (size_t proc = 0; proc < delayProcs[band].size(); ++proc)
+        {
+            bufferLevels[band][proc] = getProcessorNode(band, proc).getOutputLevel();
+        }
+    }
+
+    // For each band and processor
+    for (int band = 0; band < inNumColonies; ++band)
+    {
+        const size_t numProcs = delayProcs[band].size();
+
+        for (size_t proc = 0; proc < numProcs; ++proc)
+        {
+            // Is this a node at the end of the row?
+            if (proc == numProcs - 1)
+            {
+                // For end-of-row nodes: sum levels from all OTHER row ends
+                float combinedLevel = 0.0f;
+
+                for (int otherBand = 0; otherBand < inNumColonies; ++otherBand)
+                {
+                    if (otherBand != band)  // Skip the current band
+                    {
+                        const size_t otherNumProcs = delayProcs[otherBand].size();
+                        combinedLevel += bufferLevels[otherBand][otherNumProcs - 1];
+                    }
+                }
+
+                // Set the external sidechain level for this end-of-row processor
+                getProcessorNode(band, proc).setExternalSidechainLevel(16.0f * combinedLevel);
+            }
+            else
+            {
+                // For non-end nodes: use the output level of the next node in same row
+                float nextNodeLevel = bufferLevels[band][proc + 1];
+                getProcessorNode(band, proc).setExternalSidechainLevel(16.0f * nextNodeLevel);
+            }
+        }
+    }
 }

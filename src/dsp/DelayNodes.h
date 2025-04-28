@@ -46,6 +46,9 @@ class DelayNodes
         // Persistent matrix of processor contexts (one for each band and processor)
         std::vector<std::vector<juce::AudioBuffer<float>>> processorBuffers;
 
+        // Matrix to store output levels of each processor
+        std::vector<std::vector<float>> bufferLevels;
+
         // Parameters to control delay network behavior
         float fs = 44100.0f;
         int   inNumColonies = 4;
@@ -73,6 +76,9 @@ class DelayNodes
 
         // Get processor node at a specific position in the matrix
         DelayProc &getProcessorNode(int band, size_t procIdx);
+
+        // Update sidechain levels for all processors in the matrix
+        void updateSidechainLevels();
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DelayNodes)
 };
