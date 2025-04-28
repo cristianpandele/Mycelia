@@ -22,7 +22,7 @@ void DelayProc::prepare (const juce::dsp::ProcessSpec& spec)
     state.resize(spec.numChannels);
     for (auto numCh = 0; numCh < spec.numChannels; ++numCh)
     {
-        state[numCh].resize(spec.maximumBlockSize, 0.0f);
+        state.push_back(0.0f);
     }
 
     // Prepare envelope follower
@@ -67,10 +67,7 @@ void DelayProc::reset()
 void DelayProc::flushDelay()
 {
     delay.reset();
-    for (auto& channel : state)
-    {
-        std::fill(channel.begin(), channel.end(), 0.0f);
-    }
+    std::fill(state.begin(), state.end(), 0.0f);
     procs.reset();
     modProcs.reset();
 }
@@ -137,7 +134,7 @@ void DelayProc::process (const ProcessContext& context)
         auto *outputSamples = outputBlock.getChannelPointer(channel);
         for (size_t i = 0; i < numSamples; ++i)
         {
-            outputSamples[i] = processSample(inputSamples[i], channel, i);
+            outputSamples[i] = processSample(inputSamples[i], channel);
         }
     }
 
@@ -146,11 +143,10 @@ void DelayProc::process (const ProcessContext& context)
 }
 
 template <typename SampleType>
-inline SampleType DelayProc::processSample(SampleType x, size_t ch, size_t sample)
+inline SampleType DelayProc::processSample(SampleType x, size_t ch)
 {
     auto input = x;
-    // input = procs.processSample(juce::jlimit(-1.0f, 1.0f, input + state[ch])); // Process input + Feedback state
-    input = procs.processSample (input + state[ch][sample]); // Process input + Feedback state
+    input = procs.processSample (input + state[ch]); // Process input + Feedback state
     // input = procs.processSample (input);             // Process input
     delay.pushSample ((int) ch, input);              // Push input to delay line
     auto delayOut = delay.popSample ((int) ch);             // Pop output from delay line
@@ -159,8 +155,8 @@ inline SampleType DelayProc::processSample(SampleType x, size_t ch, size_t sampl
     float sidechainLevel = inUseExternalSidechain ? externalSidechainLevel : inputLevel;
     auto y = compressor.processSample(delayOut, sidechainLevel, ch);
 
-    // state[ch] = y * inFeedback.getNextValue();       // Save feedback state
-    state[ch][sample] = (y - delayOut) * inFeedback.getNextValue(); // Save feedback state
+    // state[ch] = y * inFeedback.getNextValue(); // Save feedback state
+    state[ch] = (y - delayOut) * inFeedback.getNextValue(); // Save feedback state
     return y;
 }
 
