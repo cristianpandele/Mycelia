@@ -42,6 +42,13 @@ void DelayProc::prepare (const juce::dsp::ProcessSpec& spec)
     // Initialize oscillator and gain
     modProcs.get<oscillatorIdx>().setFrequency(0.2f); // Default frequency, will be updated later
     modProcs.get<gainIdx>().setGainLinear(1.0f);      // Start at full gain
+    // Advance the modulation oscillator by a random amount of steps
+    auto steps = juce::Random::getSystemRandom().nextInt(1000);
+    float x = 0.0f;
+    for (int i = 0; i < steps; ++i)
+    {
+        modProcs.get<oscillatorIdx>().processSample(x);
+    }
 }
 
 void DelayProc::reset()
@@ -283,21 +290,21 @@ void DelayProc::updateFilterCoefficients(bool force)
     x = modProcs.processSample(x);
     // Modulate the filter tilt
     filterGain += x * 3.0f;
-    filterGain = juce::jlimit(-12.0f, 12.0f, filterGain);
+    filterGain = juce::jlimit(-6.0f, 6.0f, filterGain);
 
     procs.get<lpfIdx>().coefficients = juce::dsp::IIR::Coefficients<float>::makeLowShelf(
-        fs, filterFreq, 0.4f, juce::Decibels::decibelsToGain(filterGain * -1.0f));
+        fs, filterFreq, 0.7f, juce::Decibels::decibelsToGain(filterGain * -1.0f));
     procs.get<hpfIdx>().coefficients = juce::dsp::IIR::Coefficients<float>::makeHighShelf(
-        fs, filterFreq, 0.4f, juce::Decibels::decibelsToGain(filterGain));
+        fs, filterFreq, 0.7f, juce::Decibels::decibelsToGain(filterGain));
 }
 
-void DelayProc::updateProcChainParameters(bool force)
+void DelayProc::updateProcChainParameters(size_t numSamples, bool force)
 {
     Dispersion::Parameters dispParams;
-    dispParams.allpassFreq = inFilterFreq.getNextValue();
+    dispParams.allpassFreq = inFilterFreq.skip(numSamples);
     if (inputLevel > inputLevelMetabolicThreshold)
     {
-        dispParams.dispersionAmount = currentAge.getNextValue();
+        dispParams.dispersionAmount = currentAge.skip(numSamples);
     }
     else
     {
@@ -315,25 +322,25 @@ void DelayProc::updateProcChainParameters(bool force)
     // procs.get<reverserIdx>().setReverseTime (params.revTimeMs);
 }
 
-void DelayProc::updateAgeingRate()
+void DelayProc::updateAgeingRate(size_t numSamples)
 {
-    rampTimeMs = inBaseDelayMs * 100.0f / juce::jmax(0.001f, inGrowthRate.getNextValue());
+    rampTimeMs = inBaseDelayMs * 100.0f / juce::jmax(0.001f, inGrowthRate.skip(numSamples));
     if (inputLevel > inputLevelMetabolicThreshold)
     {
-        float rampTimeSec = rampTimeMs / 1000.0f;
+        float rampTimeBlocks = rampTimeMs / (1000.0f * numSamples);
         currentAge = juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear>(currentAge.getNextValue());
-        currentAge.reset(fs, rampTimeSec);
+        currentAge.reset(fs, rampTimeBlocks);
         currentAge.setTargetValue(ParameterRanges::maxAge);
     }
 }
 
 void DelayProc::updateModulationParameters()
 {
-    // Calculate oscillator frequency: 1/10 of frequency of inBaseDelay
+    // Calculate oscillator frequency: decaying with age from frequency of inBaseDelay
     float oscFreq = 0.1f;
     if (inBaseDelayMs > 0.0f)
     {
-        oscFreq = 100.0f / inBaseDelayMs;
+        oscFreq = (1000.0f / inBaseDelayMs) * (1.0f - currentAge.getCurrentValue());
     }
 
     // Set the oscillator frequency

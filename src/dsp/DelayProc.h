@@ -83,8 +83,8 @@ class DelayProc
         void flushDelay();
 
         void updateFilterCoefficients(bool force = false);
-        void updateProcChainParameters(bool force = false);
-        void updateAgeingRate();
+        void updateProcChainParameters(size_t numSamples = 1, bool force = false);
+        void updateAgeingRate(size_t numSamples = 1);
         void updateModulationParameters();
 
         // The base delay (quarter note time) in milliseconds
