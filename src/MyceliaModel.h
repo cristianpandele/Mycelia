@@ -141,8 +141,18 @@ class MyceliaModel :
             .entanglement = 50.0f,
             .growthRate = 50.0f
         };
-
-        OutputNode::Parameters currentOutputParams;
+        // Parameters for OutputNode
+        OutputNode::Parameters currentOutputParams =
+        {
+            .dryWetMixLevel = 0.0f,
+            .delayDuckLevel = 0.0f,
+            .numActiveBands = 4,
+            .envelopeFollowerParams = {
+                .attackMs = 2.0f,
+                .releaseMs = 1.0f,
+                .levelType = juce::dsp::BallisticsFilterLevelCalculationType::RMS
+            },
+        };
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MyceliaModel)
 };

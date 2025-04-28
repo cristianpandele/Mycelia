@@ -64,7 +64,7 @@ class OutputNode
             .threshold = 0.0f,
             .ratio = 4.0f,
             .attackTime = 100.0f,
-            .releaseTime = 25.0f,
+            .releaseTime = 500.0f,
             .kneeWidth = 6.0f,
             .makeupGain = 0.0f,
             .enabled = true
