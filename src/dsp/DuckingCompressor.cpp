@@ -92,25 +92,32 @@ float DuckingCompressor::calculateGainReduction(float sidechainLevelDb)
     if (sidechainLevelDb <= params.threshold)
         return 0.0f; // No reduction needed
 
+    auto overshootDb = sidechainLevelDb - params.threshold;
+    auto slope = (1.0f / params.ratio) - 1.0f;
+
     if (params.kneeWidth <= 0.0f)
     {
         // Hard knee
-        return (sidechainLevelDb - params.threshold) * (1.0f - (1.0f / params.ratio)) * -1.0f;
+        return juce::jmin(
+            overshootDb * slope,
+            0.0f);
     }
     else
     {
         // Soft knee
         auto kneeDbHalf = params.kneeWidth * 0.5f;
 
-        if (sidechainLevelDb <= (params.threshold + kneeDbHalf))
+        if ((overshootDb <= kneeDbHalf) && (overshootDb > -kneeDbHalf))
         {
             // In the knee region
-            auto kneeRatio = 1.0f + (params.ratio - 1.0f) *
-                                        std::pow((sidechainLevelDb - params.threshold + kneeDbHalf) / params.kneeWidth, 2.0f);
-            return (sidechainLevelDb - params.threshold) * (1.0f - (1.0f / kneeRatio)) * -1.0f;
+            return juce::jmin(
+                0.5f * slope * std::pow(overshootDb + kneeDbHalf, 2.0f) / params.kneeWidth,
+                0.0f);
         }
 
         // Above the knee
-        return (sidechainLevelDb - params.threshold - kneeDbHalf) * (1.0f - (1.0f / params.ratio)) * -1.0f - kneeDbHalf * (1.0f - (1.0f / std::sqrt(params.ratio))) * -1.0f;
+        return juce::jmin(
+            overshootDb * slope,
+            0.0f);
     }
 }
