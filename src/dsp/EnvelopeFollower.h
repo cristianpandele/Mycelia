@@ -36,7 +36,7 @@ public:
 
 private:
     std::unique_ptr<juce::dsp::BallisticsFilter<float>> filter;
-    juce::AudioBuffer<float> analysisBuffer;
+    std::unique_ptr<juce::AudioBuffer<float>> analysisBuffer;
 
     float inAttackMs = 20.0f;
     float inReleaseMs = 100.0f;

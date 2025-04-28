@@ -13,7 +13,7 @@ void EnvelopeFollower::prepare(const juce::dsp::ProcessSpec &spec)
     filter->setReleaseTime(inReleaseMs);
 
     numChannels = spec.numChannels;
-    analysisBuffer.setSize(numChannels, spec.maximumBlockSize);
+    analysisBuffer = std::make_unique<juce::AudioBuffer<float>>(numChannels, spec.maximumBlockSize);
     reset();
 }
 
@@ -21,7 +21,7 @@ void EnvelopeFollower::reset()
 {
     filter->reset();
     currentLevel = 0.0f;
-    analysisBuffer.clear();
+    analysisBuffer->clear();
 }
 
 template <typename ProcessContext>
@@ -32,19 +32,19 @@ void EnvelopeFollower::process(const ProcessContext &context)
     const auto numSamples = inputBlock.getNumSamples();
 
     // Resize analysis buffer if needed
-    if (analysisBuffer.getNumSamples() < numSamples)
+    if (analysisBuffer->getNumSamples() < numSamples)
     {
-        analysisBuffer.setSize(numChannels, numSamples, true, true, true);
+        analysisBuffer->setSize(numChannels, numSamples, true, true, true);
     }
 
     // Copy input data to analysis buffer
     for (size_t channel = 0; channel < numChannels; ++channel)
     {
-        analysisBuffer.copyFrom(channel, 0, inputBlock.getChannelPointer(channel), numSamples);
+        analysisBuffer->copyFrom(channel, 0, inputBlock.getChannelPointer(channel), numSamples);
     }
 
     // Create audio block from analysis buffer
-    juce::dsp::AudioBlock<float> analyzeBlock(analysisBuffer);
+    juce::dsp::AudioBlock<float> analyzeBlock(*analysisBuffer);
     juce::dsp::ProcessContextReplacing<float> analyzeContext(analyzeBlock);
 
     // Process the envelope follower
@@ -54,8 +54,12 @@ void EnvelopeFollower::process(const ProcessContext &context)
     currentLevel = 0.0f;
     for (size_t channel = 0; channel < numChannels; ++channel)
     {
-        currentLevel += analysisBuffer.getSample(channel, numSamples - 1);
+        for (size_t sample = 0; sample < numSamples; ++sample)
+        {
+            currentLevel += analysisBuffer->getSample(channel, sample);
+        }
     }
+    currentLevel /= static_cast<float>(numSamples);
     currentLevel /= static_cast<float>(numChannels);
 }
 
@@ -90,14 +94,16 @@ void EnvelopeFollower::setParameters(const Parameters &params, bool force)
         inLevelType = params.levelType;
         filter->setLevelCalculationType(inLevelType);
     }
+
+    filter->snapToZero();
 }
 
 float EnvelopeFollower::getCurrentLevel(int channel) const
 {
-    if (channel < 0 || channel >= numChannels || analysisBuffer.getNumSamples() == 0)
+    if (channel < 0 || channel >= numChannels || analysisBuffer->getNumSamples() == 0)
         return 0.0f;
 
-    return analysisBuffer.getSample(channel, analysisBuffer.getNumSamples() - 1);
+    return analysisBuffer->getSample(channel, analysisBuffer->getNumSamples() - 1);
 }
 
 float EnvelopeFollower::getAverageLevel() const
