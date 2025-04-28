@@ -49,6 +49,9 @@ class DelayNodes
         // Matrix to store output levels of each processor
         std::vector<std::vector<float>> bufferLevels;
 
+        // Matrix to store delay times for each colony and processor
+        std::vector<std::vector<float>> nodeDelayTimes;
+
         // Parameters to control delay network behavior
         float fs = 44100.0f;
         int   inNumColonies = 4;

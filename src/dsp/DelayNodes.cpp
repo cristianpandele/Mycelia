@@ -116,32 +116,51 @@ void DelayNodes::process(juce::AudioBuffer<float> *diffusionBandBuffers)
 
 void DelayNodes::updateDelayProcParams()
 {
+    // Calculate base delay time
+    float baseDelayTime = std::abs(inStretch) * inBaseDelayMs;
+    float baseNodeDelayTime = baseDelayTime / maxNumDelayProcsPerBand;
+
+    // Resize the delay time matrix if needed
+    nodeDelayTimes.resize(delayProcs.size());
+
+    // Initialize random number generator for consistent variations
+    juce::Random random(juce::Time::currentTimeMillis());
+
     // Update parameters for all delay processors
     for (size_t i = 0; i < delayProcs.size(); ++i)
     {
-        DelayProc::Parameters delayParams;
+        // Resize this colony's delay time vector if needed
+        nodeDelayTimes[i].resize(maxNumDelayProcsPerBand);
 
-        // Configure initial delay parameters with increasing times
-        float delayTimeMs = std::abs(inStretch) * inBaseDelayMs * (1 + 1.0f * i);
-
-        // Set initial parameters
-        DelayProc::Parameters params;
-        params.delayMs = delayTimeMs / maxNumDelayProcsPerBand;
-        params.feedback = 1.0f;
-        params.growthRate = inGrowthRate;
-        params.baseDelayMs = inBaseDelayMs;
-        params.filterFreq = *inBandFrequencies[i];
-        params.filterGainDb = 0.0f;
-        params.revTimeMs = 0.0f;
-
-        // Set compressor parameters
-        params.compressorParams = inCompressorParams;
-        params.useExternalSidechain = inUseExternalSidechain;
-
-        for (auto &proc : delayProcs[i])
+        // Generate delay times with small variations for each processor in this colony
+        for (size_t j = 0; j < maxNumDelayProcsPerBand; ++j)
         {
-            // Set the parameters for each delay processor
-            proc->setParameters(params, false);
+            // Generate a random variation factor between 0.95 and 1.05 (±5%)
+            float variationFactor = 0.95f + random.nextFloat() * 0.1f;
+
+            // Apply the variation to the base delay time
+            nodeDelayTimes[i][j] = baseNodeDelayTime * variationFactor;
+        }
+
+        // Set parameters for each delay processor in this colony
+        for (size_t j = 0; j < delayProcs[i].size(); ++j)
+        {
+            // Configure parameters using the delay time from our matrix
+            DelayProc::Parameters params;
+            params.delayMs = nodeDelayTimes[i][j];
+            params.feedback = 1.0f;
+            params.growthRate = inGrowthRate;
+            params.baseDelayMs = inBaseDelayMs;
+            params.filterFreq = *inBandFrequencies[i];
+            params.filterGainDb = 0.0f;
+            params.revTimeMs = 0.0f;
+
+            // Set compressor parameters
+            params.compressorParams = inCompressorParams;
+            params.useExternalSidechain = inUseExternalSidechain;
+
+            // Set the parameters for this delay processor
+            delayProcs[i][j]->setParameters(params, false);
         }
     }
 }
