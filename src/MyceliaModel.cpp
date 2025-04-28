@@ -379,13 +379,14 @@ void MyceliaModel::process(const ProcessContext &context)
     // Process through input node
     inputNode.process(context);
 
-    // Keep "dry" signal - post input conditioning
-    dryBuffer.setSize(numChannels, numSamples, false, false, true);
-    outputBlock.copyTo(dryBuffer, 0, 0, numSamples);
-
     // Set up processing contexts
     juce::dsp::AudioBlock<float> dryBlock(dryBuffer);
+    // juce::dsp::AudioBlock<float> skyBlock(skyBuffer);
     juce::dsp::AudioBlock<float> wetBlock(context.getOutputBlock());
+
+    // Keep "dry" signal - post input conditioning
+    dryBuffer.setSize(numChannels, numSamples, false, false, true);
+    dryBlock.copyFrom(outputBlock);
 
     juce::dsp::ProcessContextReplacing<float> dryContext(dryBlock);
     juce::dsp::ProcessContextReplacing<float> wetContext(wetBlock);
