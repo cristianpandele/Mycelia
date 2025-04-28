@@ -29,6 +29,19 @@ void DelayNodes::prepare(const juce::dsp::ProcessSpec &spec)
 {
     fs = static_cast<float>(spec.sampleRate);
 
+    // Initialize the processor buffer matrix
+    processorBuffers.resize(inNumColonies);
+    for (int band = 0; band < inNumColonies; ++band)
+    {
+        processorBuffers[band].resize(maxNumDelayProcsPerBand);
+        for (size_t proc = 0; proc < maxNumDelayProcsPerBand; ++proc)
+        {
+            // Create an empty buffer for each processor
+            processorBuffers[band][proc].setSize(spec.numChannels, spec.maximumBlockSize);
+            processorBuffers[band][proc].clear();
+        }
+    }
+
     // Prepare the array of delay processors
     for (auto &delayProc : delayProcs)
     {
@@ -50,6 +63,15 @@ void DelayNodes::reset()
             proc->reset();
         }
     }
+
+    // Clear all persistent buffers
+    for (auto &bandBuffers : processorBuffers)
+    {
+        for (auto &buffer : bandBuffers)
+        {
+            buffer.clear();
+        }
+    }
 }
 
 void DelayNodes::process(juce::AudioBuffer<float> *diffusionBandBuffers)
@@ -62,11 +84,9 @@ void DelayNodes::process(juce::AudioBuffer<float> *diffusionBandBuffers)
         bandLevels[band] = delayProcs[band].back()->getOutputLevel();
     }
 
-    // Process each band through its corresponding delay processor
+    // Set external sidechain levels for all bands
     for (int band = 0; band < inNumColonies; ++band)
     {
-        auto &input = diffusionBandBuffers[band];
-
         // Calculate the combined sidechain level from all OTHER bands
         float combinedLevel = 0.0f;
         int otherBandsCount = 0;
@@ -82,18 +102,40 @@ void DelayNodes::process(juce::AudioBuffer<float> *diffusionBandBuffers)
 
         // Set the external sidechain level for this band's final processor
         delayProcs[band].back()->setExternalSidechainLevel(16 * combinedLevel);
+    }
 
-        // Create audio blocks for processing
-        juce::dsp::AudioBlock<float> inputBlock(const_cast<juce::AudioBuffer<float> &>(input));
-        juce::dsp::ProcessContextReplacing<float> context(inputBlock);
+    // Process each band
+    for (int band = 0; band < inNumColonies; ++band)
+    {
+        // Get the input buffer for this band
+        auto& inputBuffer = diffusionBandBuffers[band];
 
-        // Process through the delay processors
-        for (auto &proc : delayProcs[band])
+        // Copy input to the first processor buffer
+        auto &firstBuffer = getProcessorBuffer(band, 0);
+        firstBuffer.setSize(inputBuffer.getNumChannels(), inputBuffer.getNumSamples(), false, false, true);
+        firstBuffer.makeCopyOf(inputBuffer);
+
+        // Process through each delay processor with its own persistent context
+        for (size_t i = 0; i < delayProcs[band].size(); ++i)
         {
-            proc->process(context);
+            // If not the first processor, copy from previous processor's buffer
+            if (i > 0)
+            {
+                auto& currentBuffer = processorBuffers[band][i];
+                currentBuffer.setSize(inputBuffer.getNumChannels(), inputBuffer.getNumSamples(), false, false, true);
+                currentBuffer.makeCopyOf(processorBuffers[band][i-1]);
+            }
+
+            // Process the current node
+            processNode(band, i, processorBuffers[band][i]);
         }
+
+        // Copy the final processed buffer back to the input buffer
+        inputBuffer.makeCopyOf(processorBuffers[band][delayProcs[band].size() - 1]);
+
         // Compensate for the normalization gain of the final stage
-        inputBlock.multiplyBy(std::sqrt(inNumColonies));
+        juce::dsp::AudioBlock<float> finalBlock(inputBuffer);
+        finalBlock.multiplyBy(std::sqrt(inNumColonies));
     }
 }
 
@@ -145,4 +187,43 @@ void DelayNodes::setParameters(const Parameters &params)
     inUseExternalSidechain = params.useExternalSidechain;
 
     updateDelayProcParams();
+}
+
+// Process a specific band and processor stage with its own context
+void DelayNodes::processNode(int band, size_t procIdx, juce::AudioBuffer<float>& input)
+{
+    if (band < 0 || band >= inNumColonies || procIdx >= delayProcs[band].size())
+        return;
+
+    // Make sure our processor buffer is the right size and initialized with the input
+    auto &procBuffer = getProcessorBuffer(band, procIdx);
+    procBuffer.setSize(input.getNumChannels(), input.getNumSamples(), false, false, true);
+    procBuffer.makeCopyOf(input);
+
+    // Create a dedicated audio block and context for this processor
+    juce::dsp::AudioBlock<float> block(procBuffer);
+    juce::dsp::ProcessContextReplacing<float> context(block);
+
+    // Process with this delay processor
+    getProcessorNode(band, procIdx).process(context);
+}
+
+// Get the processor buffer at a specific position in the matrix
+juce::AudioBuffer<float>& DelayNodes::getProcessorBuffer(int band, size_t procIdx)
+{
+    // Make sure the indices are valid
+    band = juce::jlimit(0, inNumColonies - 1, band);
+    procIdx = juce::jlimit(static_cast<size_t>(0), delayProcs[band].size() - 1, procIdx);
+
+    return processorBuffers[band][procIdx];
+}
+
+// Get the processor node at a specific position in the matrix
+DelayProc &DelayNodes::getProcessorNode(int band, size_t procIdx)
+{
+    // Make sure the indices are valid
+    band = juce::jlimit(0, inNumColonies - 1, band);
+    procIdx = juce::jlimit(static_cast<size_t>(0), delayProcs[band].size() - 1, procIdx);
+
+    return *delayProcs[band][procIdx];
 }

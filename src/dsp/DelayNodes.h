@@ -43,6 +43,9 @@ class DelayNodes
         // Array of delay processors, one for each band
         std::vector<std::vector<std::unique_ptr<DelayProc>>> delayProcs;
 
+        // Persistent matrix of processor contexts (one for each band and processor)
+        std::vector<std::vector<juce::AudioBuffer<float>>> processorBuffers;
+
         // Parameters to control delay network behavior
         float fs = 44100.0f;
         int   inNumColonies = 4;
@@ -59,7 +62,17 @@ class DelayNodes
 
         static constexpr size_t maxNumDelayProcsPerBand = 8;
 
+        // Update delay processor parameters
         void updateDelayProcParams();
+
+        // Process a specific band and processor stage
+        void processNode(int band, size_t procIdx, juce::AudioBuffer<float> &input);
+
+        // Get processor buffer at a specific position in the matrix
+        juce::AudioBuffer<float> &getProcessorBuffer(int band, size_t procIdx);
+
+        // Get processor node at a specific position in the matrix
+        DelayProc &getProcessorNode(int band, size_t procIdx);
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DelayNodes)
 };
