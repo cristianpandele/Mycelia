@@ -11,7 +11,7 @@ DelayNodes::DelayNodes(size_t numBands)
         for (size_t i = currentSize; i < static_cast<size_t>(inNumColonies); ++i)
         {
             delayProcs.push_back(std::vector<std::unique_ptr<DelayProc>>());
-            for (size_t j = 0; j < 4; ++j)
+            for (size_t j = 0; j < maxNumDelayProcsPerBand; ++j)
             {
                 auto newDelayProc = std::make_unique<DelayProc>();
                 delayProcs[i].push_back(std::move(newDelayProc));
@@ -32,8 +32,11 @@ void DelayNodes::prepare(const juce::dsp::ProcessSpec &spec)
     // Prepare the array of delay processors
     for (auto &delayProc : delayProcs)
     {
-        // Prepare the processor
-        delayProc->prepare(spec);
+        for (auto &proc : delayProc)
+        {
+            // Prepare the processor
+            proc->prepare(spec);
+        }
     }
 }
 
@@ -78,20 +81,19 @@ void DelayNodes::process(juce::AudioBuffer<float> *diffusionBandBuffers)
         }
 
         // Set the external sidechain level for this band's final processor
-        delayProcs[band].back()->setExternalSidechainLevel(/*8 * */ combinedLevel);
+        delayProcs[band].back()->setExternalSidechainLevel(16 * combinedLevel);
 
         // Create audio blocks for processing
         juce::dsp::AudioBlock<float> inputBlock(const_cast<juce::AudioBuffer<float> &>(input));
         juce::dsp::ProcessContextReplacing<float> context(inputBlock);
 
         // Process through the delay processors
-        const float normalizationGain = /*std::sqrt*/(inNumColonies);
         for (auto &proc : delayProcs[band])
         {
             proc->process(context);
         }
         // Compensate for the normalization gain of the final stage
-        inputBlock.multiplyBy(normalizationGain);
+        inputBlock.multiplyBy(std::sqrt(inNumColonies));
     }
 }
 
@@ -107,7 +109,7 @@ void DelayNodes::updateDelayProcParams()
 
         // Set initial parameters
         DelayProc::Parameters params;
-        params.delayMs = delayTimeMs/4.0f;
+        params.delayMs = delayTimeMs / maxNumDelayProcsPerBand;
         params.feedback = 1.0f;
         params.growthRate = inGrowthRate;
         params.baseDelayMs = inBaseDelayMs;

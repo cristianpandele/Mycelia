@@ -57,6 +57,8 @@ class DelayNodes
         DuckingCompressor::Parameters inCompressorParams;
         bool  inUseExternalSidechain = true;
 
+        static constexpr size_t maxNumDelayProcsPerBand = 8;
+
         void updateDelayProcParams();
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DelayNodes)
