@@ -11,7 +11,8 @@ class DelayNetwork
         // Parameters
         struct Parameters
         {
-            int   numActiveFilterBands = 4;  // Controls the number of filter bands (0-MAX_NUTRIENT_BANDS)
+            int   numActiveFilterBands;  // Controls the number of filter bands (0-MAX_NUTRIENT_BANDS)
+            float treeDensity;               // Density of the trees (0.0 to 100.0)
             float stretch;                   // Controls the stretch of the delay network (0-100)
             float tempoValue;                // Controls the tempo value (30-300 BPM)
             float scarcityAbundance;         // Controls the Scarcity/Abundance of the delay network (-1-1)
@@ -42,6 +43,7 @@ class DelayNetwork
 
         // Parameters
         int   inActiveFilterBands;
+        float inTreeDensity;
         float inStretch;
         float inTempoValue;
         float inScarcityAbundance;

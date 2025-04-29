@@ -100,6 +100,7 @@ void DelayNetwork::process(const ProcessContext &context,
 void DelayNetwork::setParameters(const Parameters &params)
 {
     inActiveFilterBands = ParameterRanges::nutrientBandsRange.snapToLegalValue(params.numActiveFilterBands);
+    inTreeDensity = ParameterRanges::treeDensityRange.snapToLegalValue(params.treeDensity);
     inStretch = ParameterRanges::stretchRange.snapToLegalValue(params.stretch);
     inTempoValue = ParameterRanges::tempoValueRange.snapToLegalValue(params.tempoValue);
     inScarcityAbundance = ParameterRanges::scarcityAbundanceRange.snapToLegalValue(params.scarcityAbundance);
@@ -136,6 +137,7 @@ void DelayNetwork::updateDiffusionDelayNodesParams()
                                                     .growthRate = inGrowthRate,
                                                     .entanglement = inEntanglement,
                                                     .baseDelayMs = baseDelayMs,
+                                                    .treeDensity = inTreeDensity,
                                                     .compressorParams = compressorParams,
                                                     .useExternalSidechain = useExternalSidechain});
 }

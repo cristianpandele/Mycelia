@@ -179,6 +179,7 @@ void DelayNodes::setParameters(const Parameters &params)
     inBaseDelayMs = params.baseDelayMs;
     inCompressorParams = params.compressorParams;
     inUseExternalSidechain = params.useExternalSidechain;
+    inTreeDensity = params.treeDensity;
 
     updateDelayProcParams();
 }

@@ -245,8 +245,8 @@ void MyceliaModel::parameterChanged(const juce::String &parameterID, float newVa
     //
     else if (parameterID == IDs::treeDensity)
     {
-        currentEdgeTreeParams.treeDensity = newValue;
-        edgeTree.setParameters(currentEdgeTreeParams);
+        currentDelayNetworkParams.treeDensity = newValue;
+        delayNetwork.setParameters(currentDelayNetworkParams);
     }
     else if (parameterID == IDs::stretch)
     {

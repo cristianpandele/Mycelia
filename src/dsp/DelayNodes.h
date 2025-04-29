@@ -22,6 +22,7 @@ class DelayNodes
             float growthRate;                         // Controls how nodes age and grow
             float entanglement;                       // Controls feedback interconnections between nodes
             float baseDelayMs;                        // Base delay time in milliseconds (quarter note time)
+            float treeDensity;                        // Controls how many trees (taps) are used (0-100)
 
             // Compressor parameters
             DuckingCompressor::Parameters compressorParams; // Compressor parameters
@@ -51,6 +52,9 @@ class DelayNodes
 
         // Matrix to store delay times for each colony and processor
         std::vector<std::vector<float>> nodeDelayTimes;
+
+        // Tree-related parameters
+        float inTreeDensity = 0.0f;                     // Tree density parameter (0-100)
 
         // Parameters to control delay network behavior
         float fs = 44100.0f;
