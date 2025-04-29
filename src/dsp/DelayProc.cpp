@@ -211,7 +211,7 @@ void DelayProc::setParameters (const Parameters& params, bool force)
         if (delayChanged)
         {
             inDelayTime = juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear>(inDelayTime.getNextValue());
-            inDelayTime.reset(fs, smoothTimeSec);
+            inDelayTime.reset(fs, 10*smoothTimeSec);
             inDelayTime.setTargetValue(delaySamples);
         }
         if (fbChanged)

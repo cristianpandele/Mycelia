@@ -55,6 +55,12 @@ class DelayNodes
 
         // Tree-related parameters
         float inTreeDensity = 0.0f;                     // Tree density parameter (0-100)
+        int numActiveTrees = 1;                         // Number of active trees (1-8)
+        std::vector<int> treePositions;                 // Positions of trees in the network
+        std::vector<std::vector<float>> treeConnections; // Connection gains between nodes and trees (0.0 or 1.0)
+
+        // Output buffers for each tree - organized as [band][tree]
+        std::vector<std::vector<std::unique_ptr<juce::AudioBuffer<float>>>> treeOutputBuffers;
 
         // Parameters to control delay network behavior
         float fs = 44100.0f;
@@ -84,8 +90,17 @@ class DelayNodes
         // Get processor node at a specific position in the matrix
         DelayProc &getProcessorNode(int band, size_t procIdx);
 
+        // Get tree connection at a specific position in the matrix
+        float getTreeConnection(int band, size_t procIdx);
+
         // Update sidechain levels for all processors in the matrix
         void updateSidechainLevels();
+
+        // Update tree positions and connections based on treeDensity
+        void updateTreePositions();
+
+        // Get the tree output buffer for a specific band and tree index
+        juce::AudioBuffer<float>& getTreeBuffer(int band, size_t treeIdx);
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DelayNodes)
 };

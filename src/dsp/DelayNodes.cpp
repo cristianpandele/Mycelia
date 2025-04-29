@@ -42,6 +42,19 @@ void DelayNodes::prepare(const juce::dsp::ProcessSpec &spec)
         }
     }
 
+    // Initialize tree output buffers - start with maxNumDelayProcsPerBand buffers
+    treeOutputBuffers.resize(inNumColonies);
+    for (int i = 0; i < inNumColonies; ++i)
+    {
+        treeOutputBuffers[i].resize(maxNumDelayProcsPerBand);
+        // Create an empty buffer for each tree output
+        for (int j = 0; j < maxNumDelayProcsPerBand; ++j)
+        {
+            treeOutputBuffers[i][j] = std::make_unique<juce::AudioBuffer<float>>(spec.numChannels, spec.maximumBlockSize);
+            treeOutputBuffers[i][j]->clear();
+        }
+}
+
     // Prepare the array of delay processors
     for (auto &delayProc : delayProcs)
     {
@@ -51,6 +64,9 @@ void DelayNodes::prepare(const juce::dsp::ProcessSpec &spec)
             proc->prepare(spec);
         }
     }
+
+    // Initialize tree positions
+    updateTreePositions();
 }
 
 void DelayNodes::reset()
@@ -72,18 +88,38 @@ void DelayNodes::reset()
             buffer.clear();
         }
     }
+
+    // Clear all tree output buffers
+    for (auto &band : treeOutputBuffers)
+    {
+        for (auto &buffer : band)
+        {
+            if (buffer)
+                buffer->clear();
+        }
+    }
 }
 
-void DelayNodes::process(juce::AudioBuffer<float> *diffusionBandBuffers)
+void DelayNodes::process(juce::AudioBuffer<float> *delayBandBuffers)
 {
     // Update sidechain levels for all processors based on their positions
     updateSidechainLevels();
+
+    // Clear all active tree output buffers
+    for (int band = 0; band < inNumColonies; ++band)
+    {
+        for (int tree = 0; tree < numActiveTrees; ++tree)
+        {
+            if (tree < treeOutputBuffers[band].size() && treeOutputBuffers[band][tree])
+                treeOutputBuffers[band][tree]->clear();
+        }
+    }
 
     // Process each band
     for (int band = 0; band < inNumColonies; ++band)
     {
         // Get the input buffer for this band
-        auto& inputBuffer = diffusionBandBuffers[band];
+        auto& inputBuffer = delayBandBuffers[band];
 
         // Copy input to the first processor buffer
         auto &firstBuffer = getProcessorBuffer(band, 0);
@@ -96,21 +132,68 @@ void DelayNodes::process(juce::AudioBuffer<float> *diffusionBandBuffers)
             // If not the first processor, copy from previous processor's buffer
             if (i > 0)
             {
-                auto& currentBuffer = processorBuffers[band][i];
+                auto& currentBuffer = getProcessorBuffer(band, i);
                 currentBuffer.setSize(inputBuffer.getNumChannels(), inputBuffer.getNumSamples(), false, false, true);
-                currentBuffer.makeCopyOf(processorBuffers[band][i-1]);
+                currentBuffer.makeCopyOf(getProcessorBuffer(band, i-1));
             }
 
             // Process the current node
-            processNode(band, i, processorBuffers[band][i]);
+            processNode(band, i, getProcessorBuffer(band, i));
+
+            // Check if this node position is a tree tap point
+            for (int treeIdx = 0; treeIdx < numActiveTrees; ++treeIdx)
+            {
+                auto connectionGain = getTreeConnection(band, treeIdx);
+                if (i == static_cast<size_t>(treePositions[treeIdx]) && connectionGain > 0.0f)
+                {
+                    // This node is connected to a tree - route the audio to the tree output buffer
+                    auto& procBuffer = getProcessorBuffer(band, i);
+                    auto& treeBuffer = getTreeBuffer(band, treeIdx);
+
+                    // Ensure the tree buffer is sized correctly
+                    if (treeBuffer.getNumChannels() != procBuffer.getNumChannels() || 
+                        treeBuffer.getNumSamples() != procBuffer.getNumSamples())
+                    {
+                        treeBuffer.setSize(procBuffer.getNumChannels(), procBuffer.getNumSamples(), false, false, true);
+                    }
+                    treeBuffer.clear();
+
+                    // Add to the tree buffer with the connection gain
+                    for (int ch = 0; ch < procBuffer.getNumChannels(); ++ch)
+                    {
+                        treeBuffer.addFrom(
+                            ch, 0, procBuffer,
+                            ch, 0, procBuffer.getNumSamples(),
+                            connectionGain);
+                    }
+                }
+            }
+        }
+    }
+
+    // Now that all bands have been processed, combine tree outputs into the delay band buffers
+    for (int band = 0; band < inNumColonies; ++band)
+    {
+        auto& outputBuffer = delayBandBuffers[band];
+        outputBuffer.clear();
+
+        for (int treeIdx = 0; treeIdx < numActiveTrees; ++treeIdx)
+        {
+            auto connectionGain = getTreeConnection(band, treeIdx);
+            if (connectionGain > 0.0f)
+            {
+                auto& treeBuffer = getTreeBuffer(band, treeIdx);
+                for (int ch = 0; ch < outputBuffer.getNumChannels(); ++ch)
+                {
+                    outputBuffer.addFrom(ch, 0, treeBuffer, ch, 0,
+                                        outputBuffer.getNumSamples(), connectionGain);
+                }
+            }
         }
 
-        // Copy the final processed buffer back to the input buffer
-        inputBuffer.makeCopyOf(processorBuffers[band][delayProcs[band].size() - 1]);
-
-        // Compensate for the normalization gain of the final stage
-        juce::dsp::AudioBlock<float> finalBlock(inputBuffer);
-        finalBlock.multiplyBy(std::sqrt(inNumColonies));
+        // Apply normalization gain
+        juce::dsp::AudioBlock<float> finalBlock(outputBuffer);
+        finalBlock.multiplyBy(std::sqrt(inNumColonies) / numActiveTrees);
     }
 }
 
@@ -182,6 +265,7 @@ void DelayNodes::setParameters(const Parameters &params)
     inTreeDensity = params.treeDensity;
 
     updateDelayProcParams();
+    updateTreePositions();
 }
 
 // Process a specific band and processor stage with its own context
@@ -221,6 +305,26 @@ DelayProc& DelayNodes::getProcessorNode(int band, size_t procIdx)
     procIdx = juce::jlimit(static_cast<size_t>(0), delayProcs[band].size() - 1, procIdx);
 
     return *delayProcs[band][procIdx];
+}
+
+// Get the tree connection at a specific position in the matrix
+float DelayNodes::getTreeConnection(int band, size_t procIdx)
+{
+    // Make sure the indices are valid
+    band = juce::jlimit(0, inNumColonies - 1, band);
+    procIdx = juce::jlimit(static_cast<size_t>(0), treeConnections[band].size() - 1, procIdx);
+
+    return treeConnections[band][procIdx];
+}
+
+// Get the tree buffer for a specific band
+juce::AudioBuffer<float>& DelayNodes::getTreeBuffer(int band, size_t treeIdx)
+{
+    // Make sure the indices are valid
+    band = juce::jlimit(0, inNumColonies - 1, band);
+    treeIdx = juce::jlimit(static_cast<size_t>(0), treeOutputBuffers[band].size() - 1, treeIdx);
+
+    return *treeOutputBuffers[band][treeIdx];
 }
 
 // Update sidechain levels for all processors in the matrix
@@ -267,6 +371,83 @@ void DelayNodes::updateSidechainLevels()
                 // For non-end nodes: use the output level of the next node in same row
                 float nextNodeLevel = bufferLevels[band][proc + 1];
                 getProcessorNode(band, proc).setExternalSidechainLevel(16.0f * nextNodeLevel);
+            }
+        }
+    }
+}
+
+// Update tree positions and connections based on treeDensity
+void DelayNodes::updateTreePositions()
+{
+    // Calculate number of active trees based on treeDensity (0-100)
+    const juce::NormalisableRange<float> activeTreeRange{1.0f, static_cast<float>(maxNumDelayProcsPerBand)};
+
+    auto normTreeDensity = ParameterRanges::normalizeParameter(ParameterRanges::treeDensityRange, inTreeDensity);
+    numActiveTrees = static_cast<int>(ParameterRanges::denormalizeParameter(activeTreeRange, normTreeDensity));
+    numActiveTrees = juce::jlimit(1, static_cast<int>(maxNumDelayProcsPerBand), numActiveTrees);
+
+    // Initialize random number generator for consistent variations
+    juce::Random random(juce::Time::currentTimeMillis());
+
+    // Resize and clear the tree positions array
+    treePositions.resize(numActiveTrees);
+
+    // Always place the first tree at the output (last position)
+    treePositions[0] = static_cast<int>(maxNumDelayProcsPerBand) - 1;
+
+    // Place remaining trees symmetrically with small variations
+    if (numActiveTrees > 1)
+    {
+        for (int i = 1; i < numActiveTrees; ++i)
+        {
+            // Calculate the ideal position for even distribution
+            float idealPosition = static_cast<float>(maxNumDelayProcsPerBand - 1) * static_cast<float>(i) / static_cast<float>(numActiveTrees - 1);
+
+            // Add small variation (+/- 1)
+            int variation = random.nextInt(3) - 1; // -1, 0, or 1
+            int position = static_cast<int>(idealPosition) + variation;
+
+            // Ensure position is valid and not the last position (reserved for the output)
+            position = juce::jlimit(0, static_cast<int>(maxNumDelayProcsPerBand) - 2, position);
+
+            // Ensure we don't duplicate positions
+            bool isDuplicate;
+            do {
+                isDuplicate = false;
+                for (int j = 0; j < i; ++j)
+                {
+                    if (treePositions[j] == position)
+                    {
+                        isDuplicate = true;
+                        position = (position + 1) % (static_cast<int>(maxNumDelayProcsPerBand) - 2);  // -1 is the output tree
+                        break;
+                    }
+                }
+            } while (isDuplicate);
+
+            treePositions[i] = position;
+        }
+    }
+
+    // Sort the positions in ascending order for easier processing
+    std::sort(treePositions.begin(), treePositions.end());
+
+    // Resize and initialize the tree connections matrix
+    treeConnections.resize(inNumColonies);
+    for (int band = 0; band < inNumColonies; ++band)
+    {
+        treeConnections[band].resize(numActiveTrees);
+        for (int tree = 0; tree < numActiveTrees; ++tree)
+        {
+            // Determine if this band connects to this tree (75% probability)
+            // Always connect the last tree (output tree) to all bands
+            if (tree == numActiveTrees - 1 || random.nextFloat() < 0.75f)
+            {
+                treeConnections[band][tree] = 1.0f; // Connected
+            }
+            else
+            {
+                treeConnections[band][tree] = 0.0f; // Not connected
             }
         }
     }
