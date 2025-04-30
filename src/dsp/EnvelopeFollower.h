@@ -25,25 +25,38 @@ public:
 
     template <typename ProcessContext>
     void process(const ProcessContext &context);
-    float processSample(int ch, float sample);
+    void processSample(int ch, float sample);
 
     void setParameters(const Parameters &params, bool force = false);
 
-    // Get the current envelope value for a specific channel
-    float getCurrentLevel(int channel = 0) const;
-
     // Get the average level across all channels
-    float getAverageLevel() const;
+    float getAverageLevel(int channel = 0) const;
 
 private:
-    std::unique_ptr<juce::dsp::BallisticsFilter<float>> filter;
-    std::unique_ptr<juce::AudioBuffer<float>> analysisBuffer;
+    template <typename SampleType>
+    void gainInterpolator(const juce::dsp::AudioBlock<SampleType> &inputBlock, size_t numSamples);
+    void setInterpolationParameters();
 
-    float inAttackMs = 20.0f;
+    struct EnvelopeState
+    {
+        float envelope = 0.0f;
+        float rmsSum = 0.0f;
+        int rmsSamples = 0;
+    };
+
+    std::vector<EnvelopeState> envelopeStates {};
+
+    float inAttackMs  = 20.0f;
     float inReleaseMs = 100.0f;
+    float epsilonAt   = 0.0f;
+    float epsilonRe   = 0.0f;
     juce::dsp::BallisticsFilterLevelCalculationType inLevelType = juce::dsp::BallisticsFilterLevelCalculationType::RMS;
-    float currentLevel = 0.0f;
     int numChannels = 2;
+
+    // Coefficients for attack and release
+    double attackCoef = 0.0;
+    double releaseCoef = 0.0;
+    float sampleRate = 44100.0f;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(EnvelopeFollower)
 };
