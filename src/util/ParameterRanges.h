@@ -29,7 +29,7 @@ namespace ParameterRanges
     static constexpr float maxPreampLevel = 120.0f;
     static constexpr float minPreampOverdrive = 100.0f;
     static constexpr float maxPreampOverdrive = 120.0f;
-    static constexpr float minWaveshaperDrive = 1.0f;
+    static constexpr float minWaveshaperDrive = 0.0f;
     static constexpr float maxWaveshaperDrive = 6.0f;
     static constexpr float minReverbMix = 0.0f;
     static constexpr float maxReverbMix = 100.0f;
@@ -42,9 +42,9 @@ namespace ParameterRanges
     // Tree Processor constants
     static constexpr float minTreeSize = 0.2f;
     static constexpr float maxTreeSize = 1.8f;
-    static constexpr float minAttackTime = 1.0f; // TODO: this should be a multiplication factor on the tempo
-    static constexpr float maxAttackTime = 250.0f;
-    static constexpr float minReleaseTime = 25.0f; // TODO: this should be a multiplication factor on the tempo
+    static constexpr float minAttackTime = 10.0f; // TODO: this should be a multiplication factor on the tempo
+    static constexpr float maxAttackTime = 2500.0f;
+    static constexpr float minReleaseTime = 20.0f; // TODO: this should be a multiplication factor on the tempo
     static constexpr float maxReleaseTime = 2500.0f;
     static constexpr float minTreeDensity = 0.0f;
     static constexpr float maxTreeDensity = 100.0f;

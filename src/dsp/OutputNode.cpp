@@ -121,11 +121,11 @@ void OutputNode::process(const ProcessContext &wetContext,
 
         // Get the diffusion sample level using envelope follower
         envelopeFollowers[band].process(diffusionContext);
-        float diffusionLevel = useExternalSidechain ? envelopeFollowers[band].getAverageLevel() : 0.0f;
 
         // Process each channel
         for (int channel = 0; channel < numWetChannels; ++channel)
         {
+            float diffusionLevel = useExternalSidechain ? envelopeFollowers[band].getAverageLevel(channel) : 0.0f;
             // Get raw pointers to data
             const float* diffusionData = diffusionBandBuffers[band]->getReadPointer(channel);
             const float* delayData = delayBandBuffers[band]->getReadPointer(channel);
