@@ -22,7 +22,8 @@ using namespace juce;
 
 class Mycelia :
     public foleys::MagicProcessor,
-    private juce::AudioProcessorValueTreeState::Listener
+    private juce::AudioProcessorValueTreeState::Listener,
+    private juce::Value::Listener
 {
     public:
         Mycelia();
@@ -62,21 +63,17 @@ class Mycelia :
         foleys::MagicLevelSource *inputMeter = nullptr;
         foleys::MagicLevelSource *outputMeter = nullptr;
 
-        // Add a timer to update MIDI clock sync status in the GUI
-        class MidiClockStatusUpdater : public juce::Timer
-        {
-        public:
-            MidiClockStatusUpdater(Mycelia& owner) : processor(owner) {}
-            void timerCallback() override
-            {
-                processor.updateMidiClockSyncStatus();
-            }
-        private:
-            Mycelia& processor;
-        };
+        foleys::MagicGUIBuilder *magicBuilder = nullptr;
 
-        MidiClockStatusUpdater midiClockStatusUpdater { *this };
+        /////////////////////////////////////////////
+        // MIDI
+
+        juce::Value midiLabel{"MIDI Clock Sync Inactive"};
+        juce::Value midiLabelVisibility{false};
+        juce::Value midiClockDetected{false};
+
         void updateMidiClockSyncStatus();
+        void valueChanged(juce::Value &value);
 
         // Process MIDI messages
         void processMidiMessages(const juce::MidiBuffer &midiMessages);
@@ -89,7 +86,6 @@ class Mycelia :
         bool isMidiClockSyncActive() const;
 
         // MIDI Clock sync variables
-        bool midiClockDetected = false;
         double midiClockTempo = 0.0;
         double lastMidiClockTime = 0.0;
         int midiClockCounter = 0;
@@ -103,6 +99,11 @@ class Mycelia :
         int midiCC18Value = 0;
         int midiCC19Value = 0;
 
+        //////////////////////////////////////////////
+        // GUI variables
+        // juce::Value xyRadiusValue{0.0f};
+
+        //////////////////////////////////////////////
         // The underlying model used to perform the DSP processing
         MyceliaModel myceliaModel;
 

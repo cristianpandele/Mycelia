@@ -41,8 +41,9 @@ Mycelia::Mycelia()
     inputMeter = magicState.createAndAddObject<foleys::MagicLevelSource>(IDs::inputMeter);
     outputMeter = magicState.createAndAddObject<foleys::MagicLevelSource>(IDs::outputMeter);
 
-    // Start the timer to update MIDI clock sync status
-    midiClockStatusUpdater.startTimerHz(1); // Update 1 time per second
+    midiLabel.referTo(magicState.getPropertyAsValue("midiClockStatus"));
+    midiLabelVisibility.referTo(magicState.getPropertyAsValue("midiClockStatusVisibility"));
+    midiClockDetected.addListener(this);
 
     magicState.setGuiValueTree(BinaryData::sporadic_xml, BinaryData::sporadic_xmlSize);
 }
@@ -131,6 +132,9 @@ void Mycelia::initialiseBuilder(foleys::MagicGUIBuilder &builder)
 
     // Register your custom GUI components here
     builder.registerFactory("MyceliaAnimation", &MyceliaViewItem::factory);
+
+    // Save a reference to the builder for later use
+    magicBuilder = &builder;
 }
 
 //==============================================================================
@@ -243,7 +247,7 @@ void Mycelia::processMidiMessages(const juce::MidiBuffer &midiMessages)
     const double currentTime = juce::Time::getMillisecondCounterHiRes() * 0.001;
 
     // Check for MIDI clock timeout
-    if (midiClockDetected && (currentTime - lastMidiClockTime) > kMidiClockTimeout)
+    if (isMidiClockSyncActive() && (currentTime - lastMidiClockTime) > kMidiClockTimeout)
     {
         midiClockDetected = false;
         midiClockCounter = 0;
@@ -271,7 +275,7 @@ void Mycelia::processMidiMessages(const juce::MidiBuffer &midiMessages)
             else if (message.isMidiStop())
             {
                 // Stop tracking when transport stops
-                midiClockDetected = false;
+                midiClockDetected.setValue(false);
                 midiClockCounter = 0;
             }
             // Handle MIDI CC messages
@@ -290,9 +294,9 @@ void Mycelia::processMidiClockMessage(const juce::MidiMessage &midiMessage, doub
 
     if (midiClockCounter >= kClockCountReset)
     {
-        if (!midiClockDetected)
+        if (!isMidiClockSyncActive())
         {
-            midiClockDetected = true;
+            midiClockDetected.setValue(true);
             // First complete set of clock messages received, start tracking from here
         }
         else
@@ -379,20 +383,57 @@ void Mycelia::processMidiCcMessage(const juce::MidiMessage &midiMessage)
 bool Mycelia::isMidiClockSyncActive() const
 {
     // Forward the request to the DelayNetwork
-    return midiClockDetected;
+    return static_cast<bool>(midiClockDetected.getValue());
 }
 
-void Mycelia::updateMidiClockSyncStatus()
+void Mycelia::valueChanged(juce::Value &value)
 {
-    // Update the MIDI clock status property using the ValueTree API
-    bool isMidiClockActive = isMidiClockSyncActive();
-    if (isMidiClockActive)
+    if (value == midiClockDetected)
     {
-        magicState.getPropertyAsValue("midiClockStatus").setValue("MIDI Clock Sync Active");
-    }
-    else
-    {
-        magicState.getPropertyAsValue("midiClockStatus").setValue(isMidiClockActive);
+        // Update the MIDI clock sync status property using the ValueTree API
+        if (isMidiClockSyncActive())
+        {
+            midiLabel.setValue("MIDI Clock Sync On");
+            midiLabelVisibility.setValue(true);
+        }
+        else
+        {
+            midiLabel.setValue("MIDI Clock Sync Off");
+            midiLabelVisibility.setValue(true);
+        }
+
+        // Update the GUI to reflect the MIDI clock sync status
+        auto tree = magicBuilder->getGuiRootNode();
+        auto id = foleys::IDs::caption;
+
+        // Set the background colour of the label
+        auto val = juce::String("Mycelial Delay Controls");
+        auto child = tree.getChildWithProperty(id, val);
+
+        if (child.isValid())
+        {
+            val = juce::String("Universe Controls");
+            child = child.getChildWithProperty(id, val);
+
+            if (child.isValid())
+            {
+                id = juce::Identifier("title");
+                val = juce::String("MIDI Sync");
+                child = child.getChildWithProperty(id, val);
+
+                if (child.isValid())
+                {
+                    if (isMidiClockSyncActive())
+                    {
+                        child.setProperty(foleys::IDs::backgroundColour, "FF008800", nullptr);
+                    }
+                    else
+                    {
+                        child.setProperty(foleys::IDs::backgroundColour, "FFFF8800", nullptr);
+                    }
+                }
+            }
+        }
     }
 }
 
