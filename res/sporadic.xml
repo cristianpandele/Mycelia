@@ -101,14 +101,16 @@
                 pos-height="80%" slider-textbox="textbox-below" flex-align-self="stretch"
                 pos-x="0%" pos-y="10%" suffix=" x"/>
         <Slider caption="Scarcity/Abundance" parameter="scarcityabundance" slider-type="rotary"
-                pos-width="50%" pos-height="80%" pos-x="50%%" pos-y="10%"/>
-        <ToggleButton text="Override" parameter="scarcityabundanceoverride" caption="Override"
-                      caption-size="0" pos-x="50%" pos-width="50%" pos-y="80%" pos-height="20%"
-                      flex-align-self="center" min-width="0.0" min-height="0.0"/>
-        <Label text="MIDI Clock Sync Active" background-color="FFFF8800" property="midiClockStatus"
-               pos-height="15%" pos-x="0%" pos-width="50%" pos-y="85%" justification="centred"
+                pos-width="50%" pos-height="80%" pos-x="50%" pos-y="10%" visibility=""
+                tooltip="Override the global availability of nutrients in the system"/>
+        <Label text="MIDI Clock Sync Off" background-color="FFFF8800" property="midiClockStatus"
+               pos-height="9%" pos-x="3%" pos-width="43%" pos-y="91%" justification="centred"
                font-size="12.0" border="1" border-color="FF000000" radius="5"
-               value="midiClockStatus" visibility="midiClockStatus"/>
+               value="midiClockStatus" visibility="midiClockStatusVisibility" title="MIDI Sync"/>
+        <Label text="Scar/Abund Automated" background-color="FFFF8800" property="scarcityAbundanceAuto"
+               pos-height="9%" pos-x="53%" pos-width="43%" pos-y="91%" justification="centred"
+               font-size="12.0" border="1" border-color="FF000000" radius="5"
+               value="scarcityAbundanceAuto" visibility="scarcityAbundanceAutoVisibility" title="Scar/Abundance Automation"/>
       </View>
       <View caption="Mycelia" padding="1" border="2" pos-y="" pos-width="20%"
             border-color="FFA5680E" pos-x="60%" display="contents" flex-align-self="center">
