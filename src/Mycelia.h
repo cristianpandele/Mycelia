@@ -69,8 +69,11 @@ class Mycelia :
         // MIDI
 
         juce::Value midiLabel{"MIDI Clock Sync Inactive"};
-        juce::Value midiLabelVisibility{false};
+        juce::Value midiLabelVisibility{true};
         juce::Value midiClockDetected{false};
+
+        juce::Value scarAbundAuto{"Scarcity/Abundance Automated"};
+        juce::Value scarAbundAutoVisibility{true};
 
         void updateMidiClockSyncStatus();
         void valueChanged(juce::Value &value);
