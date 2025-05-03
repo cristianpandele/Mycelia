@@ -45,7 +45,18 @@ Mycelia::Mycelia()
     midiLabelVisibility.referTo(magicState.getPropertyAsValue("midiClockStatusVisibility"));
     midiClockDetected.addListener(this);
 
+    scarAbundAuto.referTo(magicState.getPropertyAsValue("scarcityAbundanceAuto"));
+    scarAbundAuto.addListener(this);
+    scarAbundAutoVisibility.referTo(magicState.getPropertyAsValue("scarcityAbundanceAutoVisibility"));
+    scarAbundAutoVisibility.addListener(this);
+
     magicState.setGuiValueTree(BinaryData::sporadic_xml, BinaryData::sporadic_xmlSize);
+
+    midiLabel.setValue("MIDI Clock Sync Inactive");
+    midiLabelVisibility.setValue(true);
+    midiClockDetected.setValue(false);
+    scarAbundAuto.setValue("Scarcity/Abundance Automated");
+    scarAbundAutoVisibility.setValue(true);
 }
 
 Mycelia::~Mycelia()
