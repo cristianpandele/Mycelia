@@ -74,7 +74,7 @@ class DelayProc
         juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear> inFilterFreq {0.0f};
         juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear> inFilterGainDb {0.0f};
         juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear> inGrowthRate {0.0f};
-        std::vector<float> state;
+        std::vector<float> state {0.0f, 0.0f}; // Feedback state for each channel
 
         // Age control parameters
         juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear> currentAge {0.0f};

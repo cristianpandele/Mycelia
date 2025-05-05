@@ -36,35 +36,60 @@ class DelayNodes
         void reset();
 
         // Process each diffusion output with its own delay node
-        void process(juce::AudioBuffer<float> *diffusionBandBuffers);
+        void process(std::vector<std::unique_ptr<juce::AudioBuffer<float>>> &diffusionBandBuffers);
 
         void setParameters(const Parameters& params);
 
     private:
-        // Array of delay processors, one for each band
-        std::vector<std::vector<std::unique_ptr<DelayProc>>> delayProcs;
+        struct BandResources
+        {
+            std::vector<std::unique_ptr<DelayProc>> delayProcs;
+            std::vector<std::unique_ptr<juce::AudioBuffer<float>>> processorBuffers;
+            std::vector<std::unique_ptr<juce::AudioBuffer<float>>> treeOutputBuffers;
+            std::vector<float> treeConnections;
+            // Matrix to store output levels of each processor
+            std::vector<float> bufferLevels;
 
-        // Persistent matrix of processor contexts (one for each band and processor)
-        std::vector<std::vector<juce::AudioBuffer<float>>> processorBuffers;
+            // Matrix to store delay times for each colony and processor
+            std::vector<float> nodeDelayTimes;
 
-        // Matrix to store output levels of each processor
-        std::vector<std::vector<float>> bufferLevels;
+            void clear()
+            {
+                // Clear in reverse order of dependency
+                treeConnections.clear();
+                bufferLevels.clear();
+                nodeDelayTimes.clear();
 
-        // Matrix to store delay times for each colony and processor
-        std::vector<std::vector<float>> nodeDelayTimes;
+                for (auto &buffer : treeOutputBuffers)
+                    buffer.reset();
+                treeOutputBuffers.clear();
+
+                for (auto &buffer : processorBuffers)
+                    buffer.reset();
+                processorBuffers.clear();
+
+                for (auto &proc : delayProcs)
+                    proc.reset();
+                delayProcs.clear();
+            }
+        };
+        std::vector<BandResources> 
+        bands;
+
+        // Allocate delay processors and buffers based on the number of colonies and nodes
+        void allocateDelayProcessors(int numColonies, int numNodes = maxNumDelayProcsPerBand);
 
         // Tree-related parameters
-        float inTreeDensity = 0.0f;                     // Tree density parameter (0-100)
-        int numActiveTrees = 1;                         // Number of active trees (1-8)
-        std::vector<int> treePositions;                 // Positions of trees in the network
-        std::vector<std::vector<float>> treeConnections; // Connection gains between nodes and trees (0.0 or 1.0)
-
-        // Output buffers for each tree - organized as [band][tree]
-        std::vector<std::vector<std::unique_ptr<juce::AudioBuffer<float>>>> treeOutputBuffers;
+        float inTreeDensity = 0.0f;                      // Tree density parameter (0-100)
+        int numActiveTrees = 1;                          // Number of active trees (1-8)
+        std::vector<int> treePositions;                  // Positions of trees in the network
 
         // Parameters to control delay network behavior
         float fs = 44100.0f;
-        int   inNumColonies = 4;
+        size_t numChannels = 2;
+        size_t blockSize = 512;
+
+        int inNumColonies = ParameterRanges::maxNutrientBands;
         std::vector<std::unique_ptr<float>> inBandFrequencies;
         float inStretch = 0.0f;
         float inScarcityAbundance = 0.0f;

@@ -27,7 +27,8 @@ class DuckingCompressor
 
         // Prepares the compressor with the given spec
         void prepare(const juce::dsp::ProcessSpec &spec);
-
+        // Allocates internal buffers for the specified number of channels
+        void allocateVectors(size_t numChannels);
         // Resets the compressor state
         void reset();
 
@@ -60,6 +61,7 @@ class DuckingCompressor
 
         // Internal state
         double sampleRate = 44100.0;
+        size_t numChannels = 2;
         std::vector<float> gainReduction;
 
         // Attack/release envelope processor

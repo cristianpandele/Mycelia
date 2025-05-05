@@ -20,6 +20,7 @@ public:
     };
 
     void prepare(const juce::dsp::ProcessSpec &spec);
+    void allocateVectors(size_t numChannels);
     void reset();
 
     template <typename ProcessContext>

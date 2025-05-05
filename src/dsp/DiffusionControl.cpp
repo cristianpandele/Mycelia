@@ -42,7 +42,7 @@ void DiffusionControl::reset()
 template <typename ProcessContext>
 void DiffusionControl::process(
     const ProcessContext &inContext,
-    juce::AudioBuffer<float> *outputBuffers)
+    std::vector<std::unique_ptr<juce::AudioBuffer<float>>> &outputBuffers)
 {
     // Manage audio context
     const auto &inputBlock = inContext.getInputBlock();
@@ -56,7 +56,7 @@ void DiffusionControl::process(
     // Copy input to all output bands
     for (int band = 0; band < inNumActiveBands; ++band)
     {
-        juce::dsp::AudioBlock<float> outputBandBlock(outputBuffers[band]);
+        juce::dsp::AudioBlock<float> outputBandBlock(*outputBuffers[band].get());
         outputBandBlock.copyFrom(inputBlock);
     }
 
@@ -70,7 +70,7 @@ void DiffusionControl::process(
     for (int band = 0; band < inNumActiveBands; ++band)
     {
         // Create AudioBlock for filter processing
-        juce::dsp::AudioBlock<float> outputBandBlock(outputBuffers[band]);
+        juce::dsp::AudioBlock<float> outputBandBlock(*outputBuffers[band].get());
 
         // Ensure filter bands are active
         for (int ch = 0; ch < numChannels; ++ch)
@@ -153,5 +153,5 @@ void DiffusionControl::getBandFrequencies(float *outBandFrequencies, int *numAct
     std::memcpy(outBandFrequencies, bandFrequencies.data(), *numActiveBands * sizeof(float));
 }
 
-template void DiffusionControl::process<juce::dsp::ProcessContextReplacing<float>>(const juce::dsp::ProcessContextReplacing<float> &, juce::AudioBuffer<float> *);
-template void DiffusionControl::process<juce::dsp::ProcessContextNonReplacing<float>>(const juce::dsp::ProcessContextNonReplacing<float> &, juce::AudioBuffer<float> *);
+template void DiffusionControl::process<juce::dsp::ProcessContextReplacing<float>>(const juce::dsp::ProcessContextReplacing<float> &, std::vector<std::unique_ptr<juce::AudioBuffer<float>>> &);
+template void DiffusionControl::process<juce::dsp::ProcessContextNonReplacing<float>>(const juce::dsp::ProcessContextNonReplacing<float> &, std::vector<std::unique_ptr<juce::AudioBuffer<float>>> &);

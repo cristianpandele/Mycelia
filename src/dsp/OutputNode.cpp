@@ -9,11 +9,14 @@ OutputNode::OutputNode()
         gain->setRampDurationSeconds(0.05f);
         gain->setGainLinear(0.0f);
     }
+
+    tempBuffer = std::make_unique<juce::AudioBuffer<float>>();
 }
 
 OutputNode::~OutputNode()
 {
     // Clean up any resources
+    tempBuffer->clear();
 }
 
 void OutputNode::prepare(const juce::dsp::ProcessSpec& spec)
@@ -74,8 +77,8 @@ void OutputNode::reset()
 template <typename ProcessContext>
 void OutputNode::process(const ProcessContext &wetContext,
                          const ProcessContext &dryContext,
-                         juce::AudioBuffer<float> *diffusionBandBuffers,
-                         juce::AudioBuffer<float> *delayBandBuffers)
+                         std::vector<std::unique_ptr<juce::AudioBuffer<float>>> &diffusionBandBuffers,
+                         std::vector<std::unique_ptr<juce::AudioBuffer<float>>> &delayBandBuffers)
 {
     // Manage audio context
     const auto &inputDryBlock = dryContext.getInputBlock();
@@ -112,7 +115,7 @@ void OutputNode::process(const ProcessContext &wetContext,
     {
         // Get references to this band's buffers
         auto& diffusionBuffer = diffusionBandBuffers[band];
-        juce::dsp::AudioBlock<float> diffusionBlock(diffusionBuffer);
+        juce::dsp::AudioBlock<float> diffusionBlock(*diffusionBuffer.get());
         const auto& diffusionContext = juce::dsp::ProcessContextReplacing<float>(diffusionBlock);
         const auto& delayBuffer = delayBandBuffers[band];
 
@@ -124,8 +127,8 @@ void OutputNode::process(const ProcessContext &wetContext,
         for (int channel = 0; channel < numWetChannels; ++channel)
         {
             // Get raw pointers to data
-            const float* diffusionData = diffusionBuffer.getReadPointer(channel);
-            const float* delayData = delayBuffer.getReadPointer(channel);
+            const float* diffusionData = diffusionBandBuffers[band]->getReadPointer(channel);
+            const float* delayData = delayBandBuffers[band]->getReadPointer(channel);
             float* outputData = tempBuffer->getWritePointer(channel);
 
             // Process each sample
@@ -192,10 +195,10 @@ void OutputNode::setParameters(const Parameters &params)
 template void OutputNode::process<juce::dsp::ProcessContextReplacing<float>>(
     const juce::dsp::ProcessContextReplacing<float> &,
     const juce::dsp::ProcessContextReplacing<float> &,
-    juce::AudioBuffer<float> *,
-    juce::AudioBuffer<float> *);
+    std::vector<std::unique_ptr<juce::AudioBuffer<float>>> &,
+    std::vector<std::unique_ptr<juce::AudioBuffer<float>>> &);
 template void OutputNode::process<juce::dsp::ProcessContextNonReplacing<float>>(
     const juce::dsp::ProcessContextNonReplacing<float> &,
     const juce::dsp::ProcessContextNonReplacing<float> &,
-    juce::AudioBuffer<float> *,
-    juce::AudioBuffer<float> *);
+    std::vector<std::unique_ptr<juce::AudioBuffer<float>>> &,
+    std::vector<std::unique_ptr<juce::AudioBuffer<float>>> &);

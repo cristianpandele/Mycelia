@@ -33,8 +33,8 @@ class DelayNetwork
 
         template <typename ProcessContext>
         void process(const ProcessContext &context,
-                     juce::AudioBuffer<float> *diffusionBandBuffers,
-                     juce::AudioBuffer<float> *delayBandBuffers);
+                     std::vector<std::unique_ptr<juce::AudioBuffer<float>>> &diffusionBandBuffers,
+                     std::vector<std::unique_ptr<juce::AudioBuffer<float>>> &delayBandBuffers);
 
         void setParameters(const Parameters &params);
 
@@ -53,6 +53,9 @@ class DelayNetwork
         float inFoldWindowSize;
         float inEntanglement;
         float inGrowthRate;
+
+        // Allocate delay processors and buffers based on the number of colonies and nodes
+        void allocateBandBuffers(int numBands);
 
         // Base delay time in milliseconds (quarter note time)
         float baseDelayMs = 0.0f;
@@ -77,9 +80,9 @@ class DelayNetwork
         DelayNodes delayNodes;
 
         // Output buffers
-        std::array<float, ParameterRanges::maxNutrientBands>                    diffusionBandFrequencies;
-        std::array<std::unique_ptr<juce::AudioBuffer<float>>, ParameterRanges::maxNutrientBands> diffusionBandBuffers;
-        std::array<std::unique_ptr<juce::AudioBuffer<float>>, ParameterRanges::maxNutrientBands> delayBandBuffers;
+        std::vector<float>                                     diffusionBandFrequencies;
+        std::vector<std::unique_ptr<juce::AudioBuffer<float>>> diffusionBandBuffers;
+        std::vector<std::unique_ptr<juce::AudioBuffer<float>>> delayBandBuffers;
 
         void updateDiffusionDelayNodesParams();
 

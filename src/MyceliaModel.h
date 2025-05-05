@@ -87,6 +87,11 @@ class MyceliaModel :
         void setParameterExplicitly(const juce::String& paramId, float newValue);
 
     private:
+        size_t numChannels = 2;
+        size_t blockSize = 512;
+
+        void allocateBandBuffers(int numBands);
+
         // Parameters
         juce::AudioProcessorValueTreeState treeState;
 
@@ -116,7 +121,9 @@ class MyceliaModel :
 
         // Buffers for processing
         juce::AudioBuffer<float> dryBuffer;
-        juce::AudioBuffer<float> skyBuffer; // Added for sky processing
+
+        std::vector<std::unique_ptr<juce::AudioBuffer<float>>> diffusionBandBuffers;
+        std::vector<std::unique_ptr<juce::AudioBuffer<float>>> delayBandBuffers;
 
         // Audio Processors: Input, Sky, EdgeTree, DelayNetwork, Output
         InputNode inputNode;

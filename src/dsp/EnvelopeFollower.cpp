@@ -13,15 +13,31 @@ void EnvelopeFollower::prepare(const juce::dsp::ProcessSpec &spec)
     filter->setReleaseTime(inReleaseMs);
 
     numChannels = spec.numChannels;
-    analysisBuffer = std::make_unique<juce::AudioBuffer<float>>(numChannels, spec.maximumBlockSize);
+
+    // Resize envelopeStates to match the number of channels
+    allocateVectors(numChannels);
+
     reset();
+}
+
+void EnvelopeFollower::allocateVectors(size_t numChannels)
+{
+    // Resize envelopeStates if needed
+    if (envelopeStates.size() != numChannels)
+    {
+        envelopeStates.resize(numChannels);
+    }
 }
 
 void EnvelopeFollower::reset()
 {
-    filter->reset();
-    currentLevel = 0.0f;
-    analysisBuffer->clear();
+    // Reset all envelope states
+    for (auto &state : envelopeStates)
+    {
+        state.envelope = 0.0f;
+        state.rmsSum = 0.0f;
+        state.rmsSamples = 0;
+    }
 }
 
 template <typename ProcessContext>
@@ -31,8 +47,25 @@ void EnvelopeFollower::process(const ProcessContext &context)
     const auto &inputBlock = context.getInputBlock();
     const auto numSamples = inputBlock.getNumSamples();
 
-    // Resize analysis buffer if needed
-    if (analysisBuffer->getNumSamples() < numSamples)
+    // Resize envelopeStates if needed
+    allocateVectors(numChannels);
+
+    // Process each channel with the envelope follower
+    gainInterpolator(inputBlock, numSamples);
+}
+
+void EnvelopeFollower::processSample(int channel, float sample)
+{
+    if (channel < 0 || channel >= static_cast<int>(envelopeStates.size()))
+        return;
+
+    // Resize envelopeStates if needed
+    allocateVectors(numChannels);
+
+    // Process a single sample through the envelope follower
+    auto &envelope = envelopeStates[channel].envelope;
+
+    if (envelope < sample)
     {
         analysisBuffer->setSize(numChannels, numSamples, true, true, true);
     }

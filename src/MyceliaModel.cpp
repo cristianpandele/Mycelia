@@ -83,8 +83,22 @@ MyceliaModel::~MyceliaModel()
     treeState.removeParameterListener(IDs::reverbMix, this);
     treeState.removeParameterListener(IDs::bandpassFreq, this);
     treeState.removeParameterListener(IDs::bandpassWidth, this);
+    treeState.removeParameterListener(IDs::tempoValue, this);
+    treeState.removeParameterListener(IDs::entanglement, this);
+    treeState.removeParameterListener(IDs::growthRate, this);
     treeState.removeParameterListener(IDs::dryWet, this);
     treeState.removeParameterListener(IDs::delayDuck, this);
+
+    for (auto& buffer : diffusionBandBuffers)
+    {
+        buffer.reset();
+    }
+    diffusionBandBuffers.clear();
+    for (auto& buffer : delayBandBuffers)
+    {
+        buffer.reset();
+    }
+    delayBandBuffers.clear();
 }
 
 juce::AudioProcessorValueTreeState::ParameterLayout MyceliaModel::createParameterLayout()
@@ -300,15 +314,65 @@ void MyceliaModel::setParameterExplicitly(const juce::String& paramId, float new
 
 void MyceliaModel::prepareToPlay(juce::dsp::ProcessSpec spec)
 {
+    numChannels = spec.numChannels;
+    blockSize = spec.maximumBlockSize;
+
     // Prepare all processors
     inputNode.prepare(spec);
+    // sky.prepare(spec);
     edgeTree.prepare(spec);
     delayNetwork.prepare(spec);
     outputNode.prepare(spec);
 
     // Initialize buffers
     dryBuffer.setSize(spec.numChannels, spec.maximumBlockSize);
+    allocateBandBuffers(currentDelayNetworkParams.numActiveFilterBands);
+    // skyBuffer.setSize(spec.numChannels, spec.maximumBlockSize);
 }
+
+void MyceliaModel::allocateBandBuffers(int numBands)
+{
+    if (numBands < 1 || numBands > ParameterRanges::maxNutrientBands)
+    {
+        return;
+    }
+
+    // Check if we need to resize the buffers
+    if (numBands == diffusionBandBuffers.size() &&
+        numBands == delayBandBuffers.size())
+    {
+        // No need to resize, just return
+        return;
+    }
+
+    std::vector<std::unique_ptr<juce::AudioBuffer<float>>> newDiffusionBandBuffers;
+    std::vector<std::unique_ptr<juce::AudioBuffer<float>>> newDelayBandBuffers;
+
+    // Clear the current buffers
+    for (auto &buffer : diffusionBandBuffers)
+    {
+        buffer->clear();
+    }
+    for (auto &buffer : delayBandBuffers)
+    {
+        buffer->clear();
+    }
+
+    // Allocate new buffers for each band
+    for (int band = 0; band < numBands; ++band)
+    {
+        auto newDiffusionBuffer = std::make_unique<juce::AudioBuffer<float>>(numChannels, blockSize);
+        newDiffusionBandBuffers.push_back(std::move(newDiffusionBuffer));
+
+        auto newDelayBuffer = std::make_unique<juce::AudioBuffer<float>>(numChannels, blockSize);
+        newDelayBandBuffers.push_back(std::move(newDelayBuffer));
+    }
+
+    // Swap the new buffers with the old ones
+    diffusionBandBuffers.swap(newDiffusionBandBuffers);
+    delayBandBuffers.swap(newDelayBandBuffers);
+}
+
 
 void MyceliaModel::releaseResources()
 {
@@ -356,11 +420,6 @@ void MyceliaModel::process(const ProcessContext &context)
     const auto numChannels = outputBlock.getNumChannels();
     const auto numSamples = outputBlock.getNumSamples();
 
-    std::array<juce::AudioBuffer<float>, ParameterRanges::maxNutrientBands> diffusionBandBuffers;
-    diffusionBandBuffers.fill(juce::AudioBuffer<float>(numChannels, numSamples));
-    std::array<juce::AudioBuffer<float>, ParameterRanges::maxNutrientBands> delayBandBuffers;
-    delayBandBuffers.fill(juce::AudioBuffer<float>(numChannels, numSamples));
-
     jassert(inputBlock.getNumChannels() == numChannels);
     jassert(inputBlock.getNumSamples() == numSamples);
 
@@ -375,6 +434,9 @@ void MyceliaModel::process(const ProcessContext &context)
     {
         return;
     }
+
+    // Allocate buffers if needed
+    allocateBandBuffers(currentDelayNetworkParams.numActiveFilterBands);
 
     // Process through input node
     inputNode.process(context);
@@ -395,10 +457,10 @@ void MyceliaModel::process(const ProcessContext &context)
     edgeTree.process(wetContext);
 
     // Process through the DelayNetwork
-    delayNetwork.process(wetContext, diffusionBandBuffers.data(), delayBandBuffers.data());
+    delayNetwork.process(wetContext, diffusionBandBuffers, delayBandBuffers);
 
     // Output mixing stage
-    outputNode.process(wetContext, dryContext, diffusionBandBuffers.data(), delayBandBuffers.data());
+    outputNode.process(wetContext, dryContext, diffusionBandBuffers, delayBandBuffers);
 }
 
 //==================================================

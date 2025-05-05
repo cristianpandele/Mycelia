@@ -12,6 +12,7 @@ DuckingCompressor::~DuckingCompressor()
 void DuckingCompressor::prepare(const juce::dsp::ProcessSpec &spec)
 {
     sampleRate = spec.sampleRate;
+    numChannels = spec.numChannels;
 
     // Initialize attack and release smoothing
     attackReleaseCalculator.prepare(spec);
@@ -21,7 +22,16 @@ void DuckingCompressor::prepare(const juce::dsp::ProcessSpec &spec)
     attackReleaseCalculator.setParameters(envParams, false);
 
     // Initialize state
-    gainReduction.resize(spec.numChannels, 1.0f);
+    allocateVectors(numChannels);
+}
+
+void DuckingCompressor::allocateVectors(size_t numChannels)
+{
+    // Resize gainReduction if needed
+    if (gainReduction.size() != numChannels)
+    {
+        gainReduction.resize(numChannels);
+    }
 }
 
 void DuckingCompressor::reset()
@@ -33,6 +43,12 @@ void DuckingCompressor::reset()
 
 float DuckingCompressor::processSample(float inputSample, float sidechainLevel, size_t channel)
 {
+    if (channel < 0 || channel >= numChannels)
+        return inputSample;
+    // Resize gainReduction if needed
+    allocateVectors(numChannels);
+
+    // Check if compressor is enabled
     if (!params.enabled /* || sidechainLevel < 0.001f */)
         return inputSample;
 
@@ -43,7 +59,8 @@ float DuckingCompressor::processSample(float inputSample, float sidechainLevel, 
     auto gainReducDb = calculateGainReduction(sidechainDb);
 
     // Apply attack/release smoothing
-    auto smoothedGainReducDb = attackReleaseCalculator.processSample(channel, gainReducDb);
+    attackReleaseCalculator.processSample(channel, gainReducDb);
+    auto smoothedGainReducDb = attackReleaseCalculator.getAverageLevel(channel);
 
     // Convert gain reduction from dB to linear and update state
     gainReduction[channel] = juce::Decibels::decibelsToGain(smoothedGainReducDb);

@@ -35,8 +35,8 @@ class OutputNode
         void process(
             const ProcessContext &wetContext,
             const ProcessContext &dryContext,
-            juce::AudioBuffer<float> *diffusionBandBuffers,
-            juce::AudioBuffer<float> *delayBandBuffers);
+            std::vector<std::unique_ptr<juce::AudioBuffer<float>>> &diffusionBandBuffers,
+            std::vector<std::unique_ptr<juce::AudioBuffer<float>>> &delayBandBuffers);
 
         void setParameters(const Parameters &params);
 

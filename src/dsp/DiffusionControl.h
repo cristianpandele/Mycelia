@@ -22,7 +22,7 @@ class DiffusionControl
         // Returns an array of processed audio blocks
         template <typename ProcessContext>
         void process(const ProcessContext &context,
-                     juce::AudioBuffer<float> *outputBuffers);
+                     std::vector<std::unique_ptr<juce::AudioBuffer<float>>> &outputBuffers);
 
         void setParameters(const Parameters &params);
         void getBandFrequencies(float *outBandFrequencies, int *numActiveBands);
