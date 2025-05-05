@@ -139,8 +139,8 @@ void DelayNodes::process(std::vector<std::unique_ptr<juce::AudioBuffer<float>>> 
 void DelayNodes::updateDelayProcParams()
 {
     // Calculate base delay time
-    float baseDelayTime = std::abs(inStretch) * inBaseDelayMs;
-    float baseNodeDelayTime = baseDelayTime / maxNumDelayProcsPerBand;
+    float baseDelayTimeMs = std::abs(inStretch) * inBaseDelayMs;
+    float baseNodeDelayTimeMs = baseDelayTimeMs / maxNumDelayProcsPerBand;
 
     // Initialize random number generator for consistent variations
     juce::Random random(juce::Time::currentTimeMillis());
@@ -155,7 +155,7 @@ void DelayNodes::updateDelayProcParams()
             float variationFactor = 0.95f + random.nextFloat() * 0.1f;
 
             // Apply the variation to the base delay time
-            bands[band].nodeDelayTimes[proc] = baseNodeDelayTime * variationFactor;
+            bands[band].nodeDelayTimes[proc] = baseNodeDelayTimeMs * variationFactor;
 
             // Set parameters for each delay processor in this colony
             // Configure parameters using the delay time from our matrix
