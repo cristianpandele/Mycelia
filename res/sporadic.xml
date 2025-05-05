@@ -44,8 +44,9 @@
                   pos-width="100%" pos-x="" tooltip="The amount of reverb feeding back into the system"/>
         </View>
       </View>
-      <Plot source="oscilloscope" plot-color="orange" pos-width="80%" pos-height="89%"
-            flex-align-self="center" margin="2" padding="1" border="2" pos-x="10%"/>
+      <Plot source="output" plot-color="orange" pos-width="70%" pos-height="89%"
+            flex-align-self="center" margin="2" padding="1" border="2" pos-x="15%"
+            radius="5"/>
       <XYDragComponent pos-y="89%" pos-height="11%" pos-x="15%" pos-width="70%" margin="2"
                        padding="1" border="2" caption="Fold" caption-placement="bottom-right"
                        xy-jump-to-click="1" lookAndFeel="FoleysFinest" background-color="FFEFC9FF"

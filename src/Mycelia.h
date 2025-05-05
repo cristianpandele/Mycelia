@@ -60,6 +60,7 @@ class Mycelia :
     private:
         // MAGIC GUI: this is a shorthand where the samples to display are fed to
         foleys::MagicPlotSource *oscilloscope = nullptr;
+        foleys::MagicAnalyser *analyser = nullptr;
         foleys::MagicLevelSource *inputMeter = nullptr;
         foleys::MagicLevelSource *outputMeter = nullptr;
 
