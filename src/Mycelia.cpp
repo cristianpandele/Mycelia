@@ -33,11 +33,8 @@ Mycelia::Mycelia()
     myceliaModel.addParamListener(IDs::skyHumidity, this);
     myceliaModel.addParamListener(IDs::skyHeight, this);
 
-    // MAGIC GUI: register an oscilloscope to display in the GUI.
-    //            We keep a pointer to push samples into in processBlock().
-    //            And we are only interested in channel 0
-    oscilloscope = magicState.createAndAddObject<foleys::MagicOscilloscope>(IDs::oscilloscope, 0);
-
+    // Create analyzers and meters
+    analyser = magicState.createAndAddObject<foleys::MagicAnalyser>("output");
     inputMeter = magicState.createAndAddObject<foleys::MagicLevelSource>(IDs::inputMeter);
     outputMeter = magicState.createAndAddObject<foleys::MagicLevelSource>(IDs::outputMeter);
 
@@ -167,6 +164,7 @@ void Mycelia::prepareToPlay(double sampleRate, int samplesPerBlock)
     myceliaModel.prepareToPlay(spec);
 
     // MAGIC GUI: this will setup all internals like MagicPlotSources etc.
+    analyser->prepareToPlay(sampleRate, samplesPerBlock);
     magicState.prepareToPlay(sampleRate, samplesPerBlock);
 }
 
@@ -230,7 +228,7 @@ void Mycelia::processBlock(juce::AudioBuffer<float> &buffer, juce::MidiBuffer &m
     outputMeter->pushSamples(buffer);
 
     // MAGIC GUI: push the samples to be displayed
-    oscilloscope->pushSamples(buffer);
+    analyser->pushSamples(buffer);
 }
 
 //==============================================================================
