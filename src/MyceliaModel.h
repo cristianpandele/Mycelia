@@ -143,8 +143,8 @@ class MyceliaModel :
             .scarcityAbundance = 0.0f,
             .scarcityAbundanceOverride = 0.0f,
             .foldPosition = 0.5f,
-            .foldWindowShape = 0.5f,
-            .foldWindowSize = 0.5f,
+            .foldWindowShape = 1.0f,
+            .foldWindowSize = 1.0f,
             .entanglement = 50.0f,
             .growthRate = 50.0f
         };

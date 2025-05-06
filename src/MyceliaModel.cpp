@@ -184,9 +184,9 @@ juce::AudioProcessorValueTreeState::ParameterLayout MyceliaModel::createParamete
         std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::tempoValue, 1), "Tempo Value", ParameterRanges::tempoValueRange, 120.0f),
         std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::scarcityAbundance, 1), "Scarcity/Abundance", ParameterRanges::scarcityAbundanceRange, 0.0f),
         std::make_unique<juce::AudioParameterBool>(juce::ParameterID(IDs::scarcityAbundanceOverride, 1), "Override", false),
-        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::foldPosition, 1), "Fold Position", ParameterRanges::foldPositionRange, 0.0f),
+        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::foldPosition, 1), "Fold Position", ParameterRanges::foldPositionRange, 0.5f),
         std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::foldWindowShape, 1), "Fold Window Shape", ParameterRanges::foldWindowShapeRange, 0.0f),
-        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::foldWindowSize, 1), "Fold Window Size", ParameterRanges::foldWindowSizeRange, 0.2f));
+        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(IDs::foldWindowSize, 1), "Fold Window Size", ParameterRanges::foldWindowSizeRange,  1.0f));
     // TODO: Add checkboxes
     //
     auto mycelia = std::make_unique<juce::AudioProcessorParameterGroup>("Mycelia", juce::translate("Mycelia"), "|");

@@ -339,40 +339,23 @@ void Mycelia::processMidiCcMessage(const juce::MidiMessage &midiMessage)
         }
         case 17:
         {
-            // CC17 mapped to Fold Window Shape, positive half
-            midiCC17Value = ParameterRanges::midiCcValueRange.snapToLegalValue(ccValue);
-            // Only perform the action if CC17 is greater than CC18 (to avoid conflict)
-            // This is a workaround for Osmose's MIDI mapping
-            if (midiCC17Value > midiCC18Value)
-            {
-                auto normCcValue = ParameterRanges::normalizeParameter(ParameterRanges::midiCcValueRange, midiCC17Value);
-                auto windowShapeVal = ParameterRanges::denormalizeParameter(ParameterRanges::foldWindowShapeRange, normCcValue);
-                // Offset the value to the positive range
-                auto offset = ParameterRanges::midiCcValueRange.start - ParameterRanges::foldWindowShapeRange.start;
-                auto rate = 1.0f / (ParameterRanges::foldWindowShapeRange.end - ParameterRanges::foldWindowShapeRange.start);
-                windowShapeVal = (windowShapeVal + offset) * rate;
-                myceliaModel.setParameterExplicitly(IDs::foldWindowShape, windowShapeVal);
-                magicState.getPropertyAsValue("foldWindowShape").setValue(windowShapeVal);
-            }
+            // CC17 mapped to Fold Window Shape
+            midiCc17Value = ParameterRanges::midiCcValueRange.snapToLegalValue(ccValue);
+            auto normCcValue = ParameterRanges::normalizeParameter(ParameterRanges::midiCcValueRange, midiCc17Value);
+            auto windowShapeVal = ParameterRanges::denormalizeParameter(ParameterRanges::foldWindowShapeRange, normCcValue);
+            myceliaModel.setParameterExplicitly(IDs::foldWindowShape, windowShapeVal);
+            magicState.getPropertyAsValue("foldWindowShape").setValue(windowShapeVal);
             break;
         }
         case 18:
         {
-            // CC18 mapped to Fold Window Shape, negative half
-            midiCC18Value = ParameterRanges::midiCcValueRange.snapToLegalValue(ccValue);
-            // Only perform the action if CC18 is greater than CC17 (to avoid conflict)
-            // This is a workaround for Osmose's MIDI mapping
-            if (midiCC18Value > midiCC17Value)
-            {
-                auto normCcValue = ParameterRanges::normalizeParameter(ParameterRanges::midiCcValueRange, midiCC18Value);
-                auto windowShapeVal = ParameterRanges::denormalizeParameter(ParameterRanges::foldPositionRange, normCcValue);
-                // Offset the value to the negative range
-                auto offset = ParameterRanges::midiCcValueRange.start - ParameterRanges::foldWindowShapeRange.start;
-                auto rate = 1.0f / (ParameterRanges::foldWindowShapeRange.end - ParameterRanges::foldWindowShapeRange.start);
-                windowShapeVal = -(windowShapeVal + offset) * rate;
-                myceliaModel.setParameterExplicitly(IDs::foldWindowShape, windowShapeVal);
-                magicState.getPropertyAsValue("foldWindowShape").setValue(windowShapeVal);
-            }
+            // CC18 mapped to Fold Window Size
+            midiCc18Value = ParameterRanges::midiCcValueRange.snapToLegalValue(ccValue);
+            auto normCcValue = ParameterRanges::normalizeParameter(ParameterRanges::midiCcValueRange, midiCc18Value);
+            // Map the normalized value in opposite direction
+            auto windowSizeVal = ParameterRanges::denormalizeParameter(ParameterRanges::foldPositionRange, (1.0f - normCcValue));
+            myceliaModel.setParameterExplicitly(IDs::foldWindowSize, windowSizeVal);
+            magicState.getPropertyAsValue("foldWindowSize").setValue(windowSizeVal);
             break;
         }
         case 19:
