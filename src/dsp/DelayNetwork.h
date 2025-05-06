@@ -3,9 +3,11 @@
 #include "DiffusionControl.h"
 #include "DelayNodes.h"
 #include <juce_dsp/juce_dsp.h>
+#include <juce_audio_processors/juce_audio_processors.h>
 #include <array>
 
 class DelayNetwork
+    : private juce::Timer
 {
     public:
         // Parameters
@@ -37,6 +39,7 @@ class DelayNetwork
                      std::vector<std::unique_ptr<juce::AudioBuffer<float>>> &delayBandBuffers);
 
         void setParameters(const Parameters &params);
+        void timerCallback();
 
     private:
         float fs = 44100.0f;
@@ -53,6 +56,18 @@ class DelayNetwork
         float inFoldWindowSize;
         float inEntanglement;
         float inGrowthRate;
+        // Booleans for parameter changes
+        bool  numActiveFilterBandsChanged = false;
+        bool  treeDensityChanged = false;
+        bool  stretchChanged = false;
+        bool  tempoValueChanged = false;
+        bool  scarcityAbundanceChanged = false;
+        bool  scarcityAbundanceOverrideChanged = false;
+        bool  foldPositionChanged = false;
+        bool  foldWindowShapeChanged = false;
+        bool  foldWindowSizeChanged = false;
+        bool  entanglementChanged = false;
+        bool  growthRateChanged = false;
 
         // Allocate delay processors and buffers based on the number of colonies and nodes
         void allocateBandBuffers(int numBands);

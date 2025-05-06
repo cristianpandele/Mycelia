@@ -1,5 +1,6 @@
 #pragma once
 #include <juce_dsp/juce_dsp.h>
+#include <juce_audio_processors/juce_audio_processors.h>
 #include "EnvelopeFollower.h"
 #include "DuckingCompressor.h"
 #include "util/ParameterRanges.h"
@@ -10,6 +11,7 @@
  * act as sidechain signals for compressing corresponding delay bands.
  */
 class OutputNode
+    : private juce::Timer
 {
     public:
         // Parameters
@@ -39,12 +41,17 @@ class OutputNode
             std::vector<std::unique_ptr<juce::AudioBuffer<float>>> &delayBandBuffers);
 
         void setParameters(const Parameters &params);
+        void timerCallback();
 
     private:
         float fs = 44100.0f;
 
         float inDryWetMixLevel;
         float inDelayDuckLevel;
+        // Booleans for parameter changes
+        bool gainChanged = false;
+        bool duckingChanged = false;
+        bool envelopeFollowerChanged = false;
 
         juce::dsp::Gain<float> wetGain;
         juce::dsp::Gain<float> dryGain;

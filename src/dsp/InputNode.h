@@ -1,11 +1,13 @@
 #pragma once
 #include <juce_dsp/juce_dsp.h>
+#include <juce_audio_processors/juce_audio_processors.h>
 #include <sst/voice-effects/waveshaper/WaveShaper.h>
 
 /**
  * Audio processor that implements input gain and sculpting
  */
 class InputNode
+    : private juce::Timer
 {
     public:
         struct Parameters
@@ -27,6 +29,7 @@ class InputNode
         void process(const ProcessContext &context);
 
         void setParameters(const Parameters &params);
+        void timerCallback();
 
     private:
         float fs = 44100.0f;
@@ -41,6 +44,10 @@ class InputNode
         static constexpr float waveshaperBias = 0.0f;
         static constexpr float waveshaperPostgain = 0.0f;
         static constexpr int waveshaperType = (int)sst::waveshapers::WaveshaperType::wst_ojd;
+        // Booleans for parameter changes
+        bool gainChanged = false;
+        bool filterChanged = false;
+        bool reverbMixChanged = false;
 
         // Input gain
         juce::dsp::Gain<float> gain;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <juce_dsp/juce_dsp.h>
+#include <juce_audio_processors/juce_audio_processors.h>
 #include "EnvelopeFollower.h"
 
 /**
@@ -8,6 +9,7 @@
  * and generate tree edge data based on audio dynamics
  */
 class EdgeTree
+    : private juce::Timer
 {
     public:
         EdgeTree();
@@ -26,12 +28,15 @@ class EdgeTree
         void process(const ProcessContext &context);
 
         void setParameters(const Parameters &params);
+        void timerCallback();
 
     private:
         EnvelopeFollower envelopeFollower;
 
         float inTreeSize = 1.0f;
         float inTreeDensity = 0.0f;
+        // Booleans for parameter changes
+        bool treeSizeChanged = false;
 
         float compGain = 1.0f;
 

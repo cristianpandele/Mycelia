@@ -11,6 +11,8 @@ OutputNode::OutputNode()
     }
 
     tempBuffer = std::make_unique<juce::AudioBuffer<float>>();
+
+    startTimerHz(2); // Start the timer for parameter updates
 }
 
 OutputNode::~OutputNode()
@@ -135,7 +137,7 @@ void OutputNode::process(const ProcessContext &wetContext,
             for (int sample = 0; sample < numWetSamples; ++sample)
             {
                 // Use diffusion signal level as sidechain input to compress the delay signal
-                outputData[sample] = duckingCompressors[band].processSample(delayData[sample], 8*diffusionLevel, channel);
+                outputData[sample] = duckingCompressors[band].processSample(delayData[sample], diffusionLevel, channel);
 
                 // outputData[sample] = delayData[sample];
             }
@@ -157,37 +159,79 @@ void OutputNode::process(const ProcessContext &wetContext,
 
     wetBlock.replaceWithSumOf(wetBlock, dryBlock);
 }
+
 void OutputNode::setParameters(const Parameters &params)
 {
     inNumActiveBands = ParameterRanges::nutrientBandsRange.snapToLegalValue(params.numActiveBands);
 
-    // Update mix parameters
-    inDryWetMixLevel = ParameterRanges::dryWetRange.snapToLegalValue(params.dryWetMixLevel);
-    inDelayDuckLevel = ParameterRanges::delayDuckRange.snapToLegalValue(params.delayDuckLevel);
-
-    // Convert to 0-1 range
-    inDryWetMixLevel = ParameterRanges::normalizeParameter(ParameterRanges::dryWetRange, inDryWetMixLevel);
-
-    // Set the gain for the wet and dry signals (linear gain)
-    wetGain.setGainLinear(inDryWetMixLevel);
-    dryGain.setGainLinear(1.0f - inDryWetMixLevel);
-
-    // Calculate the compression threshold and ratio based on the delay ducking value
-    auto normalizedDuckValue = ParameterRanges::normalizeParameter(ParameterRanges::delayDuckRange, inDelayDuckLevel);
-
-    compressorParams.threshold = -12.0f * (4 * normalizedDuckValue);
-    compressorParams.ratio = 1.0f + 7.0f * normalizedDuckValue;
-
-    // Update all compressors with new parameters
-    for (auto &compressor : duckingCompressors)
+    // Update ducking parameters
+    if ((std::abs(inDelayDuckLevel - params.delayDuckLevel) / params.delayDuckLevel) > 0.01f)
     {
-        compressor.setParameters(compressorParams);
+        inDelayDuckLevel = ParameterRanges::delayDuckRange.snapToLegalValue(params.delayDuckLevel);
+        inDelayDuckLevel = params.delayDuckLevel;
+        duckingChanged = true;
     }
 
-    // Update envelope followers with appropriate attack/release
-    for (auto& follower : envelopeFollowers)
+    auto tempWetGain = ParameterRanges::normalizeParameter(ParameterRanges::dryWetRange, params.dryWetMixLevel);
+    if ((std::abs(inDryWetMixLevel - tempWetGain) / tempWetGain) > 0.01f)
     {
-        follower.setParameters(inEnvelopeFollowerParams);
+        // Convert to 0-1 range
+        inDryWetMixLevel = tempWetGain;
+        gainChanged = true;
+    }
+
+    // Update envelope follower parameters
+    if ((std::abs(inEnvelopeFollowerParams.attackMs - params.envelopeFollowerParams.attackMs) / params.envelopeFollowerParams.attackMs) > 0.01f)
+    {
+        inEnvelopeFollowerParams.attackMs = params.envelopeFollowerParams.attackMs;
+        envelopeFollowerChanged = true;
+    }
+    if ((std::abs(inEnvelopeFollowerParams.releaseMs - params.envelopeFollowerParams.releaseMs) / params.envelopeFollowerParams.releaseMs) > 0.01f)
+    {
+        inEnvelopeFollowerParams.releaseMs = params.envelopeFollowerParams.releaseMs;
+        envelopeFollowerChanged = true;
+    }
+    if (inEnvelopeFollowerParams.levelType != params.envelopeFollowerParams.levelType)
+    {
+        inEnvelopeFollowerParams.levelType = params.envelopeFollowerParams.levelType;
+        envelopeFollowerChanged = true;
+    }
+}
+
+void OutputNode::timerCallback()
+{
+    if (gainChanged)
+    {
+        // Set the gain for the wet and dry signals (linear gain)
+        wetGain.setGainLinear(inDryWetMixLevel);
+        dryGain.setGainLinear(1.0f - inDryWetMixLevel);
+        gainChanged = false;
+    }
+
+    if (duckingChanged)
+    {
+        // Calculate the compression threshold and ratio based on the delay ducking value
+        auto normalizedDuckValue = ParameterRanges::normalizeParameter(ParameterRanges::delayDuckRange, inDelayDuckLevel);
+
+        compressorParams.threshold = -12.0f * (4 * normalizedDuckValue);
+        compressorParams.ratio = 1.0f + 7.0f * normalizedDuckValue;
+
+        // Update all compressors with new parameters
+        for (auto &compressor : duckingCompressors)
+        {
+            compressor.setParameters(compressorParams);
+        }
+        duckingChanged = false;
+    }
+
+    if (envelopeFollowerChanged)
+    {
+        // Update envelope follower parameters
+        for (auto &follower : envelopeFollowers)
+        {
+            follower.setParameters(inEnvelopeFollowerParams);
+        }
+        envelopeFollowerChanged = false;
     }
 }
 

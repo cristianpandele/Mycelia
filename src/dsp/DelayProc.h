@@ -46,6 +46,8 @@ class DelayProc
 
         template <typename ProcessContext>
         void process(const ProcessContext &context);
+        void updateSmoothParameter(juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear> &param,
+                                              float targetValue, float rampTimeSec);
         void setParameters(const Parameters &params, bool force = false);
 
         // Getter for the input level (envelope follower)
@@ -66,7 +68,7 @@ class DelayProc
         DuckingCompressor compressor;
 
         float fs = 44100.0f;
-        static constexpr float smoothTimeSec = 0.1f;
+        static constexpr float smoothTimeSec = 0.25f;
 
         // Parameters
         juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear> inDelayTime {0.0f};
