@@ -130,6 +130,21 @@ void DelayNetwork::setParameters(const Parameters &params)
         inScarcityAbundanceOverride = ParameterRanges::scarcityAbundanceRange.snapToLegalValue(params.scarcityAbundanceOverride);
         scarcityAbundanceOverrideChanged = true;
     }
+    if (std::abs(inFoldPosition - params.foldPosition) > 0.01f)
+    {
+        inFoldPosition = ParameterRanges::foldPositionRange.snapToLegalValue(params.foldPosition);
+        foldPositionChanged = true;
+    }
+    if (std::abs(inFoldWindowShape - params.foldWindowShape) > 0.01f)
+    {
+        inFoldWindowShape = ParameterRanges::foldWindowShapeRange.snapToLegalValue(params.foldWindowShape);
+        foldWindowShapeChanged = true;
+    }
+    if (std::abs(inFoldWindowSize - params.foldWindowSize) > 0.01f)
+    {
+        inFoldWindowSize = ParameterRanges::foldWindowSizeRange.snapToLegalValue(params.foldWindowSize);
+        foldWindowSizeChanged = true;
+    }
     if (std::abs(inEntanglement - params.entanglement) > 0.01f)
     {
         inEntanglement = ParameterRanges::entanglementRange.snapToLegalValue(params.entanglement);
@@ -196,8 +211,11 @@ void DelayNetwork::updateDiffusionDelayNodesParams()
                                                     .bandFrequencies = std::vector<float>(dataPtr, dataPtr + inActiveFilterBands),
                                                     .stretch = inStretch,
                                                     .scarcityAbundance = inScarcityAbundance,
-                                                    .growthRate = inGrowthRate,
+                                                    .foldPosition = inFoldPosition,
+                                                    .foldWindowShape = inFoldWindowShape,
+                                                    .foldWindowSize = inFoldWindowSize,
                                                     .entanglement = inEntanglement,
+                                                    .growthRate = inGrowthRate,
                                                     .baseDelayMs = baseDelayMs,
                                                     .treeDensity = inTreeDensity,
                                                     .compressorParams = compressorParams,

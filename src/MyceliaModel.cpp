@@ -277,6 +277,21 @@ void MyceliaModel::parameterChanged(const juce::String &parameterID, float newVa
         currentDelayNetworkParams.scarcityAbundance = newValue;
         delayNetwork.setParameters(currentDelayNetworkParams);
     }
+    else if (parameterID == IDs::foldPosition)
+    {
+        currentDelayNetworkParams.foldPosition = newValue;
+        delayNetwork.setParameters(currentDelayNetworkParams);
+    }
+    else if (parameterID == IDs::foldWindowShape)
+    {
+        currentDelayNetworkParams.foldWindowShape = newValue;
+        delayNetwork.setParameters(currentDelayNetworkParams);
+    }
+    else if (parameterID == IDs::foldWindowSize)
+    {
+        currentDelayNetworkParams.foldWindowSize = newValue;
+        delayNetwork.setParameters(currentDelayNetworkParams);
+    }
     else if (parameterID == IDs::entanglement)
     {
         currentDelayNetworkParams.entanglement = newValue;
