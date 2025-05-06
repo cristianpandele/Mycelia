@@ -3,6 +3,7 @@
 DelayNetwork::DelayNetwork()
 {
     diffusionBandFrequencies.resize(ParameterRanges::maxNutrientBands);
+    startTimerHz(2); // Start the timer for parameter updates
 }
 
 DelayNetwork::~DelayNetwork()
@@ -99,17 +100,71 @@ void DelayNetwork::process(const ProcessContext &context,
 
 void DelayNetwork::setParameters(const Parameters &params)
 {
-    inActiveFilterBands = ParameterRanges::nutrientBandsRange.snapToLegalValue(params.numActiveFilterBands);
-    inTreeDensity = ParameterRanges::treeDensityRange.snapToLegalValue(params.treeDensity);
-    inStretch = ParameterRanges::stretchRange.snapToLegalValue(params.stretch);
-    inTempoValue = ParameterRanges::tempoValueRange.snapToLegalValue(params.tempoValue);
-    inScarcityAbundance = ParameterRanges::scarcityAbundanceRange.snapToLegalValue(params.scarcityAbundance);
-    inScarcityAbundanceOverride = ParameterRanges::scarcityAbundanceRange.snapToLegalValue(params.scarcityAbundanceOverride);
-    inEntanglement = ParameterRanges::entanglementRange.snapToLegalValue(params.entanglement);
-    inGrowthRate = ParameterRanges::growthRateRange.snapToLegalValue(params.growthRate);
+    if (std::abs(inActiveFilterBands - params.numActiveFilterBands) > 0.01f)
+    {
+        inActiveFilterBands = ParameterRanges::nutrientBandsRange.snapToLegalValue(params.numActiveFilterBands);
+        numActiveFilterBandsChanged = true;
+    }
+    if (std::abs(inTreeDensity - params.treeDensity) > 0.01f)
+    {
+        inTreeDensity = ParameterRanges::treeDensityRange.snapToLegalValue(params.treeDensity);
+        treeDensityChanged = true;
+    }
+    if (std::abs(inStretch - params.stretch) > 0.01f)
+    {
+        inStretch = ParameterRanges::stretchRange.snapToLegalValue(params.stretch);
+        stretchChanged = true;
+    }
+    if (std::abs(inTempoValue - params.tempoValue) > 0.01f)
+    {
+        inTempoValue = ParameterRanges::tempoValueRange.snapToLegalValue(params.tempoValue);
+        tempoValueChanged = true;
+    }
+    if (std::abs(inScarcityAbundance - params.scarcityAbundance) > 0.01f)
+    {
+        inScarcityAbundance = ParameterRanges::scarcityAbundanceRange.snapToLegalValue(params.scarcityAbundance);
+        scarcityAbundanceChanged = true;
+    }
+    if (std::abs(inScarcityAbundanceOverride - params.scarcityAbundanceOverride) > 0.01f)
+    {
+        inScarcityAbundanceOverride = ParameterRanges::scarcityAbundanceRange.snapToLegalValue(params.scarcityAbundanceOverride);
+        scarcityAbundanceOverrideChanged = true;
+    }
+    if (std::abs(inEntanglement - params.entanglement) > 0.01f)
+    {
+        inEntanglement = ParameterRanges::entanglementRange.snapToLegalValue(params.entanglement);
+        entanglementChanged = true;
+    }
+    if (std::abs(inGrowthRate - params.growthRate) > 0.01f)
+    {
+        inGrowthRate = ParameterRanges::growthRateRange.snapToLegalValue(params.growthRate);
+        growthRateChanged = true;
+    }
+}
 
-    diffusionBandFrequencies.resize(inActiveFilterBands);
-    updateDiffusionDelayNodesParams();
+void DelayNetwork::timerCallback()
+{
+    // Update parameters if they have changed
+    if (numActiveFilterBandsChanged || treeDensityChanged || stretchChanged ||
+        tempoValueChanged || scarcityAbundanceChanged || scarcityAbundanceOverrideChanged ||
+        foldPositionChanged || foldWindowShapeChanged || foldWindowSizeChanged ||
+        entanglementChanged || growthRateChanged)
+    {
+        allocateBandBuffers(inActiveFilterBands);
+        updateDiffusionDelayNodesParams();
+
+        numActiveFilterBandsChanged = false;
+        treeDensityChanged = false;
+        stretchChanged = false;
+        tempoValueChanged = false;
+        scarcityAbundanceChanged = false;
+        scarcityAbundanceOverrideChanged = false;
+        foldPositionChanged = false;
+        foldWindowShapeChanged = false;
+        foldWindowSizeChanged = false;
+        entanglementChanged = false;
+        growthRateChanged = false;
+    }
 }
 
 // Allocate buffers based on the number of bands

@@ -1,5 +1,6 @@
 #include "DelayProc.h"
 #include "util/ParameterRanges.h"
+#include "util/Utils.h"
 
 DelayProc::DelayProc()
 {
@@ -160,6 +161,14 @@ inline SampleType DelayProc::processSample(SampleType x, size_t ch)
     return y;
 }
 
+void DelayProc::updateSmoothParameter (juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear>& param,
+                                      float targetValue, float rampTimeSec)
+{
+    param = juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear>(param.getNextValue());
+    param.reset(fs, rampTimeSec);
+    param.setTargetValue(targetValue);
+}
+
 void DelayProc::setParameters (const Parameters& params, bool force)
 {
     auto delaySamples = (ParameterRanges::delayRange.snapToLegalValue(params.delayMs) / 1000.0f) * fs;
@@ -208,33 +217,26 @@ void DelayProc::setParameters (const Parameters& params, bool force)
     }
     else
     {
+        // Smooth the parameters over two quarter notes
+        float rampTimeSec = inBaseDelayMs / (2.0f * 1000.0f);
+
         if (delayChanged)
         {
-            inDelayTime = juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear>(inDelayTime.getNextValue());
-            inDelayTime.reset(fs, 10*smoothTimeSec);
-            inDelayTime.setTargetValue(delaySamples);
+            updateSmoothParameter(inDelayTime, delaySamples, rampTimeSec);
         }
         if (fbChanged)
         {
-            inFeedback = juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear>(inFeedback.getNextValue());
-            inFeedback.reset(fs, smoothTimeSec);
-            inFeedback.setTargetValue(fbVal);
+            updateSmoothParameter(inFeedback, fbVal, rampTimeSec);
         }
         if (filterFreqChanged || filterGainChanged)
         {
-            inFilterFreq = juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear>(inFilterFreq.getNextValue());
-            inFilterFreq.reset(fs, smoothTimeSec);
-            inFilterFreq.setTargetValue(filterFreq);
-            inFilterGainDb = juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear>(inFilterGainDb.getNextValue());
-            inFilterGainDb.reset(fs, smoothTimeSec);
-            inFilterGainDb.setTargetValue(filterGainDb);
+            updateSmoothParameter(inFilterFreq, filterFreq, rampTimeSec);
+            updateSmoothParameter(inFilterGainDb, filterGainDb, rampTimeSec);
             updateFilterCoefficients(force);
         }
         if (growthRateChanged)
         {
-            inGrowthRate = juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear>(inGrowthRate.getNextValue());
-            inGrowthRate.reset(fs, smoothTimeSec);
-            inGrowthRate.setTargetValue(growthRate);
+            updateSmoothParameter(inGrowthRate, growthRate, rampTimeSec);
         }
     }
 

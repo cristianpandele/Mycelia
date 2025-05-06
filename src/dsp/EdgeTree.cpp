@@ -3,6 +3,7 @@
 
 EdgeTree::EdgeTree()
 {
+    startTimerHz(2); // Start the timer for parameter updates
 }
 
 EdgeTree::~EdgeTree()
@@ -41,13 +42,18 @@ void EdgeTree::process(const ProcessContext &context)
     }
 
     // Process the context using the EnvelopeFollower
-    outputBlock.multiplyBy(compGain);
     envelopeFollower.process(context);
-    // Get the average level across all channels
-    float averageLevel = envelopeFollower.getAverageLevel();
 
     // Apply envelope modulation (VCA)
-    outputBlock.multiplyBy(averageLevel /* * compGain*/);
+    for (int ch = 0; ch < numChannels; ++ch)
+    {
+        float averageLevel = envelopeFollower.getAverageLevel(ch);
+        auto *channelData = outputBlock.getChannelPointer(ch);
+        for (int sample = 0; sample < numSamples; ++sample)
+        {
+            channelData[sample] *= averageLevel;
+        }
+    }
 }
 
 void EdgeTree::reset()
@@ -64,12 +70,20 @@ void EdgeTree::setParameters(const Parameters &params)
         inTreeSize = ParameterRanges::treeSizeRange.snapToLegalValue(params.treeSize);
 
         auto temp = ParameterRanges::normalizeParameter(ParameterRanges::treeSizeRange, inTreeSize);
-        juce::NormalisableRange<float> compGainRange(8.0f, 16.0f, 0.001f);
         envelopeFollowerParams.attackMs = ParameterRanges::denormalizeParameter(ParameterRanges::attackTimeRange, temp);
         envelopeFollowerParams.releaseMs = ParameterRanges::denormalizeParameter(ParameterRanges::releaseTimeRange, temp);
-        compGain = compGainRange.convertFrom0to1(temp);
+
+        treeSizeChanged = true;
+    }
+}
+
+void EdgeTree::timerCallback()
+{
+    if (treeSizeChanged)
+    {
         // Update envelope follower parameters
         envelopeFollower.setParameters(envelopeFollowerParams);
+        treeSizeChanged = false;
     }
 }
 

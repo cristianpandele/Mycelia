@@ -21,6 +21,9 @@ InputNode::InputNode()
     waveShaper->setFloatParam((int)FloatParams::postgain, waveshaperPostgain); // postgain
     // Set waveshaper filter parameters
     updateFilterCoefficients();
+
+    // Start the timer for parameter updates
+    startTimerHz(2); // 1 second timer interval
 }
 
 InputNode::~InputNode()
@@ -80,28 +83,33 @@ void InputNode::process(const ProcessContext &context)
 void InputNode::setParameters(const Parameters &params)
 {
     // Set gain level
-    inGainLevel = ParameterRanges::preampLevelRange.snapToLegalValue(params.gainLevel);
-    gain.setGainLinear(inGainLevel/100.f);
+    if (std::abs(inGainLevel - params.gainLevel) / params.gainLevel > 0.01f)
+    {
+        inGainLevel = ParameterRanges::preampLevelRange.snapToLegalValue(params.gainLevel);
+        gain.setGainLinear(inGainLevel/100.f);
 
-    // Set waveshaper parameters
-    if (params.gainLevel < ParameterRanges::preampOverdriveRange.start)
-    {
-        waveshaperDrive = ParameterRanges::waveshaperDriveRange.start;
+        // Set waveshaper parameters
+        if (params.gainLevel < ParameterRanges::preampOverdriveRange.start)
+        {
+            waveshaperDrive = ParameterRanges::waveshaperDriveRange.start;
+        }
+        else
+        {
+            auto normValue = ParameterRanges::normalizeParameter(ParameterRanges::preampOverdriveRange, params.gainLevel);
+            waveshaperDrive = ParameterRanges::denormalizeParameter(ParameterRanges::waveshaperDriveRange, normValue);
+        }
+        gainChanged = true;
     }
-    else
-    {
-        auto normValue = ParameterRanges::normalizeParameter(ParameterRanges::preampOverdriveRange, params.gainLevel);
-        waveshaperDrive = ParameterRanges::denormalizeParameter(ParameterRanges::waveshaperDriveRange, normValue);
-    }
-    waveShaper->setFloatParam((int)MyShaperType::WaveShaperFloatParams::drive, waveshaperDrive);
 
     // Set reverb mix level
-    inReverbMix = ParameterRanges::reverbMixRange.snapToLegalValue(params.reverbMix);
-    // TODO: mix in reverb signal here
+    if (std::abs(inReverbMix - params.reverbMix) / params.reverbMix > 0.01f)
+    {
+        inReverbMix = ParameterRanges::reverbMixRange.snapToLegalValue(params.reverbMix);
+        reverbMixChanged = true;
+        // TODO: mix in reverb signal here
+    }
 
     // Handle bandpass parameters - only update if changed to avoid unnecessary recalculations
-    bool filterChanged = false;
-
     if (std::abs(inBandpassFreq - params.bandpassFreq) / params.bandpassFreq > 0.01f)
     {
         inBandpassFreq = ParameterRanges::bandpassFrequencyRange.snapToLegalValue(params.bandpassFreq);
@@ -113,10 +121,27 @@ void InputNode::setParameters(const Parameters &params)
         inBandpassWidth = ParameterRanges::bandpassWidthRange.snapToLegalValue(params.bandpassWidth);
         filterChanged = true;
     }
+}
+
+void InputNode::timerCallback()
+{
+    // Update the waveshaper parameters if they have changed
+    if (gainChanged)
+    {
+        waveShaper->setFloatParam((int)MyShaperType::WaveShaperFloatParams::drive, waveshaperDrive);
+        gainChanged = false;
+    }
 
     if (filterChanged)
     {
         updateFilterCoefficients();
+        filterChanged = false;
+    }
+
+    if (reverbMixChanged)
+    {
+        // TODO: update reverb mix parameters
+        reverbMixChanged = false;
     }
 }
 
