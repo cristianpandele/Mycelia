@@ -77,7 +77,7 @@ namespace ParameterRanges
     static constexpr float defaultAge = 0.0f;
     // Delay Processor constants
     static constexpr float minDelayMs = 0.0f;
-    static constexpr float maxDelayMs = 4000.0f;
+    static constexpr float maxDelayMs = 30000.0f;
     static constexpr float centreDelay = 200.0f;
     static constexpr float maxPan = 1.0f;
     static constexpr float minFeedback = 0.0f;
@@ -101,8 +101,8 @@ namespace ParameterRanges
     // Output Processor constants
     static constexpr float minDryWet = -1.0f;
     static constexpr float maxDryWet = 1.0f;
-    static constexpr float minDelayMsDuck = 0.0f;
-    static constexpr float maxDelayMsDuck = 100.0f;
+    static constexpr float minDelayDuckLevel = 0.0f;
+    static constexpr float maxDelayDuckLevel = 100.0f;
     // MIDI Constants
     static constexpr int   minMidiCcValue = 0;
     static constexpr int   maxMidiCcValue = 127;
@@ -286,7 +286,7 @@ namespace ParameterRanges
 
     // Output parameters
     inline const juce::NormalisableRange<float> dryWetRange(minDryWet, maxDryWet, 0.01f);
-    inline const juce::NormalisableRange<float> delayDuckRange(minDelayMsDuck, maxDelayMsDuck, 0.01f);
+    inline const juce::NormalisableRange<float> delayDuckRange(minDelayDuckLevel, maxDelayDuckLevel, 0.01f);
 
     // Utility functions
     inline float normalizeParameter(const juce::NormalisableRange<float>& range, float value)

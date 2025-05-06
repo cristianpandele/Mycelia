@@ -5,7 +5,6 @@
 DelayProc::DelayProc()
 {
     delay = *delayStore->getNextDelay();
-    delay.reset();
 
     // Configure the modulation oscillator to be a sine wave
     modProcs.get<oscillatorIdx>().initialise([](float x) { return std::sin(x); });
@@ -15,6 +14,7 @@ void DelayProc::prepare (const juce::dsp::ProcessSpec& spec)
 {
     delay.prepare (spec);
     fs = (float) spec.sampleRate;
+    delay.setMaximumDelayInSamples(ParameterRanges::delayRange.end * fs / 1000.0f);
 
     inFeedback.reset(fs, smoothTimeSec);
     inFilterFreq.reset(fs, smoothTimeSec);
@@ -116,12 +116,6 @@ void DelayProc::process (const ProcessContext& context)
         updateFilterCoefficients();
     }
 
-    // Update delay time
-    if (inDelayTime.isSmoothing())
-    {
-        delay.setDelay(juce::jmax(0.0f, inDelayTime.skip(numSamples) /* + delayModValue */));
-    }
-
     // Update filter coefficients and modulation parameters
     if (currentAge.isSmoothing())
     {
@@ -129,12 +123,17 @@ void DelayProc::process (const ProcessContext& context)
         updateModulationParameters();
     }
 
-    for (size_t channel = 0; channel < numChannels; ++channel)
+    for (size_t i = 0; i < numSamples; ++i)
     {
-        auto *inputSamples = inputBlock.getChannelPointer(channel);
-        auto *outputSamples = outputBlock.getChannelPointer(channel);
-        for (size_t i = 0; i < numSamples; ++i)
+        // Update delay time
+        if (inDelayTime.isSmoothing())
         {
+            delay.setDelay(juce::jmax(0.0f, inDelayTime.getNextValue() /* + delayModValue */));
+        }
+        for (size_t channel = 0; channel < numChannels; ++channel)
+        {
+            auto *inputSamples = inputBlock.getChannelPointer(channel);
+            auto *outputSamples = outputBlock.getChannelPointer(channel);
             outputSamples[i] = processSample(inputSamples[i], channel);
         }
     }
@@ -150,7 +149,8 @@ inline SampleType DelayProc::processSample(SampleType x, size_t ch)
     input = procs.processSample (input + state[ch]); // Process input + Feedback state
     // input = procs.processSample (input);             // Process input
     delay.pushSample ((int) ch, input);              // Push input to delay line
-    auto delayOut = delay.popSample ((int) ch);             // Pop output from delay line
+
+    auto delayOut = delay.popSample ((int) ch);      // Pop output from delay line
 
     // Apply ducking compressor using either the input level or external sidechain
     float sidechainLevel = inUseExternalSidechain ? externalSidechainLevel : inputLevel;
