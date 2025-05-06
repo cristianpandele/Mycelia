@@ -150,10 +150,35 @@ void DelayNodes::updateDelayProcParams()
     for (size_t band = 0; band < bands.size(); ++band)
     {
         // Generate delay times with small variations for each processor in this colony
-        for (size_t proc = 0; proc < bands[band].delayProcs.size(); ++proc)
+        for (size_t proc = 0; proc < maxNumDelayProcsPerBand; ++proc)
         {
-            // Generate a random variation factor between 0.95 and 1.05 (±5%)
-            float variationFactor = 0.95f + random.nextFloat() * 0.1f;
+            // 75% chance to have a variation of ±2.5% of the base delay time
+            // 15% chance to have a variation of ±5% of the base delay time
+            // 7.5% chance to have a variation of ±7.5% of the base delay time
+            // 2.5% chance to have a variation of ±25% of the base delay time
+            // Generate a random number between 0 and 1
+            float randomValue = random.nextFloat();
+            float variationFactor;
+            if (randomValue < 0.75f)
+            {
+                // 75% chance for ±2.5%
+                variationFactor = 0.975f + random.nextFloat() * 0.05f;
+            }
+            else if (randomValue < 0.90f)
+            {
+                // 15% chance for ±5%
+                variationFactor = 0.95f + random.nextFloat() * 0.1f;
+            }
+            else if (randomValue < 0.975f)
+            {
+                // 7.5% chance for ±7.5%
+                variationFactor = 0.925f + random.nextFloat() * 0.15f;
+            }
+            else
+            {
+                // 2.5% chance for ±25%
+                variationFactor = 0.75f + random.nextFloat() * 0.5f;
+            }
 
             // Apply the variation to the base delay time
             bands[band].nodeDelayTimes[proc] = baseNodeDelayTimeMs * variationFactor;
