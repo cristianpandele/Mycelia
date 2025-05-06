@@ -161,14 +161,6 @@ inline SampleType DelayProc::processSample(SampleType x, size_t ch)
     return y;
 }
 
-void DelayProc::updateSmoothParameter (juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear>& param,
-                                      float targetValue, float rampTimeSec)
-{
-    param = juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear>(param.getNextValue());
-    param.reset(fs, rampTimeSec);
-    param.setTargetValue(targetValue);
-}
-
 void DelayProc::setParameters (const Parameters& params, bool force)
 {
     auto delaySamples = (ParameterRanges::delayRange.snapToLegalValue(params.delayMs) / 1000.0f) * fs;
