@@ -57,12 +57,12 @@ namespace ParameterRanges
     static constexpr float defaultTempoValue = 120.0f;
     static constexpr float minScarcityAbundance = -1.0f;
     static constexpr float maxScarcityAbundance = 1.0f;
-    static constexpr float minFoldPosition = -1.0f;
+    static constexpr float minFoldPosition = 0.0f;
     static constexpr float maxFoldPosition = 1.0f;
-    static constexpr float minFoldWindowShape = -1.0f;
+    static constexpr float minFoldWindowShape = 0.2f;
     static constexpr float maxFoldWindowShape = 1.0f;
-    static constexpr float minFoldWindowSize = 0.1f;
-    static constexpr float maxFoldWindowSize = 0.8f;
+    static constexpr float minFoldWindowSize = 0.2f;
+    static constexpr float maxFoldWindowSize = 1.0f;
     // Mycelia Processor constants
     static constexpr float minEntanglement = 0.0f;
     static constexpr float maxEntanglement = 100.0f;
@@ -277,7 +277,11 @@ namespace ParameterRanges
     // Universe parameters
     inline const juce::NormalisableRange<float> scarcityAbundanceRange(minScarcityAbundance, maxScarcityAbundance, 0.1f);
     inline const juce::NormalisableRange<float> foldPositionRange(minFoldPosition, maxFoldPosition, 0.01f);
-    inline const juce::NormalisableRange<float> foldWindowShapeRange(minFoldWindowShape, maxFoldWindowShape, 0.01f);
+    inline const juce::NormalisableRange<float> foldWindowShapeRange(minFoldWindowShape,
+                                                                     maxFoldWindowShape,
+                                                                     invertedConvertFrom0To1Func,
+                                                                     invertedConvertTo0To1Func,
+                                                                     invertedSnapToLegalValueFunction);
     inline const juce::NormalisableRange<float> foldWindowSizeRange(minFoldWindowSize, maxFoldWindowSize, 0.01f);
 
     // Sky parameters

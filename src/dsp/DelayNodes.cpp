@@ -4,6 +4,7 @@ DelayNodes::DelayNodes(size_t numBands)
 {
     // Ensure we have enough delay processors
     allocateDelayProcessors(inNumColonies, maxNumDelayProcsPerBand);
+    updateWindows();
 }
 
 DelayNodes::~DelayNodes()
@@ -207,6 +208,7 @@ void DelayNodes::setParameters(const Parameters &params)
 
     updateDelayProcParams();
     updateTreePositions();
+    updateWindows();
 }
 
 // Allocate delay processors and buffers based on the number of colonies
@@ -441,5 +443,51 @@ void DelayNodes::updateTreePositions()
                 bands[band].treeConnections[tree] = 0.0f; // Not connected
             }
         }
+    }
+}
+
+void DelayNodes::updateWindows()
+{
+    // Ensure the window sizes are set correctly
+    foldWindow.resize(maxNumDelayProcsPerBand);
+
+    // Use Juce windowing functions to create the window shapes...
+    juce::AudioBuffer<float> rect(numChannels, maxNumDelayProcsPerBand);
+    juce::AudioBuffer<float> hann(numChannels, maxNumDelayProcsPerBand);
+    juce::AudioBuffer<float> fold(numChannels, maxNumDelayProcsPerBand);
+
+    // Populate the window buffers with the appropriate windowing functions
+    auto winSize = static_cast<size_t>(std::ceil(inFoldWindowSize * maxNumDelayProcsPerBand));
+    winSize = std::max(static_cast<size_t>(4), winSize);
+
+    auto winPosition = static_cast<size_t>(std::ceil((maxNumDelayProcsPerBand - winSize) * inFoldPosition));
+
+    juce::dsp::WindowingFunction<float>::fillWindowingTables(
+        rect.getWritePointer(0, winPosition),
+        winSize,
+        juce::dsp::WindowingFunction<float>::rectangular,
+        false);
+
+    juce::dsp::WindowingFunction<float>::fillWindowingTables(
+        hann.getWritePointer(0, winPosition),
+        winSize,
+        juce::dsp::WindowingFunction<float>::hann,
+        false);
+
+    juce::dsp::AudioBlock<float> foldBlock(fold);
+    juce::dsp::AudioBlock<float> rectBlock(rect);
+    juce::dsp::AudioBlock<float> hannBlock(hann);
+
+    // Apply the fold window shape to the fold windows
+    rectBlock.multiplyBy(inFoldWindowShape);
+    hannBlock.multiplyBy(1.0f - inFoldWindowShape);
+
+    // Sum the rectangular and Hann windows to create the fold window
+    foldBlock.replaceWithSumOf(rectBlock, hannBlock);
+
+    // ... and copy the window shapes to the member variables
+    for (size_t i = 0; i < maxNumDelayProcsPerBand; ++i)
+    {
+        foldWindow[i] = fold.getSample(0, i);
     }
 }

@@ -21,7 +21,7 @@ class DelayNetwork
             float scarcityAbundanceOverride; // Controls the Scarcity/Abundance override (0-1)
             float foldPosition;              // Controls the fold position (-1-1)
             float foldWindowShape;           // Controls the fold window shape (-1-1)
-            float foldWindowSize;            // Controls the fold window size (0.1-0.8)
+            float foldWindowSize;            // Controls the fold window size (0.2-1.0)
             float entanglement;              // Controls the diffusion and cross-feedback (0-100)
             float growthRate;                // Controls the delay network growth (0-100)
         };
