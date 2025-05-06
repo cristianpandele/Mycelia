@@ -209,26 +209,26 @@ void DelayProc::setParameters (const Parameters& params, bool force)
     }
     else
     {
-        // Smooth the parameters over two quarter notes
-        float rampTimeSec = inBaseDelayMs / (2.0f * 1000.0f);
+        // Smooth the parameters over two quarter notes of the slowest tempo (between target and current)
+        float rampTimeSec = std::max(inBaseDelayMs, params.baseDelayMs) / (2.0f * 1000.0f);
 
         if (delayChanged)
         {
-            updateSmoothParameter(inDelayTime, delaySamples, rampTimeSec);
+            Utils::updateSmoothParameter(inDelayTime, fs, delaySamples, rampTimeSec);
         }
         if (fbChanged)
         {
-            updateSmoothParameter(inFeedback, fbVal, rampTimeSec);
+            Utils::updateSmoothParameter(inFeedback, fs, fbVal, rampTimeSec);
         }
         if (filterFreqChanged || filterGainChanged)
         {
-            updateSmoothParameter(inFilterFreq, filterFreq, rampTimeSec);
-            updateSmoothParameter(inFilterGainDb, filterGainDb, rampTimeSec);
+            Utils::updateSmoothParameter(inFilterFreq, fs, filterFreq, rampTimeSec);
+            Utils::updateSmoothParameter(inFilterGainDb, fs, filterGainDb, rampTimeSec);
             updateFilterCoefficients(force);
         }
         if (growthRateChanged)
         {
-            updateSmoothParameter(inGrowthRate, growthRate, rampTimeSec);
+            Utils::updateSmoothParameter(inGrowthRate, fs, growthRate, rampTimeSec);
         }
     }
 
