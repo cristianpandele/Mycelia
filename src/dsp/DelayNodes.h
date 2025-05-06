@@ -49,7 +49,7 @@ class DelayNodes
             std::vector<std::unique_ptr<DelayProc>> delayProcs;
             std::vector<std::unique_ptr<juce::AudioBuffer<float>>> processorBuffers;
             std::vector<std::unique_ptr<juce::AudioBuffer<float>>> treeOutputBuffers;
-            std::vector<float> treeConnections;
+            std::vector<std::unique_ptr<float>> treeConnections;
             // Matrix to store output levels of each processor
             std::vector<float> bufferLevels;
 
@@ -59,9 +59,12 @@ class DelayNodes
             void clear()
             {
                 // Clear in reverse order of dependency
-                treeConnections.clear();
                 bufferLevels.clear();
                 nodeDelayTimes.clear();
+
+                for (auto &connection : treeConnections)
+                    connection.reset();
+                treeConnections.clear();
 
                 for (auto &buffer : treeOutputBuffers)
                     buffer.reset();
@@ -76,7 +79,7 @@ class DelayNodes
                 delayProcs.clear();
             }
         };
-        std::vector<BandResources> 
+        std::vector<BandResources>
         bands;
 
         // Allocate delay processors and buffers based on the number of colonies and nodes
@@ -107,13 +110,21 @@ class DelayNodes
         DuckingCompressor::Parameters inCompressorParams;
         bool  inUseExternalSidechain = true;
 
+        // Parameters for delay processor
         static constexpr size_t maxNumDelayProcsPerBand = 8;
+        size_t numActiveProcsPerBand = 0;
 
         // Window for folding
         std::vector<float> foldWindow;
 
         // Update delay processor parameters
         void updateDelayProcParams();
+
+        // Update sidechain levels for all processors in the matrix
+        void updateSidechainLevels();
+
+        // Update tree positions and connections based on treeDensity
+        void updateTreePositions();
 
         void updateWindows();
 
@@ -127,13 +138,7 @@ class DelayNodes
         DelayProc &getProcessorNode(int band, size_t procIdx);
 
         // Get tree connection at a specific position in the matrix
-        float getTreeConnection(int band, size_t procIdx);
-
-        // Update sidechain levels for all processors in the matrix
-        void updateSidechainLevels();
-
-        // Update tree positions and connections based on treeDensity
-        void updateTreePositions();
+        float &getTreeConnection(int band, size_t procIdx);
 
         // Get the tree output buffer for a specific band and tree index
         juce::AudioBuffer<float>& getTreeBuffer(int band, size_t treeIdx);
