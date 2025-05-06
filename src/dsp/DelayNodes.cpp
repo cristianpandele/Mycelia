@@ -195,6 +195,9 @@ void DelayNodes::setParameters(const Parameters &params)
     }
     inStretch = params.stretch;
     inScarcityAbundance = params.scarcityAbundance;
+    inFoldPosition = params.foldPosition;
+    inFoldWindowShape = params.foldWindowShape;
+    inFoldWindowSize = params.foldWindowSize;
     inGrowthRate = params.growthRate;
     inEntanglement = params.entanglement;
     inBaseDelayMs = params.baseDelayMs;

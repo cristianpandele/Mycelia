@@ -19,8 +19,11 @@ class DelayNodes
             std::vector<float> bandFrequencies;       // Controls the frequency processed by each colony
             float stretch;                            // Controls the stretch of the delay network
             float scarcityAbundance;                  // Controls the Scarcity/Abundance of the delay network
-            float growthRate;                         // Controls how nodes age and grow
+            float foldPosition;                       // Controls the fold position (-1-1)
+            float foldWindowShape;                    // Controls the fold window shape (-1-1)
+            float foldWindowSize;                     // Controls the fold window size (0.1-0.8)
             float entanglement;                       // Controls feedback interconnections between nodes
+            float growthRate;                         // Controls how nodes age and grow
             float baseDelayMs;                        // Base delay time in milliseconds (quarter note time)
             float treeDensity;                        // Controls how many trees (taps) are used (0-100)
 
@@ -93,6 +96,9 @@ class DelayNodes
         std::vector<std::unique_ptr<float>> inBandFrequencies;
         float inStretch = 0.0f;
         float inScarcityAbundance = 0.0f;
+        float inFoldPosition = 0.0f;
+        float inFoldWindowShape = 0.0f;
+        float inFoldWindowSize = 0.0f;
         float inEntanglement = 0.5f;
         float inGrowthRate = 0.5f;
         float inBaseDelayMs = 500.0f;
