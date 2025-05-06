@@ -1,7 +1,7 @@
 #pragma once
 
 #include <juce_dsp/juce_dsp.h>
-#include "dsp/TempoSyncUtils.h"
+#include "util/TempoSyncUtils.h"
 
 // Functions to convert between 0-1 and the actual range for ranges that are inverted
 static constexpr auto invertedConvertFrom0To1Func = [](float start, float end, float value)
