@@ -21,59 +21,65 @@
   </Styles>
   <View id="root" flex-direction="column" resizable="1" resize-corner="1"
         flex-align-self="center" display="contents">
-    <View border="2" background-color="black" caption="Visualiser + Controls"
-          caption-size="0" title="Scope" pos-width="100%" pos-height="70%"
-          flex-align-self="center" display="contents" margin="2" padding="1"
-          radius="5" pos-x="0%" pos-y="0%">
-      <View flex-align-self="center" display="contents" pos-width="15%" caption="Input"
+    <View border="2" background-color="black" caption="Visualisers" caption-size="0"
+          title="Scope" pos-width="100%" pos-height="40%" flex-align-self="center"
+          display="contents" margin="2" padding="1" radius="5" pos-x="0%"
+          pos-y="0%">
+      <View flex-align-self="center" display="contents" pos-width="10%" caption="Input Meter"
             margin="2" padding="1" border="2" flex-direction="row" flex-align-content="center"
             radius="5" border-color="" pos-x="0%" pos-height="100%" pos-y="0%">
         <Meter bar-fill-color="FFEDED3E" outline-color="FF0D0E30" border-color="FF0E1056"
-               pos-y="0%" pos-height="60%" padding="1" margin="2" border="2"
+               pos-y="0%" pos-height="100%" padding="1" margin="2" border="2"
                flex-align-self="center" source="inputMeter" pos-width="100%"
                pos-x="0%" radius="5"/>
-        <View flex-direction="row" caption="Input Levels" flex-align-self="center"
-              display="contents" pos-height="40%" pos-y="60%" padding="1" border="2"
-              margin="2" border-color="FFEDC818" pos-x="0%" pos-width="100%"
-              radius="5">
-          <Slider caption="Preamp Gain" parameter="preamplevel" slider-type="rotary"
-                  pos-height="50%" flex-align-self="stretch" lookAndFeel="FoleysFinest"
-                  pos-y="0%" flex-grow="1.0" flex-shrink="1.0" suffix="%" tooltip="Input level with added crunch"
-                  pos-x="0%" pos-width="100%"/>
-          <Slider caption="Reverb Mix" parameter="reverbmix" lookAndFeel="FoleysFinest"
-                  slider-type="rotary" caption-placement="centred-top" slider-textbox="textbox-below"
-                  flex-align-self="stretch" pos-height="50%" pos-y="50%" suffix="%"
-                  pos-width="100%" pos-x="0%" tooltip="The amount of reverb feeding back into the system"/>
-        </View>
       </View>
-      <Plot source="output" plot-color="orange" pos-width="70%" pos-height="89%"
-            flex-align-self="center" margin="2" padding="1" border="2" pos-x="15%"
+      <Plot source="output" plot-color="orange" pos-width="80%" pos-height="100%"
+            flex-align-self="center" margin="2" padding="1" border="2" pos-x="10%"
             radius="5" pos-y="0%"/>
-      <XYDragComponent pos-y="89%" pos-height="11%" pos-x="15%" pos-width="70%" margin="2"
+      <View flex-align-self="center" display="contents" border="2" pos-x="90%"
+            pos-width="10%" pos-y="0%" caption="Output Meter" border-color="FF6B3232"
+            margin="2" padding="1" flex-align-content="center" flex-direction="row"
+            radius="5" pos-height="100%">
+        <Meter bar-fill-color="FFEDED3E" outline-color="FF0D0E30" border-color="FF0E1056"
+               pos-y="0%" pos-height="100%" padding="1" margin="2" border="2"
+               flex-align-self="center" source="outputMeter" pos-x="0%" pos-width="100%"
+               radius="5"/>
+      </View>
+    </View>
+    <View border="2" background-color="black" caption="Knobs + XY Controls"
+          caption-size="0" title="Scope" pos-width="100%" pos-height="30%"
+          flex-align-self="center" display="contents" margin="2" padding="1"
+          radius="5" pos-x="0%" pos-y="40%">
+      <View flex-direction="row" caption="Input Levels" flex-align-self="center"
+            display="contents" pos-height="100%" pos-y="0%" padding="1" border="2"
+            margin="2" border-color="FFEDC818" pos-x="0%" pos-width="20%"
+            radius="5">
+        <Slider caption="Preamp Gain" parameter="preamplevel" slider-type="rotary"
+                pos-height="80%" flex-align-self="stretch" lookAndFeel="FoleysFinest"
+                pos-y="10%" flex-grow="1.0" flex-shrink="1.0" suffix="%" tooltip="Input level with added crunch"
+                pos-x="0%" pos-width="50%"/>
+        <Slider caption="Reverb Mix" parameter="reverbmix" lookAndFeel="FoleysFinest"
+                slider-type="rotary" caption-placement="centred-top" slider-textbox="textbox-below"
+                flex-align-self="stretch" pos-height="80%" pos-y="10%" suffix="%"
+                pos-width="50%" pos-x="50%" tooltip="The amount of reverb feeding back into the system"/>
+      </View>
+      <XYDragComponent pos-y="0%" pos-height="100%" pos-x="20%" pos-width="60%" margin="2"
                        padding="1" border="2" caption="Fold" caption-placement="bottom-right"
                        xy-jump-to-click="1" lookAndFeel="FoleysFinest" background-color="FFEFC9FF"
                        parameter-x="foldposition" wheel-parameter="foldwindowsize" parameter-y="foldwindowshape"
                        caption-color="FF000000" radius="5" xy-radius="7" xy-sense-factor="2"/>
-      <View flex-align-self="center" display="contents" border="2" pos-x="85%"
-            pos-width="15%" pos-y="0%" caption="Output" border-color="FF6B3232"
+      <View flex-align-self="center" display="contents" border="2" pos-x="80%"
+            pos-width="20%" pos-y="0%" caption="Output Sculpt" border-color="FF6B3232"
             margin="2" padding="1" flex-align-content="center" flex-direction="row"
             radius="5" pos-height="100%">
-        <Meter bar-fill-color="FFEDED3E" outline-color="FF0D0E30" border-color="FF0E1056"
-               pos-y="0%" pos-height="60%" padding="1" margin="2" border="2"
-               flex-align-self="center" source="outputMeter" pos-x="0%" pos-width="100%"
-               radius="5"/>
-        <View flex-direction="row" caption="Output Sculpt" flex-align-self="stretch"
-              display="contents" pos-y="60%" pos-height="40%" margin="2" padding="1"
-              border="2" pos-width="100%" pos-x="0%">
-          <Slider caption="Dry/Wet" parameter="drywet" slider-type="rotary" flex-align-self="stretch"
-                  lookAndFeel="FoleysFinest" flex-grow="1.0" flex-shrink="1.0"
-                  pos-height="50%" pos-y="0%" tooltip="Dry/Wet mix of the effect"
-                  pos-x="0%" pos-width="100%"/>
-          <Slider caption="Delay Duck" parameter="delayduck" slider-type="rotary"
-                  flex-align-self="stretch" lookAndFeel="FoleysFinest" flex-grow="1.0"
-                  flex-shrink="1.0" pos-height="50%" pos-y="50%" suffix="%" tooltip="Harmonic ducking of the delayed sound"
-                  pos-x="0%" pos-width="100%"/>
-        </View>
+        <Slider caption="Dry/Wet" parameter="drywet" slider-type="rotary" flex-align-self="stretch"
+                lookAndFeel="FoleysFinest" flex-grow="1.0" flex-shrink="1.0"
+                pos-height="80%" pos-y="10%" tooltip="Dry/Wet mix of the effect"
+                pos-x="0%" pos-width="50%"/>
+        <Slider caption="Delay Duck" parameter="delayduck" slider-type="rotary"
+                flex-align-self="stretch" lookAndFeel="FoleysFinest" flex-grow="1.0"
+                flex-shrink="1.0" pos-height="80%" pos-y="10%" suffix="%" tooltip="Harmonic ducking of the delayed sound"
+                pos-x="50%" pos-width="50%"/>
       </View>
     </View>
     <View margin="2" padding="1" max-height="300" title="Mycelial Delay Controls"
@@ -117,7 +123,8 @@
         <Label text="MIDI Clock Sync Off" background-color="FFFF8800" property="midiClockStatus"
                pos-height="14%" pos-x="3%" pos-width="43%" pos-y="86%" justification="centred"
                font-size="12.0" border="1" border-color="FF000000" radius="5"
-               value="midiClockStatus" visibility="midiClockStatus" id="MIDI Sync"/>
+               value="midiClockStatus" visibility="midiClockStatusVisibility"
+               id="MIDI Sync"/>
         <Label text="Scar/Abund Automated" background-color="FF008800" property="scarcityAbundanceAuto"
                pos-height="14%" pos-x="53%" pos-width="43%" pos-y="86%" justification="centred"
                font-size="12.0" border="1" border-color="FF000000" radius="5"
