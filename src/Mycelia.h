@@ -60,7 +60,8 @@ class Mycelia :
     private:
         // MAGIC GUI: this is a shorthand where the samples to display are fed to
         foleys::MagicPlotSource *oscilloscope = nullptr;
-        foleys::MagicAnalyser *analyser = nullptr;
+        foleys::MagicAnalyser *inputAnalyser = nullptr;
+        foleys::MagicAnalyser *outputAnalyser = nullptr;
         foleys::MagicLevelSource *inputMeter = nullptr;
         foleys::MagicLevelSource *outputMeter = nullptr;
 
@@ -73,7 +74,7 @@ class Mycelia :
         juce::Value midiLabelVisibility{true};
         juce::Value midiClockDetected{false};
 
-        juce::Value scarAbundAuto{"Scarcity/Abundance Automated"};
+        juce::Value scarAbundAuto{"Automated"};
         juce::Value scarAbundAutoVisibility{true};
 
         void updateMidiClockSyncStatus();
