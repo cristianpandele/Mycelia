@@ -88,6 +88,8 @@ class MyceliaModel :
         // Change parameters programmatically, ensuring listeners are notified
         void setParameterExplicitly(const juce::String& paramId, float newValue);
 
+        float getParameterValue(const juce::String &paramId);
+
     private:
         size_t numChannels = 2;
         size_t blockSize = 512;

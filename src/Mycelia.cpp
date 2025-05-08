@@ -34,6 +34,7 @@ Mycelia::Mycelia()
     myceliaModel.addParamListener(IDs::skyHeight, this);
 
     // Create analyzers and meters
+    oscilloscope = magicState.createAndAddObject<foleys::MagicOscilloscope>(IDs::oscilloscope);
     inputAnalyser = magicState.createAndAddObject<foleys::MagicAnalyser>(IDs::inputAnalyser);
     outputAnalyser = magicState.createAndAddObject<foleys::MagicAnalyser>(IDs::outputAnalyser);
     inputMeter = magicState.createAndAddObject<foleys::MagicLevelSource>(IDs::inputMeter);
@@ -165,6 +166,7 @@ void Mycelia::prepareToPlay(double sampleRate, int samplesPerBlock)
     myceliaModel.prepareToPlay(spec);
 
     // MAGIC GUI: this will setup all internals like MagicPlotSources etc.
+    oscilloscope->prepareToPlay(sampleRate, samplesPerBlock);
     inputAnalyser->prepareToPlay(sampleRate, samplesPerBlock);
     outputAnalyser->prepareToPlay(sampleRate, samplesPerBlock);
     magicState.prepareToPlay(sampleRate, samplesPerBlock);
@@ -218,20 +220,40 @@ void Mycelia::processBlock(juce::AudioBuffer<float> &buffer, juce::MidiBuffer &m
         buffer.clear(i, 0, buffer.getNumSamples());
     }
 
-    // MAGIC GUI: push the samples to be displayed
-    inputAnalyser->pushSamples(buffer);
-    inputMeter->pushSamples(buffer);
+    // Copy the samples to the input buffer
+    inputBuffer = buffer;
 
     // Process audio block
     juce::dsp::AudioBlock<float> block(buffer);
     juce::dsp::ProcessContextReplacing<float> context(block);
     myceliaModel.process(context);
 
-    for (int i = 1; i < totalNumOutputChannels; ++i)
+    // Copy the processed samples to the output buffer
+    outputBuffer = buffer;
+
+    // Trigger the async update to push the samples to the GUI
+    triggerAsyncUpdate();
+}
+
+void Mycelia::handleAsyncUpdate()
+{
+    // MAGIC GUI: push the input samples to be displayed
+    inputAnalyser->pushSamples(inputBuffer);
+    inputMeter->pushSamples(inputBuffer);
+
+    // Make a copy of the output buffer and normalize it to at most 10% of dynamic range before sending it to the oscilloscope
+    juce::AudioBuffer<float> oscilloscopeBuffer = outputBuffer;
+
+    auto bufferRange = outputBuffer.findMinMax(0, 0, outputBuffer.getNumSamples());
+    float normFactor = 0.0f;
+    if (bufferRange.getEnd() < 0.001f)
     {
-        buffer.copyFrom(i, 0, buffer.getReadPointer(0), buffer.getNumSamples());
+        normFactor = 1.0f;
     }
-    outputMeter->pushSamples(buffer);
+    else
+    {
+        normFactor = 0.1f / bufferRange.getEnd();
+    }
 
     juce::dsp::AudioBlock<float> outputBlock(oscilloscopeBuffer);
     outputBlock.multiplyBy(normFactor);

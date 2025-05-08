@@ -23,7 +23,8 @@ using namespace juce;
 class Mycelia :
     public foleys::MagicProcessor,
     private juce::AudioProcessorValueTreeState::Listener,
-    private juce::Value::Listener
+    private juce::Value::Listener,
+    private juce::AsyncUpdater
 {
     public:
         Mycelia();
@@ -81,7 +82,9 @@ class Mycelia :
         juce::Value dryWetLevel{0.0f};
 
         void updateMidiClockSyncStatus();
-        void valueChanged(juce::Value &value);
+        void valueChanged(juce::Value &value) override;
+
+        void handleAsyncUpdate() override;
 
         // Process MIDI messages
         void processMidiMessages(const juce::MidiBuffer &midiMessages);
@@ -109,7 +112,8 @@ class Mycelia :
 
         //////////////////////////////////////////////
         // GUI variables
-        // juce::Value xyRadiusValue{0.0f};
+        juce::AudioBuffer<float> inputBuffer;
+        juce::AudioBuffer<float> outputBuffer;
 
         //////////////////////////////////////////////
         // The underlying model used to perform the DSP processing

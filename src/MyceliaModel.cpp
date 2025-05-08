@@ -327,6 +327,16 @@ void MyceliaModel::setParameterExplicitly(const juce::String& paramId, float new
     }
 }
 
+float MyceliaModel::getParameterValue(const juce::String &paramId)
+{
+    auto *param = treeState.getParameter(paramId);
+    if (param != nullptr)
+    {
+        return param->getValue();
+    }
+    return 0.0f;
+}
+
 void MyceliaModel::prepareToPlay(juce::dsp::ProcessSpec spec)
 {
     numChannels = spec.numChannels;
