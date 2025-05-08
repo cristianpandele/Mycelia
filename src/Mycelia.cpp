@@ -34,7 +34,8 @@ Mycelia::Mycelia()
     myceliaModel.addParamListener(IDs::skyHeight, this);
 
     // Create analyzers and meters
-    analyser = magicState.createAndAddObject<foleys::MagicAnalyser>("output");
+    inputAnalyser = magicState.createAndAddObject<foleys::MagicAnalyser>(IDs::inputAnalyser);
+    outputAnalyser = magicState.createAndAddObject<foleys::MagicAnalyser>(IDs::outputAnalyser);
     inputMeter = magicState.createAndAddObject<foleys::MagicLevelSource>(IDs::inputMeter);
     outputMeter = magicState.createAndAddObject<foleys::MagicLevelSource>(IDs::outputMeter);
 
@@ -52,7 +53,7 @@ Mycelia::Mycelia()
     midiLabel.setValue("MIDI Clock Sync Inactive");
     midiLabelVisibility.setValue(true);
     midiClockDetected.setValue(false);
-    scarAbundAuto.setValue("Scarcity/Abundance Automated");
+    scarAbundAuto.setValue("Automated");
     scarAbundAutoVisibility.setValue(true);
 }
 
@@ -164,7 +165,8 @@ void Mycelia::prepareToPlay(double sampleRate, int samplesPerBlock)
     myceliaModel.prepareToPlay(spec);
 
     // MAGIC GUI: this will setup all internals like MagicPlotSources etc.
-    analyser->prepareToPlay(sampleRate, samplesPerBlock);
+    inputAnalyser->prepareToPlay(sampleRate, samplesPerBlock);
+    outputAnalyser->prepareToPlay(sampleRate, samplesPerBlock);
     magicState.prepareToPlay(sampleRate, samplesPerBlock);
 }
 
@@ -212,11 +214,15 @@ void Mycelia::processBlock(juce::AudioBuffer<float> &buffer, juce::MidiBuffer &m
     // when they first compile a plugin, but obviously you don't need to keep
     // this code if your algorithm always overwrites all the output channels.
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
+    {
         buffer.clear(i, 0, buffer.getNumSamples());
+    }
 
-    // Process audio block
+    // MAGIC GUI: push the samples to be displayed
+    inputAnalyser->pushSamples(buffer);
     inputMeter->pushSamples(buffer);
 
+    // Process audio block
     juce::dsp::AudioBlock<float> block(buffer);
     juce::dsp::ProcessContextReplacing<float> context(block);
     myceliaModel.process(context);
@@ -228,7 +234,7 @@ void Mycelia::processBlock(juce::AudioBuffer<float> &buffer, juce::MidiBuffer &m
     outputMeter->pushSamples(buffer);
 
     // MAGIC GUI: push the samples to be displayed
-    analyser->pushSamples(buffer);
+    outputAnalyser->pushSamples(buffer);
 }
 
 //==============================================================================

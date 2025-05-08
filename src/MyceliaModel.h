@@ -42,6 +42,8 @@ namespace IDs
     static juce::String delayDuck{"delayduck"};
 
     static juce::Identifier oscilloscope{"oscilloscope"};
+    static juce::Identifier inputAnalyser{"input"};
+    static juce::Identifier outputAnalyser{"output"};
     static juce::Identifier inputMeter{"inputMeter"};
     static juce::Identifier outputMeter{"outputMeter"};
     static juce::Identifier midiClockStatus{"midiClockStatus"};
