@@ -21,6 +21,15 @@ static constexpr auto invertedSnapToLegalValueFunction = [](float start, float e
     return value;
 };
 
+static constexpr auto convertFrom0To1LogFunc = [](float start, float end, float normalised, float logBase)
+{
+    return start + (std::pow(2.0f, normalised * logBase) - 1.0f) * (end - start) / (std::pow(2.0f, logBase) - 1.0f);
+};
+static constexpr auto convertTo0To1LogFunc = [](float start, float end, float value, float logBase)
+{
+    return (std::log(((value - start) * (std::pow(2.0f, 2.0f) - 1.0f) / (end - start)) + 1.0f) / std::log(logBase)) / 2.0f;
+};
+
 namespace ParameterRanges
 {
     //////////////////////// CONSTANTS ////////////////////////////////
@@ -117,9 +126,13 @@ namespace ParameterRanges
     // Input sculpting
     inline const juce::NormalisableRange<float> bandpassFrequencyRange(minBandpassFrequency, maxBandpassFrequency,
         [](float start, float end, float normalised)
-            { return start + (std::pow(2.0f, normalised * 10.0f) - 1.0f) * (end - start) / 1023.0f; },
+            {
+                return convertFrom0To1LogFunc(start, end, normalised, 2.0f);
+            },
         [](float start, float end, float value)
-            { return (std::log(((value - start) * 1023.0f / (end - start)) + 1.0f) / std::log(2.0f)) / 10.0f; },
+            {
+                return convertTo0To1LogFunc(start, end, value, 2.0f);
+            },
         [](float start, float end, float value)
             {
                 if (value > 3000.0f)
@@ -131,9 +144,13 @@ namespace ParameterRanges
     );
     inline const juce::NormalisableRange<float> bandpassWidthRange(minBandpassWidth, maxBandpassWidth,
         [](float start, float end, float normalised)
-            { return start + (std::pow(2.0f, normalised * 10.0f) - 1.0f) * (end - start) / 1023.0f; },
+            {
+                return convertFrom0To1LogFunc(start, end, normalised, 2.0f);
+            },
         [](float start, float end, float value)
-            { return (std::log(((value - start) * 1023.0f / (end - start)) + 1.0f) / std::log(2.0f)) / 10.0f; },
+            {
+                return convertTo0To1LogFunc(start, end, value, 2.0f);
+            },
         [](float start, float end, float value)
             {
                 if (value > 3000.0f)
