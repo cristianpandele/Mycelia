@@ -34,7 +34,6 @@ Mycelia::Mycelia()
     myceliaModel.addParamListener(IDs::skyHeight, this);
 
     // Create analyzers and meters
-    oscilloscope = magicState.createAndAddObject<foleys::MagicOscilloscope>(IDs::oscilloscope);
     inputAnalyser = magicState.createAndAddObject<foleys::MagicAnalyser>(IDs::inputAnalyser);
     outputAnalyser = magicState.createAndAddObject<foleys::MagicAnalyser>(IDs::outputAnalyser);
     inputMeter = magicState.createAndAddObject<foleys::MagicLevelSource>(IDs::inputMeter);
@@ -166,7 +165,6 @@ void Mycelia::prepareToPlay(double sampleRate, int samplesPerBlock)
     myceliaModel.prepareToPlay(spec);
 
     // MAGIC GUI: this will setup all internals like MagicPlotSources etc.
-    oscilloscope->prepareToPlay(sampleRate, samplesPerBlock);
     inputAnalyser->prepareToPlay(sampleRate, samplesPerBlock);
     outputAnalyser->prepareToPlay(sampleRate, samplesPerBlock);
     magicState.prepareToPlay(sampleRate, samplesPerBlock);
@@ -229,6 +227,10 @@ void Mycelia::processBlock(juce::AudioBuffer<float> &buffer, juce::MidiBuffer &m
     juce::dsp::ProcessContextReplacing<float> context(block);
     myceliaModel.process(context);
 
+    for (int i = 1; i < totalNumOutputChannels; ++i)
+    {
+        buffer.copyFrom(i, 0, buffer.getReadPointer(0), buffer.getNumSamples());
+    }
     outputMeter->pushSamples(buffer);
 
     juce::dsp::AudioBlock<float> outputBlock(oscilloscopeBuffer);
