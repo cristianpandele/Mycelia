@@ -34,6 +34,7 @@ Mycelia::Mycelia()
     myceliaModel.addParamListener(IDs::skyHeight, this);
 
     // Create analyzers and meters
+    oscilloscope = magicState.createAndAddObject<foleys::MagicOscilloscope>(IDs::oscilloscope);
     inputAnalyser = magicState.createAndAddObject<foleys::MagicAnalyser>(IDs::inputAnalyser);
     outputAnalyser = magicState.createAndAddObject<foleys::MagicAnalyser>(IDs::outputAnalyser);
     inputMeter = magicState.createAndAddObject<foleys::MagicLevelSource>(IDs::inputMeter);
@@ -165,6 +166,7 @@ void Mycelia::prepareToPlay(double sampleRate, int samplesPerBlock)
     myceliaModel.prepareToPlay(spec);
 
     // MAGIC GUI: this will setup all internals like MagicPlotSources etc.
+    oscilloscope->prepareToPlay(sampleRate, samplesPerBlock);
     inputAnalyser->prepareToPlay(sampleRate, samplesPerBlock);
     outputAnalyser->prepareToPlay(sampleRate, samplesPerBlock);
     magicState.prepareToPlay(sampleRate, samplesPerBlock);
@@ -227,14 +229,22 @@ void Mycelia::processBlock(juce::AudioBuffer<float> &buffer, juce::MidiBuffer &m
     juce::dsp::ProcessContextReplacing<float> context(block);
     myceliaModel.process(context);
 
-    for (int i = 1; i < totalNumOutputChannels; ++i)
-    {
-        buffer.copyFrom(i, 0, buffer.getReadPointer(0), buffer.getNumSamples());
-    }
     outputMeter->pushSamples(buffer);
 
-    // MAGIC GUI: push the samples to be displayed
-    outputAnalyser->pushSamples(buffer);
+    juce::dsp::AudioBlock<float> outputBlock(oscilloscopeBuffer);
+    outputBlock.multiplyBy(normFactor);
+
+    // Add the value of the dry/wet mix (scaled to 0.15-0.9) to the output block for visualization
+    auto dryWetMix = myceliaModel.getParameterValue(IDs::dryWet);
+    const juce::NormalisableRange<float> waterLevelRange(0.15f, 0.9f, 0.01f);
+    dryWetMix = waterLevelRange.convertFrom0to1(dryWetMix);
+    dryWetMix = ParameterRanges::denormalizeParameter(ParameterRanges::dryWetRange, dryWetMix);
+    outputBlock.replaceWithSumOf(outputBlock, dryWetMix);
+
+    // MAGIC GUI: push the output samples to be displayed
+    outputMeter->pushSamples(outputBuffer);
+    outputAnalyser->pushSamples(outputBuffer);
+    oscilloscope->pushSamples(oscilloscopeBuffer);
 }
 
 //==============================================================================

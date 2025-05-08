@@ -77,6 +77,9 @@ class Mycelia :
         juce::Value scarAbundAuto{"Automated"};
         juce::Value scarAbundAutoVisibility{true};
 
+        juce::Value delayDuckLevel{0.0f};
+        juce::Value dryWetLevel{0.0f};
+
         void updateMidiClockSyncStatus();
         void valueChanged(juce::Value &value);
 

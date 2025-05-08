@@ -85,7 +85,14 @@
       <View pos-x="80%" pos-y="0%" pos-width="20%" pos-height="100%" display="contents"
             margin="5" padding="2" border="3" radius="10" title="Output XY"
             background-color="papayawhip" border-color="FFEA1212">
-        <XYDragComponent pos-y="0%" pos-height="100%" pos-x="0%" pos-width="100%" margin="0"
+        <Plot source="oscilloscope" pos-width="100%" pos-height="82.5%" flex-align-self="center"
+              margin="0" padding="4" border="0" pos-x="0%" radius="10" pos-y="17.5%"
+              id="Output Analyser" background-color="60FFFAF0" plot-fill-color="0160D1"
+              plot-inactive-color="orange" plot-color="3C66D8"/>
+        <DuckLevelAnimation title="Delay Duck Level" duckLevel="1.0" background-color="transparentwhite"
+                            dryWetLevel="0.8600000143051147" pos-x="0%" pos-y="7%" pos-width="100%"
+                            pos-height="93%"/>
+        <XYDragComponent pos-y="5%" pos-height="95%" pos-x="0%" pos-width="100%" margin="0"
                          padding="4" border="0" caption="Output Sculpt" caption-placement="top-right"
                          xy-jump-to-click="1" lookAndFeel="FoleysFinest" background-color="transparentwhite"
                          parameter-x="delayduck" parameter-y="drywet" caption-color="black"
