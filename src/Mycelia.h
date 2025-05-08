@@ -105,10 +105,24 @@ class Mycelia :
         static constexpr double kMidiClockTimeout = 15.0; // Reset MIDI clock detection after 15 seconds of no messages
 
         // MIDI CC values
-        int midiCC16Value = 0;
-        int midiCC17Value = 0;
-        int midiCC18Value = 0;
-        int midiCC19Value = 0;
+        int midiCc0Value = 0;
+        int midiCc1Value = 0;
+        int midiCc2Value = 0;
+        int midiCc3Value = 0;
+        int midiCc4Value = 0;
+        int midiCc5Value = 0;
+        int midiCc6Value = 0;
+        int midiCc7Value = 0;
+        int midiCc8Value = 0;
+        int midiCc9Value = 0;
+        int midiCc10Value = 0;
+        int midiCc11Value = 0;
+        int midiCc12Value = 0;
+        int midiCc13Value = 0;
+        int midiCc16Value = 0;
+        int midiCc17Value = 0;
+        int midiCc18Value = 0;
+        int midiCc19Value = 0;
 
         //////////////////////////////////////////////
         // GUI variables
