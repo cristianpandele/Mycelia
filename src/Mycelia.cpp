@@ -364,19 +364,165 @@ void Mycelia::processMidiCcMessage(const juce::MidiMessage &midiMessage)
     int ccNumber = midiMessage.getControllerNumber();
     int ccValue = midiMessage.getControllerValue();
 
-    // Store values for CCs 16, 17, 18, and 19
+    // Store values for CCs 0-13, 16, 17, 18, and 19
     switch (ccNumber)
     {
+        case 0:
+        {
+            // CC0 mapped to Bandpass Filter Frequency
+            midiCc0Value = ParameterRanges::midiCcValueRange.snapToLegalValue(ccValue);
+            auto normCcValue = ParameterRanges::normalizeParameter(ParameterRanges::midiCcValueRange, midiCc0Value);
+            auto bandpassFreqVal = ParameterRanges::denormalizeParameter(ParameterRanges::bandpassFrequencyRange, normCcValue);
+            myceliaModel.setParameterExplicitly(IDs::bandpassFreq, bandpassFreqVal);
+            magicState.getPropertyAsValue("bandpassFreq").setValue(bandpassFreqVal);
+            break;
+        }
+        case 1:
+        {
+            // CC1 mapped to Bandpass Filter Width
+            midiCc1Value = ParameterRanges::midiCcValueRange.snapToLegalValue(ccValue);
+            auto normCcValue = ParameterRanges::normalizeParameter(ParameterRanges::midiCcValueRange, midiCc1Value);
+            auto bandpassWidthVal = ParameterRanges::denormalizeParameter(ParameterRanges::bandpassWidthRange, normCcValue);
+            myceliaModel.setParameterExplicitly(IDs::bandpassWidth, bandpassWidthVal);
+            magicState.getPropertyAsValue("bandpassWidth").setValue(bandpassWidthVal);
+            break;
+        }
+        case 2:
+        {
+            // CC2 mapped to Preamp Level
+            midiCc2Value = ParameterRanges::midiCcValueRange.snapToLegalValue(ccValue);
+            auto normCcValue = ParameterRanges::normalizeParameter(ParameterRanges::midiCcValueRange, midiCc2Value);
+            auto preampLevelVal = ParameterRanges::denormalizeParameter(ParameterRanges::preampLevelRange, normCcValue);
+            myceliaModel.setParameterExplicitly(IDs::preampLevel, preampLevelVal);
+            magicState.getPropertyAsValue("preampLevel").setValue(preampLevelVal);
+            break;
+        }
+        case 3:
+        {
+            // CC3 mapped to Reverb Mix
+            midiCc3Value = ParameterRanges::midiCcValueRange.snapToLegalValue(ccValue);
+            auto normCcValue = ParameterRanges::normalizeParameter(ParameterRanges::midiCcValueRange, midiCc3Value);
+            auto reverbMixVal = ParameterRanges::denormalizeParameter(ParameterRanges::reverbMixRange, normCcValue);
+            myceliaModel.setParameterExplicitly(IDs::reverbMix, reverbMixVal);
+            magicState.getPropertyAsValue("reverbMix").setValue(reverbMixVal);
+            break;
+        }
+        case 4:
+        {
+            // CC4 mapped to Tree Size
+            midiCc4Value = ParameterRanges::midiCcValueRange.snapToLegalValue(ccValue);
+            auto normCcValue = ParameterRanges::normalizeParameter(ParameterRanges::midiCcValueRange, midiCc4Value);
+            auto treeSizeVal = ParameterRanges::denormalizeParameter(ParameterRanges::treeSizeRange, normCcValue);
+            myceliaModel.setParameterExplicitly(IDs::treeSize, treeSizeVal);
+            magicState.getPropertyAsValue("treeSize").setValue(treeSizeVal);
+            break;
+        }
+        case 5:
+        {
+            // CC5 mapped to Tree Density
+            midiCc5Value = ParameterRanges::midiCcValueRange.snapToLegalValue(ccValue);
+            auto normCcValue = ParameterRanges::normalizeParameter(ParameterRanges::midiCcValueRange, midiCc5Value);
+            auto treeDensityVal = ParameterRanges::denormalizeParameter(ParameterRanges::treeDensityRange, normCcValue);
+            myceliaModel.setParameterExplicitly(IDs::treeDensity, treeDensityVal);
+            magicState.getPropertyAsValue("treeDensity").setValue(treeDensityVal);
+            break;
+        }
+        case 6:
+        {
+            // CC6 mapped to Stretch
+            midiCc6Value = ParameterRanges::midiCcValueRange.snapToLegalValue(ccValue);
+            auto normCcValue = ParameterRanges::normalizeParameter(ParameterRanges::midiCcValueRange, midiCc6Value);
+            auto stretchVal = ParameterRanges::denormalizeParameter(ParameterRanges::stretchRange, normCcValue);
+            myceliaModel.setParameterExplicitly(IDs::stretch, stretchVal);
+            magicState.getPropertyAsValue("stretch").setValue(stretchVal);
+            break;
+        }
+        case 7:
+        {
+            // CC7 mapped to Scarcity/Abundance
+            midiCc7Value = ParameterRanges::midiCcValueRange.snapToLegalValue(ccValue);
+            auto normCcValue = ParameterRanges::normalizeParameter(ParameterRanges::midiCcValueRange, midiCc7Value);
+            auto scarcityAbundanceVal = ParameterRanges::denormalizeParameter(ParameterRanges::scarcityAbundanceRange, normCcValue);
+            myceliaModel.setParameterExplicitly(IDs::scarcityAbundance, scarcityAbundanceVal);
+            magicState.getPropertyAsValue("scarcityAbundance").setValue(scarcityAbundanceVal);
+            break;
+        }
+        case 8:
+        {
+            // CC8 mapped to Entanglement
+            midiCc8Value = ParameterRanges::midiCcValueRange.snapToLegalValue(ccValue);
+            auto normCcValue = ParameterRanges::normalizeParameter(ParameterRanges::midiCcValueRange, midiCc8Value);
+            auto entanglementVal = ParameterRanges::denormalizeParameter(ParameterRanges::entanglementRange, normCcValue);
+            myceliaModel.setParameterExplicitly(IDs::entanglement, entanglementVal);
+            magicState.getPropertyAsValue("entanglement").setValue(entanglementVal);
+            break;
+        }
+        case 9:
+        {
+            // CC9 mapped to Growth Rate
+            midiCc9Value = ParameterRanges::midiCcValueRange.snapToLegalValue(ccValue);
+            auto normCcValue = ParameterRanges::normalizeParameter(ParameterRanges::midiCcValueRange, midiCc9Value);
+            auto growthRateVal = ParameterRanges::denormalizeParameter(ParameterRanges::growthRateRange, normCcValue);
+            myceliaModel.setParameterExplicitly(IDs::growthRate, growthRateVal);
+            magicState.getPropertyAsValue("growthRate").setValue(growthRateVal);
+            break;
+        }
+        case 10:
+        {
+            // CC10 mapped to Sky Humidity
+            midiCc10Value = ParameterRanges::midiCcValueRange.snapToLegalValue(ccValue);
+            auto normCcValue = ParameterRanges::normalizeParameter(ParameterRanges::midiCcValueRange, midiCc10Value);
+            auto skyHumidityVal = ParameterRanges::denormalizeParameter(ParameterRanges::skyHumidityRange, normCcValue);
+            myceliaModel.setParameterExplicitly(IDs::skyHumidity, skyHumidityVal);
+            magicState.getPropertyAsValue("skyHumidity").setValue(skyHumidityVal);
+            break;
+        }
+        //
+        case 11:
+        {
+            // CC11 mapped to Sky Humidity
+            midiCc11Value = ParameterRanges::midiCcValueRange.snapToLegalValue(ccValue);
+            auto normCcValue = ParameterRanges::normalizeParameter(ParameterRanges::midiCcValueRange, midiCc11Value);
+            auto skyHumidityVal = ParameterRanges::denormalizeParameter(ParameterRanges::skyHumidityRange, normCcValue);
+            myceliaModel.setParameterExplicitly(IDs::skyHumidity, skyHumidityVal);
+            magicState.getPropertyAsValue("skyHumidity").setValue(skyHumidityVal);
+            break;
+        }
+        //
+        case 12:
+        {
+            // CC12 mapped to Dry/Wet Mix
+            midiCc12Value = ParameterRanges::midiCcValueRange.snapToLegalValue(ccValue);
+            auto normCcValue = ParameterRanges::normalizeParameter(ParameterRanges::midiCcValueRange, midiCc12Value);
+            auto dryWetMixVal = ParameterRanges::denormalizeParameter(ParameterRanges::dryWetRange, normCcValue);
+            myceliaModel.setParameterExplicitly(IDs::dryWet, dryWetMixVal);
+            magicState.getPropertyAsValue("dryWetMix").setValue(dryWetMixVal);
+            break;
+        }
+        //
+        case 13:
+        {
+            // CC13 mapped to Delay Duck
+            midiCc13Value = ParameterRanges::midiCcValueRange.snapToLegalValue(ccValue);
+            auto normCcValue = ParameterRanges::normalizeParameter(ParameterRanges::midiCcValueRange, midiCc13Value);
+            auto delayDuckVal = ParameterRanges::denormalizeParameter(ParameterRanges::delayDuckRange, normCcValue);
+            // Save the current delay duck level for GUI updates
+            myceliaModel.setParameterExplicitly(IDs::delayDuck, delayDuckVal);
+            magicState.getPropertyAsValue("delayDuck").setValue(delayDuckVal);
+            break;
+        }
+        //
         case 16:
         {
             // CC16 mapped to Fold Position
-            midiCC16Value = ParameterRanges::midiCcValueRange.snapToLegalValue(ccValue);
-            auto normCcValue = ParameterRanges::normalizeParameter(ParameterRanges::midiCcValueRange, midiCC16Value);
-            auto windowPositionVal = ParameterRanges::denormalizeParameter(ParameterRanges::foldPositionRange, normCcValue);
-            myceliaModel.setParameterExplicitly(IDs::foldPosition, windowPositionVal);
-            magicState.getPropertyAsValue("foldPosition").setValue(windowPositionVal);
+            midiCc16Value = ParameterRanges::midiCcValueRange.snapToLegalValue(ccValue);
+            auto normCcValue = ParameterRanges::normalizeParameter(ParameterRanges::midiCcValueRange, midiCc16Value);
+            auto foldPositionVal = ParameterRanges::denormalizeParameter(ParameterRanges::foldPositionRange, normCcValue);
+            myceliaModel.setParameterExplicitly(IDs::foldPosition, foldPositionVal);
+            magicState.getPropertyAsValue("foldPosition").setValue(foldPositionVal);
             break;
         }
+        //
         case 17:
         {
             // CC17 mapped to Fold Window Shape
@@ -387,6 +533,7 @@ void Mycelia::processMidiCcMessage(const juce::MidiMessage &midiMessage)
             magicState.getPropertyAsValue("foldWindowShape").setValue(windowShapeVal);
             break;
         }
+        //
         case 18:
         {
             // CC18 mapped to Fold Window Size
@@ -400,7 +547,7 @@ void Mycelia::processMidiCcMessage(const juce::MidiMessage &midiMessage)
         }
         case 19:
         {
-            midiCC19Value = ParameterRanges::midiCcValueRange.snapToLegalValue(ccValue);
+            midiCc19Value = ParameterRanges::midiCcValueRange.snapToLegalValue(ccValue);
             // DBG("MIDI CC 19 received: " + juce::String(ccValue));
             break;
         }
