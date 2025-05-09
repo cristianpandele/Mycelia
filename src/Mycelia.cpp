@@ -49,6 +49,9 @@ Mycelia::Mycelia()
     scarAbundAutoVisibility.referTo(magicState.getPropertyAsValue("scarcityAbundanceAutoVisibility"));
     scarAbundAutoVisibility.addListener(this);
 
+    delayDuckLevel.addListener(this);
+    dryWetLevel.addListener(this);
+
     magicState.setGuiValueTree(BinaryData::sporadic_xml, BinaryData::sporadic_xmlSize);
 
     midiLabel.setValue("MIDI Clock Sync Inactive");
@@ -142,6 +145,7 @@ void Mycelia::initialiseBuilder(foleys::MagicGUIBuilder &builder)
 
     // Register your custom GUI components here
     builder.registerFactory("MyceliaAnimation", &MyceliaViewItem::factory);
+    builder.registerFactory("DuckLevelAnimation", &DuckLevelViewItem::factory);
 
     // Save a reference to the builder for later use
     magicBuilder = &builder;
@@ -230,6 +234,10 @@ void Mycelia::processBlock(juce::AudioBuffer<float> &buffer, juce::MidiBuffer &m
 
     // Copy the processed samples to the output buffer
     outputBuffer = buffer;
+
+    // Get the current delay duck and dry/wet level (valueChanged() will trigger updating the GUI)
+    delayDuckLevel.setValue(myceliaModel.getParameterValue(IDs::delayDuck));
+    dryWetLevel.setValue(myceliaModel.getParameterValue(IDs::dryWet));
 
     // Trigger the async update to push the samples to the GUI
     triggerAsyncUpdate();
@@ -609,6 +617,42 @@ void Mycelia::valueChanged(juce::Value &value)
                     else
                     {
                         child.setProperty(foleys::IDs::backgroundColour, "FFFF8800", nullptr);
+                    }
+                }
+            }
+        }
+    }
+
+    if ((value == delayDuckLevel) || (value == dryWetLevel))
+    {
+        // Update the GUI to reflect the delay duck level
+        auto tree = magicBuilder->getGuiRootNode();
+        auto id = foleys::IDs::caption;
+
+        // Set the background colour of the label
+        auto val = juce::String("XY Controls");
+        auto child = tree.getChildWithProperty(id, val);
+
+        if (child.isValid())
+        {
+            id = juce::Identifier("title");
+            val = juce::String("Output XY");
+            child = child.getChildWithProperty(id, val);
+
+            if (child.isValid())
+            {
+                val = juce::String("Delay Duck Level");
+                child = child.getChildWithProperty(id, val);
+
+                if (child.isValid())
+                {
+                    if (value == delayDuckLevel)
+                    {
+                        child.setProperty("duckLevel", value.getValue(), nullptr);
+                    }
+                    else if (value == dryWetLevel)
+                    {
+                        child.setProperty("dryWetLevel", value.getValue(), nullptr);
                     }
                 }
             }

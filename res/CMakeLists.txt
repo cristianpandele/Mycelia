@@ -3,8 +3,7 @@ juce_add_binary_data(BinaryData SOURCES
     # magic.xml
     sporadic.xml
     # gui_ios.xml
-    
-    # Diceroll.png
+    duckSmallBackgroundRemoved.png
     # Panic.png
     # home.svg
     # undo-solid.png
