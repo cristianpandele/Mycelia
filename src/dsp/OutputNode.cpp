@@ -112,10 +112,30 @@ void OutputNode::process(const ProcessContext &wetContext,
     // Clear the wet context, as we will be adding to it
     outputWetBlock.clear();
 
+    // Dry/wet mixer
     // Process each active band
     for (int band = 0; band < inNumActiveBands; ++band)
     {
-        // Get references to this band's buffers
+        // Get references to the diffusion (dry) band buffers
+        auto &diffusionBuffer = diffusionBandBuffers[band];
+        juce::dsp::AudioBlock<float> diffusionBlock(*diffusionBuffer.get());
+        const auto &diffusionContext = juce::dsp::ProcessContextReplacing<float>(diffusionBlock);
+        // Apply dry gain to the diffusion signal
+        dryGain.process(diffusionContext);
+
+        // Get references to the delay (wet) band buffers
+        const auto &delayBuffer = delayBandBuffers[band];
+        juce::dsp::AudioBlock<float> delayBlock(*delayBuffer.get());
+        const auto &delayContext = juce::dsp::ProcessContextReplacing<float>(delayBlock);
+        // Apply wet gain to the delay signal
+        wetGain.process(delayContext);
+    }
+
+    // Spectral ducking
+    // Process each active band
+    for (int band = 0; band < inNumActiveBands; ++band)
+    {
+        // Get references to the diffusion (dry) band buffers
         auto& diffusionBuffer = diffusionBandBuffers[band];
         juce::dsp::AudioBlock<float> diffusionBlock(*diffusionBuffer.get());
         const auto& diffusionContext = juce::dsp::ProcessContextReplacing<float>(diffusionBlock);
@@ -138,8 +158,6 @@ void OutputNode::process(const ProcessContext &wetContext,
             {
                 // Use diffusion signal level as sidechain input to compress the delay signal
                 outputData[sample] = duckingCompressors[band].processSample(delayData[sample], diffusionLevel, channel);
-
-                // outputData[sample] = delayData[sample];
             }
         }
 
@@ -148,16 +166,14 @@ void OutputNode::process(const ProcessContext &wetContext,
         outputWetBlock.add(tempBlock);
     }
 
-    // Apply wet gain to the output
-    wetGain.process(wetContext);
-
-    dryGain.process(dryContext);
-
-    // Mix the wet and dry signals
+    // Mix the wet and dry signals - post spectral ducking
     auto wetBlock = wetContext.getOutputBlock();
-    auto dryBlock = dryContext.getOutputBlock();
-
-    wetBlock.replaceWithSumOf(wetBlock, dryBlock);
+    for (int band = 0; band < inNumActiveBands; ++band)
+    {
+        auto &diffusionBuffer = diffusionBandBuffers[band];
+        juce::dsp::AudioBlock<float> diffusionBlock(*diffusionBuffer.get());
+        wetBlock.replaceWithSumOf(wetBlock, diffusionBlock);
+    }
 }
 
 void OutputNode::setParameters(const Parameters &params)
