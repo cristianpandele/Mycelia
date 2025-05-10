@@ -94,23 +94,94 @@ DuckLevelAnimation::DuckLevelAnimation()
 
     // Load the duck image from BinaryData
     duckImage = juce::ImageCache::getFromMemory(BinaryData::duckSmallBackgroundRemoved_png, BinaryData::duckSmallBackgroundRemoved_pngSize);
+
+    // Create the animators
+    createAnimators();
 }
 
 DuckLevelAnimation::~DuckLevelAnimation()
 {
-    // VBlankAttachment will be automatically destroyed by the unique_ptr
+    // Animators will be automatically cleaned up
+}
+
+void DuckLevelAnimation::createAnimators()
+{
+    // Create duck level animator with easing
+    duckAnimator = juce::ValueAnimatorBuilder{}
+        .withDurationMs(300.0)
+        .withEasing(juce::Easings::easeOutCubic)
+        .withOnStartReturningValueChangedCallback([this]() {
+            return [this](float value) {
+                currentDuckLevel = value;
+                repaint();
+            };
+        })
+        .build();
+
+    // Create dry/wet level animator with easing
+    dryWetAnimator = juce::ValueAnimatorBuilder{}
+        .withDurationMs(300.0)
+        .withEasing(juce::Easings::easeOutCubic)
+        .withOnStartReturningValueChangedCallback([this]() {
+            return [this](float value) {
+                currentDryWetLevel = value;
+                repaint();
+            };
+        })
+        .build();
+
+    // Add animators to the updater
+    animatorUpdater.addAnimator(duckAnimator);
+    animatorUpdater.addAnimator(dryWetAnimator);
+}
+
+void DuckLevelAnimation::updateAnimatorTargets()
+{
+    // Update duck level animator
+    duckAnimator = juce::ValueAnimatorBuilder{}
+        .withDurationMs(300.0)
+        .withEasing(juce::Easings::easeOutCubic)
+        .withOnStartReturningValueChangedCallback([this]() {
+            return [this](float value) {
+                currentDuckLevel = value;
+                repaint();
+            };
+        })
+        .build();
+
+    // Update dry/wet level animator
+    dryWetAnimator = juce::ValueAnimatorBuilder{}
+        .withDurationMs(300.0)
+        .withEasing(juce::Easings::easeOutCubic)
+        .withOnStartReturningValueChangedCallback([this]() {
+            return [this](float value) {
+                currentDryWetLevel = value;
+                repaint();
+            };
+        })
+        .build();
+
+    // Add new animators to the updater
+    animatorUpdater.addAnimator(duckAnimator);
+    animatorUpdater.addAnimator(dryWetAnimator);
+
+    // Start the animations
+    duckAnimator.start();
+    dryWetAnimator.start();
 }
 
 void DuckLevelAnimation::setDuckLevel(float level)
 {
     // Ensure the level is in range [0.0, 1.0]
     duckLevel = juce::jlimit(0.0f, 1.0f, level);
+    updateAnimatorTargets();
 }
 
 void DuckLevelAnimation::setDryWetLevel(float level)
 {
     // Ensure the level is in range [0.0, 1.0]
     dryWetLevel = juce::jlimit(0.0f, 1.0f, level);
+    updateAnimatorTargets();
 }
 
 void DuckLevelAnimation::paint(juce::Graphics &g)
@@ -125,7 +196,7 @@ void DuckLevelAnimation::paint(juce::Graphics &g)
     if (!duckImage.isNull())
     {
         // Calculate scaling factor based on eased duck level
-        const float scale = 1.0f / (2.0f - duckLevel);
+        const float scale = 1.0f / (2.0f - currentDuckLevel);
 
         // Get original image dimensions
         const float originalWidth = static_cast<float>(duckImage.getWidth());
@@ -137,8 +208,7 @@ void DuckLevelAnimation::paint(juce::Graphics &g)
 
         // Calculate position so the duck stays centered as it grows
         const float xPos = currentDuckLevel * (canvasWidth - scaledWidth);
-        float yPos = (1.0f - currentDryWetLevel) *
-                           (canvasHeight - scaledHeight);
+        float yPos = (1.0f - currentDryWetLevel) * (canvasHeight - scaledHeight);
         if (yPos < 0.0f)
         {
             yPos = 0.0f; // Ensure duck is not drawn outside the top

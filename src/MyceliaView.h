@@ -48,25 +48,14 @@ class DuckLevelAnimation : public juce::Component
         float dryWetLevel = 0.0f;        // Target level for position
         float currentDryWetLevel = 0.0f; // Current level with easing
         float currentDuckLevel = 0.0f;   // Current level with easing
-        float animSpeed = 0.2f;          // Animation speed factor (0.0-1.0)
 
         juce::Image duckImage;
-        juce::VBlankAttachment vBlankAttachment
-        {
-            this,
-            [&] {
-                if (std::abs(currentDryWetLevel - dryWetLevel) > 0.001f)
-                {
-                    // Interpolate with easing
-                    currentDryWetLevel += (dryWetLevel - currentDryWetLevel) * animSpeed;
-                }
-                if (std::abs(currentDuckLevel - duckLevel) > 0.001f)
-                {
-                    currentDuckLevel += (duckLevel - currentDuckLevel) * animSpeed;
-                }
-                repaint();
-            }
-        };
+        juce::VBlankAnimatorUpdater animatorUpdater;
+        juce::Animator duckAnimator;
+        juce::Animator dryWetAnimator;
+
+        void createAnimators();
+        void updateAnimatorTargets();
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DuckLevelAnimation)
 };
