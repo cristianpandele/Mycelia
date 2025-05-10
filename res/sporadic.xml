@@ -113,14 +113,14 @@
         <Slider caption="Preamp Gain" parameter="preamplevel" slider-type="rotary"
                 pos-height="80%" flex-align-self="stretch" lookAndFeel="FoleysFinest"
                 pos-y="5%" flex-grow="1.0" flex-shrink="1.0" suffix="%" tooltip="Input level with added crunch"
-                pos-x="0%" pos-width="50%" caption-color="black" slider-text="black"
-                radius="40" slider-text-outline="transparentwhite" background-gradient="linear-gradient(143,0% 10808080,100% ffe4ca21)"/>
+                pos-x="0%" pos-width="50%" caption-color="white" slider-text="black"
+                radius="40" slider-text-outline="transparentwhite" background-gradient="linear-gradient(147,0% d03c66c8,100% a0edc834)"/>
         <Slider caption="Reverb Mix" parameter="reverbmix" lookAndFeel="FoleysFinest"
                 slider-type="rotary" caption-placement="centred-top" slider-textbox="textbox-below"
                 flex-align-self="stretch" pos-height="80%" pos-y="5%" suffix="%"
                 pos-width="50%" pos-x="50%" tooltip="The amount of reverb feeding back into the system"
-                radius="40" caption-color="black" slider-text="black" slider-text-outline="transparentwhite"
-                background-gradient="linear-gradient(143,0% 10808080,100% ffedc818)"/>
+                radius="40" caption-color="white" slider-text="black" slider-text-outline="transparentwhite"
+                background-gradient="linear-gradient(327,0% d03c66c8,100% a0edc834)"/>
       </View>
       <View padding="2" border="1" caption="Trees" flex-align-content="center"
             display="contents" flex-align-self="center" flex-grow="1.0" flex-shrink="1.0"
@@ -131,13 +131,13 @@
                 slider-type="rotary" pos-x="0%" pos-y="5%" pos-width="50%" pos-height="80%"
                 caption-placement="centred-top" slider-textbox="textbox-below"
                 flex-align-self="stretch" tooltip="Influences their audio energy updake"
-                radius="40" background-color="10808080" caption-color="black"
-                slider-text="black" slider-text-outline="transparentwhite" background-gradient="linear-gradient(143,0% ffa5680e,100% 50808080)"/>
+                radius="40" background-color="10808080" caption-color="white"
+                slider-text="black" slider-text-outline="transparentwhite" background-gradient="linear-gradient(47,0% f0a5680e,100% a0228b22)"/>
         <Slider caption="Density" parameter="treedensity" slider-type="rotary"
                 pos-x="50%" pos-y="5%" pos-width="50%" pos-height="80%" max-height="200"
                 flex-align-self="stretch" suffix="%" tooltip="Affects the landscape topology"
-                radius="40" background-color="10808080" caption-color="black"
-                slider-text="black" slider-text-outline="transparentwhite" background-gradient="linear-gradient(143,0% 10808080,100% ffa5680e)"/>
+                radius="40" background-color="10808080" caption-color="white"
+                slider-text="black" slider-text-outline="transparentwhite" background-gradient="linear-gradient(227,0% f0a5680e,100% a0228b22)"/>
       </View>
       <View caption="Universe Controls" padding="2" border="1" pos-y="0%"
             pos-width="20%" pos-x="40%" border-color="D095469E" display="contents"
@@ -147,12 +147,13 @@
                 pos-height="80%" slider-textbox="textbox-below" flex-align-self="stretch"
                 pos-x="0%" pos-y="5%" suffix=" x" tooltip="Pull it apart, or put it back together again?"
                 caption-placement="centred-top" radius="40" background-color="10808080"
-                caption-color="black" slider-text="black" slider-text-outline="transparentwhite"/>
+                caption-color="white" slider-text="black" slider-text-outline="transparentwhite"
+                background-gradient="linear-gradient(47,0% c0ec1212,100% d0c877d1)"/>
         <Slider caption="Scarcity/Abundance" parameter="scarcityabundance" slider-type="rotary"
                 pos-width="50%" pos-height="80%" pos-x="50%" pos-y="5%" visibility=""
                 tooltip="Override the global availability of nutrients in the system"
-                background-color="10808080" radius="40" caption-color="black"
-                slider-text="black" slider-text-outline="transparentwhite"/>
+                background-color="10808080" radius="40" caption-color="white"
+                slider-text="black" slider-text-outline="transparentwhite" background-gradient="linear-gradient(147,0% d0c877d1,100% c0ec1212)"/>
         <Label text="MIDI Clock Sync Off" background-color="FFFF8800" property="midiClockStatus"
                pos-height="14%" pos-x="3%" pos-width="43%" pos-y="86%" justification="centred"
                font-size="12.0" border="1" border-color="FF000000" radius="5"
@@ -171,28 +172,30 @@
         <Slider caption="Entanglement" parameter="entanglement" slider-type="rotary"
                 pos-height="80%" pos-x="0%" pos-y="5%" pos-width="50%" suffix="%"
                 tooltip="Controls the level of interconnectdedness in the mycelial layer"
-                background-color="10808080" radius="40" caption-color="black"
-                slider-text="black" slider-text-outline="transparentwhite"/>
+                background-color="10808080" radius="40" caption-color="white"
+                slider-text="black" slider-text-outline="transparentwhite" background-gradient="linear-gradient(327,0% 80a5680e,100% d0228b22)"/>
         <Slider caption="Growth Rate" parameter="growthrate" slider-type="rotary"
                 pos-height="80%" pos-width="50%" pos-y="5%" flex-align-self="stretch"
                 pos-x="50%" suffix="%" tooltip="Sets the speed of aging of the mycelial colonies"
-                background-color="10808080" radius="40" caption-color="black"
-                slider-text="black" slider-text-outline="transparentwhite"/>
+                background-color="10808080" radius="40" caption-color="white"
+                slider-text="black" slider-text-outline="transparentwhite" background-gradient="linear-gradient(147,0% 80a5680e,100% d0228b22)"/>
       </View>
-      <View padding="2" border="1" caption="Sky" flex-align-content="" display="contents"
-            flex-align-self="" border-color="FF0160D1" flex-grow="1.0" flex-shrink="1.0"
-            pos-width="20%" pos-x="80%" margin="5" radius="10" pos-y="0%"
-            pos-height="100%" background-color="D03C66C8" caption-color="white">
+      <View padding="2" border="1" caption="Sky" display="contents" flex-align-self=""
+            border-color="FF0160D1" flex-grow="1.0" flex-shrink="1.0" pos-width="20%"
+            pos-x="80%" margin="5" radius="10" pos-y="0%" pos-height="100%"
+            background-color="D03C66C8" caption-color="white" flex-wrap="nowrap"
+            flex-align-content="">
         <Slider caption="Humidity" parameter="skyhumidity" lookAndFeel="FoleysFinest"
                 slider-type="rotary" pos-y="5%" pos-width="50%" pos-height="80%"
                 caption-placement="centred-top" slider-textbox="textbox-below"
                 flex-align-self="stretch" pos-x="0%" suffix="%" tooltip="The dampness of the surrounding atmosphere"
-                radius="40" background-color="10808080" caption-color="black"
-                slider-text="black" slider-text-outline="transparentwhite"/>
+                radius="40" background-color="10808080" caption-color="white"
+                slider-text="black" slider-text-outline="transparentwhite" background-gradient="linear-gradient(227,0% f03c66c8,100% d0edc834)"/>
         <Slider caption="Height" parameter="skyheight" slider-type="rotary" pos-x="50%"
                 pos-y="5%" pos-width="50%" pos-height="80%" flex-align-self="stretch"
                 suffix="%" tooltip="Push the sky away" radius="40" background-color="10808080"
-                caption-color="black" slider-text="black" slider-text-outline="transparentwhite"/>
+                caption-color="white" slider-text="black" slider-text-outline="transparentwhite"
+                background-gradient="linear-gradient(47,0% a03c66c8,100% d0edc834)"/>
       </View>
     </View>
   </View>
