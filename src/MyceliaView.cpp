@@ -1,4 +1,5 @@
 #include "MyceliaView.h"
+#include "BinaryData.h"
 
 MyceliaAnimation::MyceliaAnimation()
 {
@@ -27,7 +28,7 @@ void MyceliaAnimation::paint(juce::Graphics &g)
         p.lineTo(centre + juce::Point<float>(std::sin(i),
                                              std::sin(std::fmod(i * factor + phase,
                                                                 juce::MathConstants<float>::twoPi))) *
-                              radius);
+                                             radius);
     p.closeSubPath();
 
     g.setColour(findColour(drawColourId));
@@ -137,8 +138,7 @@ void DuckLevelAnimation::paint(juce::Graphics &g)
         // Calculate position so the duck stays centered as it grows
         const float xPos = currentDuckLevel * (canvasWidth - scaledWidth);
         float yPos = (1.0f - currentDryWetLevel) *
-                           (canvasHeight - scaledHeight / 2.0f)
-                           - scaledHeight / 4.0f; // Place duck with bottom margin
+                           (canvasHeight - scaledHeight);
         if (yPos < 0.0f)
         {
             yPos = 0.0f; // Ensure duck is not drawn outside the top
