@@ -314,7 +314,8 @@ void DelayProc::updateProcChainParameters(size_t numSamples, bool force)
 
 void DelayProc::updateAgeingRate(size_t numSamples)
 {
-    rampTimeMs = inBaseDelayMs * 100.0f / juce::jmax(0.001f, inGrowthRate.skip(numSamples));
+    auto normalizedGrowthRate = ParameterRanges::normalizeParameter(ParameterRanges::growthRateRange, inGrowthRate.skip(numSamples));
+    rampTimeMs = inBaseDelayMs * 100.0f / juce::jmax(0.001f, normalizedGrowthRate);
     if (inputLevel > inputLevelMetabolicThreshold)
     {
         float rampTimeBlocks = rampTimeMs / (1000.0f * numSamples);
