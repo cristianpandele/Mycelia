@@ -3,6 +3,7 @@
 #include "DelayProc.h"
 #include "DuckingCompressor.h"
 #include <juce_dsp/juce_dsp.h>
+#include <juce_audio_processors/juce_audio_processors.h>
 #include <vector>
 
 /**
@@ -10,6 +11,7 @@
  * Each input gets its own DelayProc with different delay parameters
  */
 class DelayNodes
+    : private juce::Timer
 {
     public:
         // Parameters
@@ -50,17 +52,31 @@ class DelayNodes
             std::vector<std::unique_ptr<juce::AudioBuffer<float>>> processorBuffers;
             std::vector<std::unique_ptr<juce::AudioBuffer<float>>> treeOutputBuffers;
             std::vector<std::unique_ptr<float>> treeConnections;
-            // Matrix to store output levels of each processor
+            // Vector to store output levels of each processor
             std::vector<float> bufferLevels;
 
-            // Matrix to store delay times for each colony and processor
+            // Vector to store delay times for each colony and processor
             std::vector<float> nodeDelayTimes;
+
+            // Vector of matrices to store connection strengths between nodes
+            std::vector<std::vector<std::vector<float>>> interNodeConnections;
 
             void clear()
             {
                 // Clear in reverse order of dependency
                 bufferLevels.clear();
                 nodeDelayTimes.clear();
+
+                // Clear inter-node connections
+                for (auto &node : interNodeConnections)
+                {
+                    for (auto& bands : node)
+                    {
+                        bands.clear();
+                    }
+                    node.clear();
+                }
+                interNodeConnections.clear();
 
                 for (auto &connection : treeConnections)
                     connection.reset();
@@ -117,6 +133,12 @@ class DelayNodes
         // Window for folding
         std::vector<float> foldWindow;
 
+        // Timer callback function
+        void timerCallback();
+
+        // Update sum of outgoing connections
+        void normalizeOutgoingConnections(int band, size_t procIdx);
+
         // Update delay processor parameters
         void updateDelayProcParams();
 
@@ -126,11 +148,14 @@ class DelayNodes
         // Update tree positions and connections based on treeDensity
         void updateTreePositions();
 
+        // Update inter-band connections based on entanglement parameter
+        void updateNodeInterconnections();
+
         // Update fold window for all processors
         void updateFoldWindow();
 
         // Process a specific band and processor stage
-        void processNode(int band, size_t procIdx, juce::AudioBuffer<float> &input);
+        void processNode(int band, size_t procIdx);
 
         // Get processor buffer at a specific position in the matrix
         juce::AudioBuffer<float> &getProcessorBuffer(int band, size_t procIdx);

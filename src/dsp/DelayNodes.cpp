@@ -5,6 +5,7 @@ DelayNodes::DelayNodes(size_t numBands)
     // Ensure we have enough delay processors
     allocateDelayProcessors(inNumColonies, maxNumDelayProcsPerBand);
     updateFoldWindow();
+    startTimerHz(1); // Start the timer for parameter updates
 }
 
 DelayNodes::~DelayNodes()
@@ -27,6 +28,9 @@ void DelayNodes::prepare(const juce::dsp::ProcessSpec &spec)
 
     // Initialize tree positions
     updateTreePositions();
+
+    // Initialize inter-band connections
+    updateNodeInterconnections();
 }
 
 void DelayNodes::reset()
@@ -69,16 +73,8 @@ void DelayNodes::process(std::vector<std::unique_ptr<juce::AudioBuffer<float>>> 
         // Process through each delay processor with its own persistent context
         for (size_t i = 0; i < bands[band].delayProcs.size(); ++i)
         {
-            // If not the first processor, copy from previous processor's buffer
-            if (i > 0)
-            {
-                auto& currentBuffer = getProcessorBuffer(band, i);
-                currentBuffer.setSize(inputBuffer->getNumChannels(), inputBuffer->getNumSamples(), false, false, true);
-                currentBuffer.makeCopyOf(getProcessorBuffer(band, i-1));
-            }
-
             // Process the current node
-            processNode(band, i, getProcessorBuffer(band, i));
+            processNode(band, i);
 
             // Check if this node position is a tree tap point
             for (int treeIdx = 0; treeIdx < numActiveTrees; ++treeIdx)
@@ -134,7 +130,7 @@ void DelayNodes::process(std::vector<std::unique_ptr<juce::AudioBuffer<float>>> 
 
         // Apply normalization gain
         juce::dsp::AudioBlock<float> finalBlock(*outputBuffer);
-        finalBlock.multiplyBy(std::sqrt(inNumColonies) / numActiveTrees);
+        finalBlock.multiplyBy(inNumColonies);
     }
 }
 
@@ -234,6 +230,7 @@ void DelayNodes::setParameters(const Parameters &params)
 
     updateDelayProcParams();
     updateTreePositions();
+    updateNodeInterconnections();
     updateFoldWindow();
 }
 
@@ -285,6 +282,26 @@ void DelayNodes::allocateDelayProcessors(int numColonies, int numNodes)
             newBands[band].treeOutputBuffers.push_back(std::move(newTreeBuffer));
             newBands[band].bufferLevels.push_back(0.0f); // Initialize buffer levels to 0.0
             newBands[band].nodeDelayTimes.push_back(0.0f); // Initialize delay times to 0.0
+
+            // Initialize inter-node connection matrices if needed
+            auto curProcConnections = std::vector<std::vector<float>>(
+                numColonies, std::vector<float>(
+                                 numNodes, 0.0f));
+            for (int sourceBand = 0; sourceBand < numColonies; ++sourceBand)
+            {
+                for (int sourceProc = 0; sourceProc < numNodes; ++sourceProc)
+                {
+                    // Initialize inter-node connections to 0.0f
+                    curProcConnections[sourceBand][sourceProc] = 0.0f;
+                }
+                // Set connection from [band][proc-1] to 1.0f
+                if (sourceBand == band && proc > 0)
+                {
+                    curProcConnections[sourceBand][proc - 1] = 1.0f;
+                }
+            }
+
+            newBands[band].interNodeConnections.push_back(std::move(curProcConnections));
         }
     }
     bands.swap(newBands);
@@ -292,15 +309,51 @@ void DelayNodes::allocateDelayProcessors(int numColonies, int numNodes)
 }
 
 // Process a specific band and processor stage with its own context
-void DelayNodes::processNode(int band, size_t procIdx, juce::AudioBuffer<float>& input)
+void DelayNodes::processNode(int band, size_t procIdx) //, juce::AudioBuffer<float>& input)
 {
     if (band < 0 || band >= inNumColonies || procIdx >= numActiveProcsPerBand)
         return;
 
     // Make sure our processor buffer is the right size and initialized with the input
     auto &procBuffer = getProcessorBuffer(band, procIdx);
-    procBuffer.setSize(input.getNumChannels(), input.getNumSamples(), false, false, true);
-    procBuffer.makeCopyOf(input);
+    // If this is the first processor, data has been already copied from the input buffer
+    // Otherwise, clear the buffer to avoid garbage data and set it to the size of the previous processor
+    if (procIdx > 0)
+    {
+        procBuffer.setSize(getProcessorBuffer(band, procIdx - 1).getNumChannels(), getProcessorBuffer(band, procIdx - 1).getNumSamples(), false, false, true);
+        procBuffer.setSize(getProcessorBuffer(band, procIdx - 1).getNumChannels(), getProcessorBuffer(band, procIdx - 1).getNumSamples(), false, false, true);
+        procBuffer.clear();
+    }
+
+    // Mix in signals from other bands based on inter-band connections
+    for (int sourceBand = 0; sourceBand < inNumColonies; ++sourceBand)
+    {
+        for (size_t sourceProc = 0; sourceProc < numActiveProcsPerBand; ++sourceProc)
+        {
+            // Check if there's a connection from the source band to this band at this position
+            // Note: interNodeConnections[sourceBand][procIdx] - first index is target band
+            float connectionStrength = bands[band].interNodeConnections[procIdx][sourceBand][sourceProc];
+
+            if (connectionStrength > 0.0f)
+            {
+                // DBG("Processing node " << band << ", " << procIdx << " with connection from " << sourceBand << ", " << sourceProc << " with strength " << connectionStrength);
+                // Get the buffer from the source band's processor at srcPos
+                auto &srcBuffer = getProcessorBuffer(sourceBand, sourceProc);
+
+                // Add the signal from the source band to our input with the connection gain
+                for (int ch = 0; ch < procBuffer.getNumChannels(); ++ch)
+                {
+                    if (ch < srcBuffer.getNumChannels())
+                    {
+                        procBuffer.addFrom(
+                            ch, 0, srcBuffer,
+                            ch, 0, procBuffer.getNumSamples(),
+                            connectionStrength);
+                    }
+                }
+            }
+        }
+    }
 
     // Create a dedicated audio block and context for this processor
     juce::dsp::AudioBlock<float> block(procBuffer);
@@ -345,15 +398,17 @@ void DelayNodes::updateSidechainLevels()
                 }
 
                 // Set the external sidechain level for this end-of-row processor
-                getProcessorNode(band, proc).setExternalSidechainLevel(16.0f * combinedLevel);
+                getProcessorNode(band, proc).setExternalSidechainLevel(/*16.0f * */combinedLevel);
             }
             else
             {
                 // For non-end nodes: use the output level of the next node in same row
                 float nextNodeLevel = bands[band].bufferLevels[proc + 1];
-                getProcessorNode(band, proc).setExternalSidechainLevel(16.0f * nextNodeLevel);
+                getProcessorNode(band, proc).setExternalSidechainLevel(/*16.0f * */nextNodeLevel);
             }
         }
+
+        // TODO: do the same relative to the end of row ones when there is sibling flow into the downstream node
     }
 }
 
@@ -480,6 +535,156 @@ void DelayNodes::updateFoldWindow()
         foldWindow[i] = fold.getSample(0, i) *
                         (maxNumDelayProcsPerBand / static_cast<float>(winSize));
     }
+}
+
+void DelayNodes::timerCallback()
+{
+    // Periodically update the inter-node connections
+    updateNodeInterconnections();
+}
+
+
+// Update sum of outgoing connections from a particular processor
+void DelayNodes::normalizeOutgoingConnections(int band, size_t procIdx)
+{
+    if (band < 0 || band >= inNumColonies || procIdx >= numActiveProcsPerBand)
+        return;
+
+    // Sum outgoing connections from all other processors to this processor
+    float sum = 0.0f;
+    for (int targetBand = 0; targetBand < inNumColonies; ++targetBand)
+    {
+        for (size_t targetProc = 0; targetProc < numActiveProcsPerBand; ++targetProc)
+        {
+            if (bands[targetBand].interNodeConnections[targetProc][band][procIdx] > 0.0f)
+            {
+                // Sum the outgoing connections to all other processors
+                sum += bands[targetBand].interNodeConnections[targetProc][band][procIdx];
+            }
+        }
+    }
+
+
+    // DBG("Normalizing outgoing connections for band " << band << " proc " << procIdx << " with sum " << sum);
+    if (sum > 1.0f)
+    {
+        // If updated connections over 100%, normalize the connections to ensure they sum up to 0.9f
+        for (int targetBand = 0; targetBand < inNumColonies; ++targetBand)
+        {
+            for (size_t targetProc = 0; targetProc < numActiveProcsPerBand; ++targetProc)
+            {
+                // if (bands[targetBand].interNodeConnections[targetProc][band][procIdx] > 0.0f)
+                // {
+                bands[targetBand].interNodeConnections[targetProc][band][procIdx] /= (sum + 0.1f);
+                // }
+            }
+        }
+    }
+}
+
+// Update inter-node connections based on entanglement parameter
+void DelayNodes::updateNodeInterconnections()
+{
+    if (inNumColonies <= 1)
+        return; // No inter-band connections possible with only one band
+
+    // Initialize random number generator for consistent variations
+    juce::Random random(juce::Time::currentTimeMillis());
+
+    for (int band1 = 0; band1 < inNumColonies; ++band1)
+    {
+        for (int band2 = 0; band2 < inNumColonies; ++band2)
+        {
+            // Skip the first processor on each band (input node)
+            for (size_t proc1 = 1; proc1 < numActiveProcsPerBand; ++proc1)
+            {
+                for (size_t proc2 = 1; proc2 < numActiveProcsPerBand; ++proc2)
+                {
+                    // Skip self-connections
+                    if (band1 == band2 && proc1 == proc2)
+                    {
+                        continue;
+                    }
+
+                    // Skip connections to the previous processor on the same band
+                    if (band1 == band2 && std::abs(static_cast<int>(proc1) - static_cast<int>(proc2)) == 1)
+                    {
+                        continue;
+                    }
+
+                    // Check if there's a connection between band1 and band2 at proc1 and proc2, respectively
+                    float connectionStrength = bands[band1].interNodeConnections[proc1][band2][proc2];
+                    auto pairMinAge = std::min(bands[band1].delayProcs[proc1]->getAge(), bands[band2].delayProcs[proc2]->getAge());
+
+                    // If the connection strength is greater than 0.0f, we need to update it based on entanglement and age
+                    if (connectionStrength > 0.0f)
+                    {
+                        auto normEntanglement = ParameterRanges::normalizeParameter(ParameterRanges::entanglementRange, inEntanglement);
+                        auto pairEntanglementDelta = normEntanglement * 0.1f * (0.5f - pairMinAge);
+
+                        // DBG("Updating connection strength: " << connectionStrength << " for proc1: " << proc1 << " band1: " << band1 << " proc2: " << proc2 << " band2: " << band2);
+                        // Update the connection strength based on entanglement and age
+                        bands[band1].interNodeConnections[proc1][band2][proc2] += connectionStrength * pairEntanglementDelta;
+                        // Update the connection strength for the reverse direction
+                        bands[band2].interNodeConnections[proc2][band1][proc1] += connectionStrength * pairEntanglementDelta;
+                        // Ensure that the connection strength does drop below 0.0f
+                        bands[band2].interNodeConnections[proc2][band1][proc1] = std::max(0.0f, bands[band2].interNodeConnections[proc2][band1][proc1]);
+                        bands[band1].interNodeConnections[proc1][band2][proc2] = std::max(0.0f, bands[band1].interNodeConnections[proc1][band2][proc2]);
+
+                        if (pairEntanglementDelta > 0.0f)
+                        {
+                            // Ensure that the sum of connections from this node to all other nodes is 1.0f
+                            normalizeOutgoingConnections(band1, proc1);
+                            normalizeOutgoingConnections(band2, proc2);
+                        }
+                    }
+                    // If the connection strength is 0.0f, attempt to create a new connection based on entanglement
+                    else
+                    {
+                        auto normEntanglement = ParameterRanges::normalizeParameter(ParameterRanges::entanglementRange, inEntanglement);
+                        auto pairEntanglementProbability = normEntanglement * 0.1f * (1.0f - pairMinAge);
+
+                        // Test for creating a connection
+                        if (random.nextFloat() < pairEntanglementProbability)
+                        {
+                            // Determine a connection strength (0.01-0.2)
+                            auto connectionStrength = random.nextFloat() / (5.0f + (1.0f - normEntanglement) + pairMinAge);
+                            // DBG("Creating new connection between band " << band1 << " proc " << proc1 << " and band " << band2 << " proc " << proc2 << " with strength " << connectionStrength);
+                            bands[band1].interNodeConnections[proc1][band2][proc2] = connectionStrength;
+                            bands[band2].interNodeConnections[proc2][band1][proc1] = connectionStrength;
+
+                            // Ensure that the sum of connections from this node to all other nodes is 1.0f
+                            normalizeOutgoingConnections(band1, proc1);
+                            normalizeOutgoingConnections(band2, proc2);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+///////////////////////////
+// Getter functions
+
+// Get the processor buffer at a specific position in the matrix
+juce::AudioBuffer<float> &DelayNodes::getProcessorBuffer(int band, size_t procIdx)
+{
+    // Make sure the indices are valid
+    band = juce::jlimit(0, inNumColonies - 1, band);
+    procIdx = juce::jlimit(static_cast<size_t>(0), bands[band].delayProcs.size() - 1, procIdx);
+
+    return *bands[band].processorBuffers[procIdx];
+}
+
+// Get the processor node at a specific position in the matrix
+DelayProc &DelayNodes::getProcessorNode(int band, size_t procIdx)
+{
+    // Make sure the indices are valid
+    band = juce::jlimit(0, inNumColonies - 1, band);
+    procIdx = juce::jlimit(static_cast<size_t>(0), bands[band].delayProcs.size() - 1, procIdx);
+
+    return *bands[band].delayProcs[procIdx];
 }
 
 // Get the tree connection at a specific position in the matrix
