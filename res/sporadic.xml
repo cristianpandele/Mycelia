@@ -77,10 +77,10 @@
         <XYDragComponent pos-y="0%" pos-height="100%" pos-x="0%" pos-width="100%" margin="0"
                          padding="4" border="0" caption="Fold" caption-placement="centred-top"
                          xy-jump-to-click="1" lookAndFeel="FoleysFinest" background-color="transparentwhite"
-                         parameter-x="foldposition" wheel-parameter="foldwindowsize" parameter-y="foldwindowshape"
-                         caption-color="black" radius="10" xy-radius="7" xy-sense-factor="2"
-                         xy-drag-handle="rosybrown" xy-horizontal="rosybrown" xy-vertical="rosybrown"
-                         xy-drag-handle-over="brown" xy-horizontal-over="brown" xy-vertical-over="brown"/>
+                         parameter-x="foldposition" parameter-y="foldwindowsize" caption-color="black"
+                         radius="10" xy-radius="7" xy-sense-factor="2" xy-drag-handle="rosybrown"
+                         xy-horizontal="rosybrown" xy-vertical="rosybrown" xy-drag-handle-over="brown"
+                         xy-horizontal-over="brown" xy-vertical-over="brown"/>
       </View>
       <View pos-x="80%" pos-y="0%" pos-width="20%" pos-height="100%" display="contents"
             margin="5" padding="2" border="3" radius="10" title="Output XY"

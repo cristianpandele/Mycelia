@@ -126,7 +126,8 @@ class DelayNodes
         // Update tree positions and connections based on treeDensity
         void updateTreePositions();
 
-        void updateWindows();
+        // Update fold window for all processors
+        void updateFoldWindow();
 
         // Process a specific band and processor stage
         void processNode(int band, size_t procIdx, juce::AudioBuffer<float> &input);

@@ -4,7 +4,7 @@ DelayNodes::DelayNodes(size_t numBands)
 {
     // Ensure we have enough delay processors
     allocateDelayProcessors(inNumColonies, maxNumDelayProcsPerBand);
-    updateWindows();
+    updateFoldWindow();
 }
 
 DelayNodes::~DelayNodes()
@@ -125,8 +125,9 @@ void DelayNodes::process(std::vector<std::unique_ptr<juce::AudioBuffer<float>>> 
                 auto& treeBuffer = getTreeBuffer(band, treeIdx);
                 for (int ch = 0; ch < outputBuffer->getNumChannels(); ++ch)
                 {
+                    // Apply gain according to the tree connections and fold window
                     outputBuffer->addFrom(ch, 0, treeBuffer, ch, 0,
-                                        outputBuffer->getNumSamples(), connectionGain);
+                                          outputBuffer->getNumSamples(), connectionGain * foldWindow[treeIdx]);
                 }
             }
         }
@@ -233,7 +234,7 @@ void DelayNodes::setParameters(const Parameters &params)
 
     updateDelayProcParams();
     updateTreePositions();
-    updateWindows();
+    updateFoldWindow();
 }
 
 // Allocate delay processors and buffers based on the number of colonies
@@ -315,7 +316,6 @@ void DelayNodes::updateSidechainLevels()
     // First, gather all output levels from all delay processors into a matrix
     for (int band = 0; band < inNumColonies; ++band)
     {
-        // bands[band].bufferLevels.resize(bands[band].delayProcs.size());
         for (size_t proc = 0; proc < numActiveProcsPerBand; ++proc)
         {
             bands[band].bufferLevels[proc] = getProcessorNode(band, proc).getOutputLevel();
@@ -337,7 +337,7 @@ void DelayNodes::updateSidechainLevels()
 
                 for (int otherBand = 0; otherBand < inNumColonies; ++otherBand)
                 {
-                    if (otherBand != band)  // Skip the current band
+                    if (otherBand != band) // Skip the current band
                     {
                         const size_t otherNumProcs = bands[otherBand].delayProcs.size();
                         combinedLevel += bands[otherBand].bufferLevels[otherNumProcs - 1];
@@ -434,7 +434,7 @@ void DelayNodes::updateTreePositions()
     }
 }
 
-void DelayNodes::updateWindows()
+void DelayNodes::updateFoldWindow()
 {
     // Ensure the window sizes are set correctly
     foldWindow.resize(maxNumDelayProcsPerBand);
@@ -476,31 +476,10 @@ void DelayNodes::updateWindows()
     // ... and copy the window shapes to the member variables
     for (size_t i = 0; i < maxNumDelayProcsPerBand; ++i)
     {
-        foldWindow[i] = fold.getSample(0, i);
+        // Gain to match the potential reduction in window size
+        foldWindow[i] = fold.getSample(0, i) *
+                        (maxNumDelayProcsPerBand / static_cast<float>(winSize));
     }
-}
-
-///////////////////////////
-// Getter functions
-
-// Get the processor buffer at a specific position in the matrix
-juce::AudioBuffer<float> &DelayNodes::getProcessorBuffer(int band, size_t procIdx)
-{
-    // Make sure the indices are valid
-    band = juce::jlimit(0, inNumColonies - 1, band);
-    procIdx = juce::jlimit(static_cast<size_t>(0), bands[band].delayProcs.size() - 1, procIdx);
-
-    return *bands[band].processorBuffers[procIdx];
-}
-
-// Get the processor node at a specific position in the matrix
-DelayProc &DelayNodes::getProcessorNode(int band, size_t procIdx)
-{
-    // Make sure the indices are valid
-    band = juce::jlimit(0, inNumColonies - 1, band);
-    procIdx = juce::jlimit(static_cast<size_t>(0), bands[band].delayProcs.size() - 1, procIdx);
-
-    return *bands[band].delayProcs[procIdx];
 }
 
 // Get the tree connection at a specific position in the matrix
