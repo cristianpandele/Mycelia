@@ -618,7 +618,7 @@ void Mycelia::valueChanged(juce::Value &value)
 
             if (child.isValid())
             {
-                id = juce::Identifier("title");
+                id = juce::Identifier("id");
                 val = juce::String("MIDI Sync");
                 child = child.getChildWithProperty(id, val);
 
