@@ -255,10 +255,11 @@ void Mycelia::handleAsyncUpdate()
     inputAnalyser->pushSamples(inputBuffer);
     inputMeter->pushSamples(inputBuffer);
 
+    // Normalize the output buffer to at most 10% of dynamic range before sending it to the oscilloscope
     // Make a copy of the output buffer and normalize it to at most 10% of dynamic range before sending it to the oscilloscope
     juce::AudioBuffer<float> oscilloscopeBuffer = outputBuffer;
 
-    auto bufferRange = outputBuffer.findMinMax(0, 0, outputBuffer.getNumSamples());
+    auto bufferRange = oscilloscopeBuffer.findMinMax(0, 0, oscilloscopeBuffer.getNumSamples());
     float normFactor = 0.0f;
     if (bufferRange.getEnd() < 0.001f)
     {
@@ -269,15 +270,15 @@ void Mycelia::handleAsyncUpdate()
         normFactor = 0.1f / bufferRange.getEnd();
     }
 
-    juce::dsp::AudioBlock<float> outputBlock(oscilloscopeBuffer);
-    outputBlock.multiplyBy(normFactor);
+    juce::dsp::AudioBlock<float> oscilloscopeBlock(oscilloscopeBuffer);
+    oscilloscopeBlock.multiplyBy(normFactor);
 
     // Add the value of the dry/wet mix (scaled to 0.15-0.9) to the output block for visualization
     auto dryWetMix = myceliaModel.getParameterValue(IDs::dryWet);
     const juce::NormalisableRange<float> waterLevelRange(0.15f, 0.9f, 0.01f);
-    dryWetMix = waterLevelRange.convertFrom0to1(dryWetMix);
+    dryWetMix = ParameterRanges::denormalizeParameter(waterLevelRange, dryWetMix);
     dryWetMix = ParameterRanges::denormalizeParameter(ParameterRanges::dryWetRange, dryWetMix);
-    outputBlock.replaceWithSumOf(outputBlock, dryWetMix);
+    oscilloscopeBlock.replaceWithSumOf(oscilloscopeBlock, dryWetMix);
 
     // MAGIC GUI: push the output samples to be displayed
     outputMeter->pushSamples(outputBuffer);
