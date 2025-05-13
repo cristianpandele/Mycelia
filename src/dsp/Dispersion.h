@@ -35,7 +35,7 @@ class Dispersion
         float inDispersionAmount = 0.0f;
         float inAllpassFreq = 800.0f;
 
-        static constexpr size_t maxNumStages = 100;
+        static constexpr size_t maxNumStages = 10;
 
         float fs   = 44100.0f;
         float a[2] = { 0.0f};
