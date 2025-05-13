@@ -149,6 +149,9 @@ class DelayNodes :
         // Update sum of outgoing connections
         void normalizeOutgoingConnections(int band, size_t procIdx);
 
+        // Get incoming flow to a specific band and processor
+        float getSiblingFlow(int targetBand, size_t targetProcIdx);
+
         // Update delay processor parameters
         void updateDelayProcParams();
 

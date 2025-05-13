@@ -560,6 +560,30 @@ void DelayNodes::handleAsyncUpdate()
     updateNodeInterconnections();
 }
 
+// Get the flow of sibling nodes into a specific band and processor
+float DelayNodes::getSiblingFlow(int targetBand, size_t targetProcIdx)
+{
+    if (targetBand < 0 || targetBand >= inNumColonies || targetProcIdx >= numActiveProcsPerBand)
+        return 0.0f;
+
+    float incomingFlow = 0.0f;
+
+    // Sum incoming connections from all other processors to this processor
+    for (int sourceBand = 0; sourceBand < inNumColonies; ++sourceBand)
+    {
+        for (size_t sourceProc = 0; sourceProc < numActiveProcsPerBand; ++sourceProc)
+        {
+            if (bands[targetBand].interNodeConnections[targetProcIdx][sourceBand][sourceProc] > 0.0f)
+            {
+                // Add the connection strength to the incoming flow
+                incomingFlow += bands[targetBand].interNodeConnections[targetProcIdx][sourceBand][sourceProc] *
+                                bands[sourceBand].bufferLevels[sourceProc];
+            }
+        }
+    }
+    // DBG("Sibling flow for band " << targetBand << " proc " << targetProcIdx << ": " << incomingFlow);
+    return incomingFlow;
+}
 
 // Update sum of outgoing connections from a particular processor
 void DelayNodes::normalizeOutgoingConnections(int band, size_t procIdx)
