@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<magic>
+  <Styles>
+    <Style name="default">
+      <Nodes/>
+      <Classes>
+        <group border="2" flex-direction="column" padding="1"/>
+      </Classes>
+      <Types>
+        <Slider border="0"/>
+        <ToggleButton border="0" max-height="50" caption-size="0"/>
+        <TextButton border="0" max-height="50" caption-size="0"/>
+        <ComboBox border="0" max-height="50" caption-size="0"/>
+        <Plot border="0" margin="0" padding="0" background-color="00000000"/>
+      </Types>
+      <Palettes>
+        <default/>
+      </Palettes>
+    </Style>
+  </Styles>
+  <View id="root" flex-direction="column" resizable="1" resize-corner="1"
+        flex-align-self="center" display="contents" background-gradient="linear-gradient(90,0% ff2b2b2b,100% FF2b2b2b)">
+    <View border="2" background-color="transparentwhite" caption="Visualisers"
+          caption-size="0" title="Scope" pos-width="100%" pos-height="55%"
+          flex-align-self="center" display="contents" margin="0" padding="0"
+          radius="5" pos-x="0%" pos-y="0%" border-color="transparentwhite">
+      <View flex-align-self="center" display="contents" pos-width="5%" caption="In Level"
+            margin="" padding="" border="0" flex-direction="row" flex-align-content="center"
+            radius="10" border-color="FFF1E804" pos-x="0%" pos-height="99%"
+            pos-y="1%" caption-color="white" background-color="transparentwhite"
+            caption-placement="centred-top">
+        <Meter bar-fill-color="FFEDED3E" pos-y="0%" pos-height="100%" padding="1"
+               margin="2" border="2" flex-align-self="center" source="inputMeter"
+               pos-width="60%" pos-x="20%" radius="5" outline-color="FF0D0E30"
+               border-color="transparentwhite" background-color="transparentwhite"/>
+      </View>
+      <Plot source="output" plot-color="10808080" pos-width="90%" pos-height="100%"
+            flex-align-self="center" margin="5" padding="2" border="1" pos-x="5%"
+            radius="10" id="Main Analyser" pos-y="0%" border-color="D095469E"/>
+      <View flex-align-self="center" display="contents" border="0" pos-x="95%"
+            pos-width="5%" pos-y="1%" caption="Out Level" border-color="FFEA1212"
+            margin="" padding="" flex-align-content="center" flex-direction="row"
+            radius="10" pos-height="99%" caption-color="white" background-color="transparentwhite"
+            caption-placement="centred-top">
+        <Meter bar-fill-color="FFEDED3E" outline-color="FF0D0E30" pos-y="0%"
+               pos-height="100%" padding="1" margin="2" border="2" flex-align-self="center"
+               source="outputMeter" pos-x="20%" pos-width="60%" radius="5" border-color="transparentwhite"
+               background-color="transparentwhite"/>
+      </View>
+    </View>
+    <View border="2" background-color="transparentwhite" caption="XY Controls"
+          caption-size="0" title="Scope" pos-width="100%" pos-height="25%"
+          flex-align-self="center" display="contents" margin="0" padding="0"
+          radius="5" pos-x="0%" pos-y="55%" border-color="transparentwhite">
+      <View flex-direction="row" caption="Input Levels" flex-align-self="center"
+            display="contents" pos-height="100%" pos-y="0%" padding="2" border="1"
+            margin="5" border-color="FFF1E804" pos-x="0%" pos-width="30%"
+            radius="10" background-color="D0EDC834" caption-color="white">
+        <Slider caption="Preamp Gain" parameter="preamplevel" slider-type="rotary"
+                pos-height="80%" flex-align-self="stretch" lookAndFeel="FoleysFinest"
+                pos-y="10%" flex-grow="1.0" flex-shrink="1.0" suffix="%" tooltip="Input level with added crunch"
+                pos-x="0%" pos-width="33%" caption-color="white" slider-text="black"
+                radius="40" slider-text-outline="transparentwhite" background-gradient="linear-gradient(147,0% d03c66c8,100% a0edc834)"/>
+        <Plot source="input" plot-color="orange" pos-width="100%" pos-height="100%"
+              flex-align-self="center" margin="0" padding="4" border="0" pos-x="34%"
+              radius="10" pos-y="0%" id="Input Analyser" background-color="transparentwhite"/>
+        <Plot source="output" pos-width="100%" pos-height="100%" flex-align-self="center"
+              margin="0" padding="4" border="0" pos-x="34%" radius="10" pos-y="0%"
+              id="Output Analyser" background-color="60FFFAF0" plot-fill-color="D69b34"
+              plot-inactive-color="orange" plot-color="D69b34"/>
+        <XYDragComponent pos-y="0%" pos-height="100%" pos-x="34%" pos-width="100%" margin="0"
+                         padding="4" border="0" caption="Input Sculpt" caption-placement="top-left"
+                         xy-jump-to-click="1" lookAndFeel="FoleysFinest" parameter-x="bandpassfreq"
+                         parameter-y="bandpasswidth" caption-color="black" radius="10"
+                         xy-radius="7" xy-sense-factor="2" xy-drag-handle-over="brown"
+                         xy-horizontal-over="brown" xy-vertical-over="brown" xy-drag-handle="rosybrown"
+                         xy-horizontal="rosybrown" xy-vertical="rosybrown" background-color="transparentwhite"/>
+      </View>
+      <View pos-x="30%" pos-y="0%" pos-width="40%" pos-height="100%" display="contents"
+            margin="5" padding="2" border="3" radius="10" title="Fold XY"
+            background-color="papayawhip" border-color="D095469E">
+        <XYDragComponent pos-y="0%" pos-height="100%" pos-x="0%" pos-width="100%" margin="0"
+                         padding="4" border="0" caption="Fold" caption-placement="centred-top"
+                         xy-jump-to-click="1" lookAndFeel="FoleysFinest" background-color="transparentwhite"
+                         parameter-x="foldposition" parameter-y="foldwindowsize" caption-color="black"
+                         radius="10" xy-radius="7" xy-sense-factor="2" xy-drag-handle="rosybrown"
+                         xy-horizontal="rosybrown" xy-vertical="rosybrown" xy-drag-handle-over="brown"
+                         xy-horizontal-over="brown" xy-vertical-over="brown"/>
+      </View>
+      <View padding="2" border="1" caption="Sky" display="contents" flex-align-self=""
+            border-color="FF0160D1" flex-grow="1.0" flex-shrink="1.0" pos-width="30%"
+            pos-x="70%" margin="5" radius="10" pos-y="0%" pos-height="100%"
+            background-color="D03C66C8" caption-color="white" flex-wrap="nowrap"
+            flex-align-content="">
+        <Slider caption="Reverb Mix" parameter="reverbmix" lookAndFeel="FoleysFinest"
+                slider-type="rotary" caption-placement="centred-top" slider-textbox="textbox-below"
+                flex-align-self="stretch" pos-height="80%" pos-y="10%" suffix="%"
+                pos-width="33%" pos-x="67%" tooltip="The amount of reverb feeding back into the system"
+                radius="40" caption-color="white" slider-text="black" slider-text-outline="transparentwhite"
+                background-gradient="linear-gradient(327,0% d03c66c8,100% a0edc834)"/>
+        <Plot source="oscilloscope" pos-width="66%" pos-height="100%" flex-align-self="center"
+              margin="0" padding="4" border="0" pos-x="0%" radius="10" pos-y="0%"
+              id="Output Analyser" background-color="60FFFAF0" plot-fill-color="0160D1"
+              plot-inactive-color="orange" plot-color="3C66D8" caption="Output Sculpt"
+              caption-placement="top-right" caption-color="black"/>
+        <DuckLevelAnimation title="Delay Duck Level" duckLevel="0.3400999903678894" background-color="transparentwhite"
+                            dryWetLevel="0.5899999737739563" pos-x="0%" pos-y="0%" pos-width="66%"
+                            pos-height="100%" caption-placement=""/>
+        <XYDragComponent pos-y="25%" pos-height="67.5%" pos-x="0%" pos-width="66%" margin="0"
+                         padding="4" border="0" xy-jump-to-click="1" lookAndFeel="FoleysFinest"
+                         background-color="transparentwhite" parameter-x="delayduck" parameter-y="drywet"
+                         radius="10" xy-radius="7" xy-sense-factor="2" xy-drag-handle-over="brown"
+                         xy-horizontal-over="brown" xy-vertical-over="brown" xy-drag-handle="rosybrown"
+                         xy-horizontal="rosybrown" xy-vertical="rosybrown" caption-placement=""/>
+      </View>
+    </View>
+    <View margin="0" padding="0" max-height="300" title="Mycelial Delay Controls"
+          pos-y="80%" pos-width="100%" pos-height="20%" flex-align-self="center"
+          pos-x="0%" display="contents" caption="Mycelial Delay Controls"
+          caption-size="0" border="2" radius="5" background-color="transparentwhite"
+          border-color="transparentwhite">
+      <View padding="2" border="1" caption="Trees" flex-align-content="center"
+            display="contents" flex-align-self="center" flex-grow="1.0" flex-shrink="1.0"
+            pos-width="30%" pos-x="0%" margin="5" radius="10" pos-y="0%"
+            pos-height="100%" background-color="D0228B22" caption-color="white"
+            border-color="027124">
+        <Slider caption="Size" parameter="treesize" lookAndFeel="FoleysFinest"
+                slider-type="rotary" pos-x="0%" pos-y="5%" pos-width="50%" pos-height="80%"
+                caption-placement="centred-top" slider-textbox="textbox-below"
+                flex-align-self="stretch" tooltip="Influences their audio energy updake"
+                radius="40" background-color="10808080" caption-color="white"
+                slider-text="black" slider-text-outline="transparentwhite" background-gradient="linear-gradient(47,0% f0a5680e,100% a0228b22)"/>
+        <Slider caption="Density" parameter="treedensity" slider-type="rotary"
+                pos-x="50%" pos-y="5%" pos-width="50%" pos-height="80%" max-height="200"
+                flex-align-self="stretch" suffix="%" tooltip="Affects the landscape topology"
+                radius="40" background-color="10808080" caption-color="white"
+                slider-text="black" slider-text-outline="transparentwhite" background-gradient="linear-gradient(227,0% f0a5680e,100% a0228b22)"/>
+      </View>
+      <View caption="Universe Controls" padding="2" border="1" pos-y="0%"
+            pos-width="40%" pos-x="30%" border-color="D095469E" display="contents"
+            margin="5" radius="10" pos-height="100%" background-color="D0C877D1"
+            caption-color="white">
+        <Slider caption="Stretch" parameter="stretch" slider-type="rotary" pos-width="50%"
+                pos-height="80%" slider-textbox="textbox-below" flex-align-self="stretch"
+                pos-x="0%" pos-y="5%" suffix=" x" tooltip="Pull it apart, or put it back together again?"
+                caption-placement="centred-top" radius="40" background-color="10808080"
+                caption-color="white" slider-text="black" slider-text-outline="transparentwhite"
+                background-gradient="linear-gradient(47,0% c0ec1212,100% d0c877d1)"/>
+        <Slider caption="Scarcity/Abundance" parameter="scarcityabundance" slider-type="rotary"
+                pos-width="50%" pos-height="80%" pos-x="50%" pos-y="5%" visibility=""
+                tooltip="Override the global availability of nutrients in the system"
+                background-color="10808080" radius="40" caption-color="white"
+                slider-text="black" slider-text-outline="transparentwhite" background-gradient="linear-gradient(147,0% d0c877d1,100% c0ec1212)"
+                id="scarabundid"/>
+        <Label text="MIDI Clock Sync Off" background-color="FFFF8800" property="midiClockStatus"
+               pos-height="14%" pos-x="3%" pos-width="43%" pos-y="86%" justification="centred"
+               font-size="12.0" border="1" border-color="FF000000" radius="5"
+               value="midiClockStatus" visibility="midiClockStatusVisibility"
+               id="MIDI Sync"/>
+        <Label text="Automated" background-color="FF008800" property="scarcityAbundanceAuto"
+               pos-height="14%" pos-x="53%" pos-width="43%" pos-y="86%" justification="centred"
+               font-size="12.0" border="1" border-color="FF000000" radius="5"
+               value="scarcityAbundanceAuto" visibility="scarcityAbundanceAutoVisibility"
+               id="Scar/Abundance Automation"/>
+      </View>
+      <View caption="Mycelia" padding="2" border="1" pos-y="0%" pos-width="30%"
+            border-color="773F08" pos-x="70%" display="contents" flex-align-self="center"
+            margin="5" radius="10" pos-height="100%" background-color="D0A95417"
+            caption-color="white">
+        <Slider caption="Entanglement" parameter="entanglement" slider-type="rotary"
+                pos-height="80%" pos-x="0%" pos-y="5%" pos-width="50%" suffix="%"
+                tooltip="Controls the level of interconnectdedness in the mycelial layer"
+                background-color="10808080" radius="40" caption-color="white"
+                slider-text="black" slider-text-outline="transparentwhite" background-gradient="linear-gradient(327,0% 80a5680e,100% d0228b22)"/>
+        <Slider caption="Growth Rate" parameter="growthrate" slider-type="rotary"
+                pos-height="80%" pos-width="50%" pos-y="5%" flex-align-self="stretch"
+                pos-x="50%" suffix="%" tooltip="Sets the speed of aging of the mycelial colonies"
+                background-color="10808080" radius="40" caption-color="white"
+                slider-text="black" slider-text-outline="transparentwhite" background-gradient="linear-gradient(147,0% 80a5680e,100% d0228b22)"/>
+      </View>
+    </View>
+  </View>
+</magic>
+ 
