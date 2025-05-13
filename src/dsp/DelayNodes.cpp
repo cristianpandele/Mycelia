@@ -26,6 +26,14 @@ void DelayNodes::prepare(const juce::dsp::ProcessSpec &spec)
     // Prepare the delay processors
     allocateDelayProcessors(ParameterRanges::maxNutrientBands, maxNumDelayProcsPerBand);
 
+    for (auto &band : bands)
+    {
+        for (auto &proc : band.delayProcs)
+        {
+            proc->prepare(spec);
+        }
+    }
+
     // Initialize tree positions
     updateTreePositions();
 
@@ -46,6 +54,29 @@ void DelayNodes::reset()
 
 void DelayNodes::process(std::vector<std::unique_ptr<juce::AudioBuffer<float>>> &delayBandBuffers)
 {
+    for (int band = 0; band < inNumColonies; ++band)
+    {
+        // Get the input buffer for this band
+        auto& inputBuffer = delayBandBuffers[band];
+
+        // Copy input to the first processor buffer
+        auto &firstBuffer = getProcessorBuffer(band, 0);
+        firstBuffer.setSize(inputBuffer->getNumChannels(), inputBuffer->getNumSamples(), false, false, true);
+        firstBuffer.makeCopyOf(*inputBuffer);
+
+        // Process through each delay processor with its own persistent context
+        for (size_t i = 0; i < bands[band].delayProcs.size(); ++i)
+        {
+            // If not the first processor, copy from previous processor's buffer
+            if (i > 0)
+            {
+                auto &currentBuffer = getProcessorBuffer(band, i);
+                currentBuffer.setSize(inputBuffer->getNumChannels(), inputBuffer->getNumSamples(), false, false, true);
+                currentBuffer.makeCopyOf(getProcessorBuffer(band, i - 1));
+            }
+        }
+    }
+
     // Update sidechain levels for all processors based on their positions
     updateSidechainLevels();
 
@@ -73,6 +104,14 @@ void DelayNodes::process(std::vector<std::unique_ptr<juce::AudioBuffer<float>>> 
         // Process through each delay processor with its own persistent context
         for (size_t i = 0; i < bands[band].delayProcs.size(); ++i)
         {
+            // If not the first processor, copy from previous processor's buffer
+            if (i > 0)
+            {
+                auto &currentBuffer = getProcessorBuffer(band, i);
+                currentBuffer.setSize(inputBuffer->getNumChannels(), inputBuffer->getNumSamples(), false, false, true);
+                currentBuffer.makeCopyOf(getProcessorBuffer(band, i - 1));
+            }
+
             // Process the current node
             processNode(band, i);
 
@@ -187,7 +226,15 @@ void DelayNodes::updateDelayProcParams()
             params.feedback = 1.0f;
             params.growthRate = inGrowthRate;
             params.baseDelayMs = inBaseDelayMs;
-            params.filterFreq = *inBandFrequencies[band];
+            if (inBandFrequencies[band])
+            {
+                params.filterFreq = inBandFrequencies[band];
+            }
+            else
+            {
+                params.filterFreq = 0.0f; // Default to 0.0 if no frequency is set
+            }
+            // params.filterFreq = *inBandFrequencies[band];
             params.filterGainDb = 0.0f;
             params.revTimeMs = 0.0f;
 
@@ -213,8 +260,9 @@ void DelayNodes::setParameters(const Parameters &params)
 
     inNumColonies = params.numColonies;
     inBandFrequencies.clear();
-    for (const auto& freq : params.bandFrequencies) {
-        inBandFrequencies.push_back(std::make_unique<float>(freq));
+    for (const auto& freq : params.bandFrequencies)
+    {
+        inBandFrequencies.push_back(freq);
     }
     inStretch = params.stretch;
     inScarcityAbundance = params.scarcityAbundance;
@@ -285,8 +333,8 @@ void DelayNodes::allocateDelayProcessors(int numColonies, int numNodes)
 
             // Initialize inter-node connection matrices if needed
             auto curProcConnections = std::vector<std::vector<float>>(
-                numColonies, std::vector<float>(
-                                 numNodes, 0.0f));
+                numColonies,
+                std::vector<float>(numNodes, 0.0f));
             for (int sourceBand = 0; sourceBand < numColonies; ++sourceBand)
             {
                 for (int sourceProc = 0; sourceProc < numNodes; ++sourceProc)
@@ -316,13 +364,17 @@ void DelayNodes::processNode(int band, size_t procIdx) //, juce::AudioBuffer<flo
 
     // Make sure our processor buffer is the right size and initialized with the input
     auto &procBuffer = getProcessorBuffer(band, procIdx);
+
     // If this is the first processor, data has been already copied from the input buffer
     // Otherwise, clear the buffer to avoid garbage data and set it to the size of the previous processor
     if (procIdx > 0)
     {
         procBuffer.setSize(getProcessorBuffer(band, procIdx - 1).getNumChannels(), getProcessorBuffer(band, procIdx - 1).getNumSamples(), false, false, true);
-        procBuffer.setSize(getProcessorBuffer(band, procIdx - 1).getNumChannels(), getProcessorBuffer(band, procIdx - 1).getNumSamples(), false, false, true);
         procBuffer.clear();
+    }
+    else
+    {
+        procBuffer.setSize(getProcessorBuffer(band, procIdx - 1).getNumChannels(), getProcessorBuffer(band, procIdx).getNumSamples(), false, false, true);
     }
 
     // Mix in signals from other bands based on inter-band connections
