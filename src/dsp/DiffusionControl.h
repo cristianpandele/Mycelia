@@ -33,7 +33,7 @@ class DiffusionControl
         double fs = 44100.0;
 
         static constexpr double minFreq = 250.0;
-        static constexpr double maxFreq = 3000.0;
+        static constexpr double maxFreq = 4000.0;
 
         // Filter bank implementation
         std::array<sst::filters::FilterCoefficientMaker<>, ParameterRanges::maxNutrientBands> coeffMaker;
