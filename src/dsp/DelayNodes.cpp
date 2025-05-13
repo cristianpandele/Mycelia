@@ -5,7 +5,7 @@ DelayNodes::DelayNodes(size_t numBands)
     // Ensure we have enough delay processors
     allocateDelayProcessors(inNumColonies, maxNumDelayProcsPerBand);
     updateFoldWindow();
-    startTimerHz(1); // Start the timer for parameter updates
+    startTimer(2000); // Start the timer for parameter updates
 }
 
 DelayNodes::~DelayNodes()
@@ -168,8 +168,8 @@ void DelayNodes::process(std::vector<std::unique_ptr<juce::AudioBuffer<float>>> 
         }
 
         // Apply normalization gain
-        juce::dsp::AudioBlock<float> finalBlock(*outputBuffer);
-        finalBlock.multiplyBy(inNumColonies);
+        // juce::dsp::AudioBlock<float> finalBlock(*outputBuffer);
+        // finalBlock.multiplyBy(inNumColonies);
     }
 }
 
@@ -497,8 +497,8 @@ void DelayNodes::updateTreePositions()
             // Calculate the ideal position for even distribution
             float idealPosition = static_cast<float>(numActiveProcsPerBand - 1) * static_cast<float>(i) / static_cast<float>(numActiveTrees - 1);
 
-            // Add small variation (+/- 1)
-            int variation = random.nextInt(3) - 1; // -1, 0, or 1
+            // Add small variation (+/- 2)
+            int variation = random.nextInt(4) - 2;
             int position = static_cast<int>(idealPosition) + variation;
 
             // Ensure position is valid and not the last position (reserved for the output)
@@ -533,9 +533,9 @@ void DelayNodes::updateTreePositions()
         // treeConnections[band].resize(numActiveTrees);
         for (int tree = 0; tree < numActiveTrees; ++tree)
         {
-            // Determine if this band connects to this tree (75% probability)
+            // Determine if this band connects to this tree (50% probability)
             // Always connect the last tree (output tree) to all bands
-            if (tree == numActiveTrees - 1 || random.nextFloat() < 0.75f)
+            if (tree == numActiveTrees - 1 || random.nextFloat() < 0.50f)
             {
                 *bands[band].treeConnections[tree] = 1.0f; // Connected
             }

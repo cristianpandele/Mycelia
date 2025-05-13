@@ -119,7 +119,7 @@ class DelayNodes :
 
         // Parameters for delay network
         int inNumColonies = ParameterRanges::maxNutrientBands;
-        std::vector<std::unique_ptr<float>> inBandFrequencies;
+        std::vector<float> inBandFrequencies;
         float inStretch = 0.0f;
         float inScarcityAbundance = 0.0f;
         float inFoldPosition = 0.0f;
