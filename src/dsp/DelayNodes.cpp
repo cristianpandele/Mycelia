@@ -366,14 +366,20 @@ void DelayNodes::processNode(int band, size_t procIdx) //, juce::AudioBuffer<flo
 // Update sidechain levels for all processors in the matrix
 void DelayNodes::updateSidechainLevels()
 {
+    averageScarcityAbundance = 0.0f;
     // First, gather all output levels from all delay processors into a matrix
     for (int band = 0; band < inNumColonies; ++band)
     {
         for (size_t proc = 0; proc < numActiveProcsPerBand; ++proc)
         {
-            bands[band].bufferLevels[proc] = getProcessorNode(band, proc).getOutputLevel();
+            auto outputLevel = getProcessorNode(band, proc).getOutputLevel();
+            auto normScarcityAbundance = ParameterRanges::normalizeParameter(ParameterRanges::scarcityAbundanceRange, inScarcityAbundance);
+            bands[band].bufferLevels[proc] = juce::jlimit(0.0f, 1.0f, outputLevel + (normScarcityAbundance));
+            averageScarcityAbundance += outputLevel;
         }
     }
+
+    averageScarcityAbundance = -1.0f + (averageScarcityAbundance * numActiveProcsPerBand) + inScarcityAbundance;
 
     // For each band and processor
     for (int band = 0; band < inNumColonies; ++band)
@@ -398,17 +404,17 @@ void DelayNodes::updateSidechainLevels()
                 }
 
                 // Set the external sidechain level for this end-of-row processor
-                getProcessorNode(band, proc).setExternalSidechainLevel(/*16.0f * */combinedLevel);
+                getProcessorNode(band, proc).setExternalSidechainLevel(combinedLevel);
             }
             else
             {
                 // For non-end nodes: use the output level of the next node in same row
-                float nextNodeLevel = bands[band].bufferLevels[proc + 1];
-                getProcessorNode(band, proc).setExternalSidechainLevel(/*16.0f * */nextNodeLevel);
+                float nextNodeLevel = getSiblingFlow(band, proc + 1);
+                // Substract own level from the next node level
+                nextNodeLevel -= bands[band].bufferLevels[proc];
+                getProcessorNode(band, proc).setExternalSidechainLevel(nextNodeLevel);
             }
         }
-
-        // TODO: do the same relative to the end of row ones when there is sibling flow into the downstream node
     }
 }
 

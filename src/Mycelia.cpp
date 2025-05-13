@@ -72,6 +72,11 @@ void Mycelia::parameterChanged(const juce::String &param, float value)
 {
     // Pass the parameter change to the model
     myceliaModel.parameterChanged(param, value);
+    if (param == IDs::scarcityAbundance)
+    {
+        scarAbundAuto.setValue("Overridden");
+        scarAbundAutoVisibility.setValue(false);
+    }
     // TODO: pass the parameter change to the GUI
 }
 
@@ -245,6 +250,7 @@ void Mycelia::processBlock(juce::AudioBuffer<float> &buffer, juce::MidiBuffer &m
 
 void Mycelia::handleAsyncUpdate()
 {
+    /////////////
     // MAGIC GUI: push the input samples to be displayed
     inputAnalyser->pushSamples(inputBuffer);
     inputMeter->pushSamples(inputBuffer);
@@ -452,6 +458,7 @@ void Mycelia::processMidiCcMessage(const juce::MidiMessage &midiMessage)
             auto normCcValue = ParameterRanges::normalizeParameter(ParameterRanges::midiCcValueRange, midiCc7Value);
             auto scarcityAbundanceVal = ParameterRanges::denormalizeParameter(ParameterRanges::scarcityAbundanceRange, normCcValue);
             myceliaModel.setParameterExplicitly(IDs::scarcityAbundance, scarcityAbundanceVal);
+            scarAbundAuto.setValue("Overridden");
             magicState.getPropertyAsValue("scarcityAbundance").setValue(scarcityAbundanceVal);
             break;
         }
@@ -573,6 +580,12 @@ bool Mycelia::isMidiClockSyncActive() const
     return static_cast<bool>(midiClockDetected.getValue());
 }
 
+bool Mycelia::isScarcityAbundanceOverridden() const
+{
+    // Check if the scarcity/abundance parameter is overridden
+    return static_cast<bool>(scarAbundOverridden.getValue());
+}
+
 void Mycelia::valueChanged(juce::Value &value)
 {
     if (value == midiClockDetected)
@@ -654,6 +667,80 @@ void Mycelia::valueChanged(juce::Value &value)
                     {
                         child.setProperty("dryWetLevel", value.getValue(), nullptr);
                     }
+                }
+            }
+        }
+    }
+    if (value == scarAbundAuto)
+    {
+        scarAbundOverridden.setValue(true);
+        updateScarcityAbundanceLabel();
+        startTimer(1000); // Update the Scarcity/Abundance label every 1 seconds
+    }
+}
+
+void Mycelia::timerCallback()
+{
+    if (!isScarcityAbundanceOverridden())
+    {
+        // Reset the scarcity/abundance parameter to its default value
+        auto scarAbundanceVal = myceliaModel.getAverageScarcityAbundance();
+        if (std::abs(scarAbundanceVal - myceliaModel.getParameterValue(IDs::scarcityAbundance)) > 0.01f)
+        {
+            // Update the GUI to reflect the scarcity/abundance level
+            if (auto *item = magicBuilder->findGuiItemWithId("scarabundid"))
+            {
+                if (auto *slider = dynamic_cast<juce::Slider *>(item->getWrappedComponent()))
+                {
+                    // DBG("Slider value: " + juce::String(slider->getValue()));
+                    if (scarAbundanceVal)
+                    {
+                        scarAbundanceVal = ParameterRanges::scarcityAbundanceRange.snapToLegalValue(scarAbundanceVal);
+                        slider->setValue(scarAbundanceVal, juce::dontSendNotification);
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+        // Reset the scarcity/abundance parameter to its set value
+        scarAbundAuto.setValue("Automated");
+        scarAbundOverridden.setValue(false);
+    }
+    updateScarcityAbundanceLabel();
+}
+
+void Mycelia::updateScarcityAbundanceLabel()
+{
+    // Update the GUI label to reflect the scarcity/abundance state
+    auto tree = magicBuilder->getGuiRootNode();
+    auto id = foleys::IDs::caption;
+
+    // Set the background colour of the label
+    auto val = juce::String("Mycelial Delay Controls");
+    auto child = tree.getChildWithProperty(id, val);
+
+    if (child.isValid())
+    {
+        val = juce::String("Universe Controls");
+        child = child.getChildWithProperty(id, val);
+
+        if (child.isValid())
+        {
+            id = juce::Identifier("id");
+            val = juce::String("Scar/Abundance Automation");
+            child = child.getChildWithProperty(id, val);
+
+            if (child.isValid())
+            {
+                if (isScarcityAbundanceOverridden())
+                {
+                    child.setProperty(foleys::IDs::backgroundColour, "FFFF8800", nullptr);
+                }
+                else
+                {
+                    child.setProperty(foleys::IDs::backgroundColour, "FF008800", nullptr);
                 }
             }
         }

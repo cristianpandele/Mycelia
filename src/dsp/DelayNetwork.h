@@ -39,7 +39,8 @@ class DelayNetwork
                      std::vector<std::unique_ptr<juce::AudioBuffer<float>>> &delayBandBuffers);
 
         void setParameters(const Parameters &params);
-        void timerCallback();
+
+        float getAverageScarcityAbundance() const { return delayNodes.getAverageScarcityAbundance(); }
 
     private:
         float fs = 44100.0f;
@@ -100,6 +101,7 @@ class DelayNetwork
         std::vector<std::unique_ptr<juce::AudioBuffer<float>>> delayBandBuffers;
 
         void updateDiffusionDelayNodesParams();
+        void timerCallback();
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DelayNetwork)
 };

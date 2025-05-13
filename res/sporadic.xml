@@ -153,7 +153,8 @@
                 pos-width="50%" pos-height="80%" pos-x="50%" pos-y="5%" visibility=""
                 tooltip="Override the global availability of nutrients in the system"
                 background-color="10808080" radius="40" caption-color="white"
-                slider-text="black" slider-text-outline="transparentwhite" background-gradient="linear-gradient(147,0% d0c877d1,100% c0ec1212)"/>
+                slider-text="black" slider-text-outline="transparentwhite" background-gradient="linear-gradient(147,0% d0c877d1,100% c0ec1212)"
+                id="scarabundid"/>
         <Label text="MIDI Clock Sync Off" background-color="FFFF8800" property="midiClockStatus"
                pos-height="14%" pos-x="3%" pos-width="43%" pos-y="86%" justification="centred"
                font-size="12.0" border="1" border-color="FF000000" radius="5"

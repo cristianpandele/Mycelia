@@ -24,7 +24,8 @@ class Mycelia :
     public foleys::MagicProcessor,
     private juce::AudioProcessorValueTreeState::Listener,
     private juce::Value::Listener,
-    private juce::AsyncUpdater
+    private juce::AsyncUpdater,
+    private juce::Timer
 {
     public:
         Mycelia();
@@ -59,6 +60,9 @@ class Mycelia :
 
         //==============================================================================
     private:
+        // Timer callback function
+        void timerCallback();
+
         // MAGIC GUI: this is a shorthand where the samples to display are fed to
         foleys::MagicPlotSource *oscilloscope = nullptr;
         foleys::MagicAnalyser *inputAnalyser = nullptr;
@@ -77,6 +81,7 @@ class Mycelia :
 
         juce::Value scarAbundAuto{"Automated"};
         juce::Value scarAbundAutoVisibility{true};
+        juce::Value scarAbundOverridden{false};
 
         juce::Value delayDuckLevel{0.0f};
         juce::Value dryWetLevel{0.0f};
@@ -95,6 +100,9 @@ class Mycelia :
 
         // Check if MIDI clock sync is active
         bool isMidiClockSyncActive() const;
+
+        // Check if scarcity/abundance is overridden
+        bool isScarcityAbundanceOverridden() const;
 
         // MIDI Clock sync variables
         double midiClockTempo = 0.0;
@@ -128,6 +136,7 @@ class Mycelia :
         // GUI variables
         juce::AudioBuffer<float> inputBuffer;
         juce::AudioBuffer<float> outputBuffer;
+        void updateScarcityAbundanceLabel();
 
         //////////////////////////////////////////////
         // The underlying model used to perform the DSP processing

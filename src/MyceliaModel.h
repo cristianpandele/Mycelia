@@ -90,6 +90,8 @@ class MyceliaModel :
 
         float getParameterValue(const juce::String &paramId);
 
+        float getAverageScarcityAbundance() const { return delayNetwork.getAverageScarcityAbundance(); }
+
     private:
         size_t numChannels = 2;
         size_t blockSize = 512;

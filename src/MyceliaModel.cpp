@@ -478,6 +478,11 @@ void MyceliaModel::process(const ProcessContext &context)
     juce::dsp::ProcessContextReplacing<float> dryContext(dryBlock);
     juce::dsp::ProcessContextReplacing<float> wetContext(wetBlock);
 
+    // Mix in the reverb signal (with gain of 0.5f * the reverb mix parameter)
+    auto reverbMix = ParameterRanges::normalizeParameter(ParameterRanges::reverbMixRange, currentInputParams.reverbMix);
+    skyBlock.multiplyBy(0.5f * reverbMix);
+    wetBlock.replaceWithSumOf(skyBlock, dryBlock);
+
     // Process "dry" signal through EdgeTree
     edgeTree.process(wetContext);
 

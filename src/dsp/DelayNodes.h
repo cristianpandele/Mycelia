@@ -2,6 +2,7 @@
 
 #include "DelayProc.h"
 #include "DuckingCompressor.h"
+#include "util/ParameterRanges.h"
 #include <juce_dsp/juce_dsp.h>
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <vector>
@@ -10,8 +11,9 @@
  * Class to process multiple inputs through separate delay processors
  * Each input gets its own DelayProc with different delay parameters
  */
-class DelayNodes
-    : private juce::Timer
+class DelayNodes :
+    private juce::Timer,
+    private juce::AsyncUpdater
 {
     public:
         // Parameters
@@ -44,6 +46,7 @@ class DelayNodes
         void process(std::vector<std::unique_ptr<juce::AudioBuffer<float>>> &diffusionBandBuffers);
 
         void setParameters(const Parameters& params);
+        float getAverageScarcityAbundance() const { return averageScarcityAbundance; }
 
     private:
         struct BandResources
@@ -95,8 +98,8 @@ class DelayNodes
                 delayProcs.clear();
             }
         };
-        std::vector<BandResources>
-        bands;
+
+        std::vector<BandResources> bands;
 
         // Allocate delay processors and buffers based on the number of colonies and nodes
         void allocateDelayProcessors(int numColonies, int numNodes = maxNumDelayProcsPerBand);
@@ -111,6 +114,10 @@ class DelayNodes
         size_t numChannels = 2;
         size_t blockSize = 512;
 
+        // Average scarcity/abundance value
+        float averageScarcityAbundance = 0.0f;
+
+        // Parameters for delay network
         int inNumColonies = ParameterRanges::maxNutrientBands;
         std::vector<std::unique_ptr<float>> inBandFrequencies;
         float inStretch = 0.0f;
@@ -135,6 +142,9 @@ class DelayNodes
 
         // Timer callback function
         void timerCallback();
+
+        // The async updater function
+        void handleAsyncUpdate() override;
 
         // Update sum of outgoing connections
         void normalizeOutgoingConnections(int band, size_t procIdx);
