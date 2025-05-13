@@ -108,7 +108,7 @@ class Mycelia :
         double midiClockTempo = 0.0;
         double lastMidiClockTime = 0.0;
         int midiClockCounter = 0;
-        static constexpr int kDefaultTempo = 100;         // Default tempo in BPM
+        static constexpr int kDefaultTempo = 120;         // Default tempo in BPM
         static constexpr int kClockCountReset = 24;       // MIDI sends 24 clock messages per quarter note
         static constexpr double kMidiClockTimeout = 15.0; // Reset MIDI clock detection after 15 seconds of no messages
 
