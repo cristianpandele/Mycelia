@@ -545,7 +545,18 @@ void DelayNodes::updateFoldWindow()
 
 void DelayNodes::timerCallback()
 {
-    // Periodically update the inter-node connections
+    if (bands[0].delayProcs[0])
+    {
+        if (bands[0].delayProcs[0]->getAge() > 0.001f)
+        {
+            // Periodically update the inter-node connections in asynchronous manner
+            triggerAsyncUpdate();
+        }
+    }
+}
+
+void DelayNodes::handleAsyncUpdate()
+{
     updateNodeInterconnections();
 }
 
@@ -572,18 +583,15 @@ void DelayNodes::normalizeOutgoingConnections(int band, size_t procIdx)
 
 
     // DBG("Normalizing outgoing connections for band " << band << " proc " << procIdx << " with sum " << sum);
-    if (sum > 1.0f)
+    // If updated connections over 100%, normalize the connections to ensure they sum up to 0.9f
+    for (int targetBand = 0; targetBand < inNumColonies; ++targetBand)
     {
-        // If updated connections over 100%, normalize the connections to ensure they sum up to 0.9f
-        for (int targetBand = 0; targetBand < inNumColonies; ++targetBand)
+        for (size_t targetProc = 0; targetProc < numActiveProcsPerBand; ++targetProc)
         {
-            for (size_t targetProc = 0; targetProc < numActiveProcsPerBand; ++targetProc)
-            {
-                // if (bands[targetBand].interNodeConnections[targetProc][band][procIdx] > 0.0f)
-                // {
-                bands[targetBand].interNodeConnections[targetProc][band][procIdx] /= (sum + 0.1f);
-                // }
-            }
+            // if (bands[targetBand].interNodeConnections[targetProc][band][procIdx] > 0.0f)
+            // {
+            bands[targetBand].interNodeConnections[targetProc][band][procIdx] /= (sum + 0.1f);
+            // }
         }
     }
 }
@@ -626,29 +634,26 @@ void DelayNodes::updateNodeInterconnections()
                     if (connectionStrength > 0.0f)
                     {
                         auto normEntanglement = ParameterRanges::normalizeParameter(ParameterRanges::entanglementRange, inEntanglement);
-                        auto pairEntanglementDelta = normEntanglement * 0.1f * (0.5f - pairMinAge);
+                        auto pairEntanglementDelta = random.nextFloat() * normEntanglement * 0.5f * (0.5f - pairMinAge);
 
                         // DBG("Updating connection strength: " << connectionStrength << " for proc1: " << proc1 << " band1: " << band1 << " proc2: " << proc2 << " band2: " << band2);
                         // Update the connection strength based on entanglement and age
                         bands[band1].interNodeConnections[proc1][band2][proc2] += connectionStrength * pairEntanglementDelta;
                         // Update the connection strength for the reverse direction
                         bands[band2].interNodeConnections[proc2][band1][proc1] += connectionStrength * pairEntanglementDelta;
-                        // Ensure that the connection strength does drop below 0.0f
-                        bands[band2].interNodeConnections[proc2][band1][proc1] = std::max(0.0f, bands[band2].interNodeConnections[proc2][band1][proc1]);
+                        // Ensure that the connection strength does not drop below 0.0f
                         bands[band1].interNodeConnections[proc1][band2][proc2] = std::max(0.0f, bands[band1].interNodeConnections[proc1][band2][proc2]);
+                        bands[band2].interNodeConnections[proc2][band1][proc1] = std::max(0.0f, bands[band2].interNodeConnections[proc2][band1][proc1]);
 
-                        if (pairEntanglementDelta > 0.0f)
-                        {
-                            // Ensure that the sum of connections from this node to all other nodes is 1.0f
-                            normalizeOutgoingConnections(band1, proc1);
-                            normalizeOutgoingConnections(band2, proc2);
-                        }
+                        // Ensure that the sum of connections from this node to all other nodes is 1.0f
+                        normalizeOutgoingConnections(band1, proc1);
+                        normalizeOutgoingConnections(band2, proc2);
                     }
                     // If the connection strength is 0.0f, attempt to create a new connection based on entanglement
                     else
                     {
                         auto normEntanglement = ParameterRanges::normalizeParameter(ParameterRanges::entanglementRange, inEntanglement);
-                        auto pairEntanglementProbability = normEntanglement * 0.1f * (1.0f - pairMinAge);
+                        auto pairEntanglementProbability = normEntanglement * (1.0f - pairMinAge);
 
                         // Test for creating a connection
                         if (random.nextFloat() < pairEntanglementProbability)
