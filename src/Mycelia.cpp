@@ -255,7 +255,6 @@ void Mycelia::handleAsyncUpdate()
     inputAnalyser->pushSamples(inputBuffer);
     inputMeter->pushSamples(inputBuffer);
 
-    // Normalize the output buffer to at most 10% of dynamic range before sending it to the oscilloscope
     // Make a copy of the output buffer and normalize it to at most 10% of dynamic range before sending it to the oscilloscope
     juce::AudioBuffer<float> oscilloscopeBuffer = outputBuffer;
 

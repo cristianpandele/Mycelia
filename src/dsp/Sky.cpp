@@ -24,7 +24,6 @@ Sky::~Sky()
 {
     // Ensure proper cleanup of both effects
     reverb.reset();
-    // nimbus.reset();
 }
 
 void Sky::prepare(const juce::dsp::ProcessSpec &spec)
@@ -43,8 +42,7 @@ void Sky::prepare(const juce::dsp::ProcessSpec &spec)
 
 void Sky::reset()
 {
-    // Suspend processing for both effects
-    // nimbus->suspendProcessing();
+    // Suspend processing for the reverb
     reverb->initVoiceEffect(); // Re-initialize the reverb
 }
 
@@ -72,7 +70,7 @@ void Sky::process(const ProcessContext &context)
         outputBlock.copyFrom(inputBlock);
     }
 
-    // Process the audio through Nimbus and Reverb in blocks of VFXConfig::blockSize
+    // Process the audio through the Reverb in blocks of VFXConfig::blockSize
     for (size_t pos = 0; pos < numSamples; pos += VFXConfig::blockSize)
     {
         // Calculate how many samples to process in this iteration
@@ -107,8 +105,6 @@ void Sky::process(const ProcessContext &context)
 
 void Sky::setParameters(const Parameters &params)
 {
-    // using NP = sst::effects::nimbus::Nimbus<ConcreteConfig>::nmb_params;
-
     // Map humidity (0-100) to density (0-1) and texture (0-1)
     if (std::abs(inHumidity - params.humidity) > 0.01f)
     {

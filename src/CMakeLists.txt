@@ -15,6 +15,7 @@ target_sources(
     dsp/EdgeTree.cpp
     dsp/EnvelopeFollower.cpp
     dsp/DelayNetwork.cpp
+    dsp/Sky.cpp
     dsp/DelayNodes.cpp
     dsp/DelayProc.cpp
     dsp/DiffusionControl.cpp

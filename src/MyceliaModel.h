@@ -3,6 +3,7 @@
 #include "BinaryData.h"
 #include "dsp/InputNode.h"
 #include "dsp/EdgeTree.h"
+#include "dsp/Sky.h"
 #include "dsp/OutputNode.h"
 #include "dsp/DelayNetwork.h"
 
@@ -127,18 +128,21 @@ class MyceliaModel :
 
         // Buffers for processing
         juce::AudioBuffer<float> dryBuffer;
+        juce::AudioBuffer<float> skyBuffer;
 
         std::vector<std::unique_ptr<juce::AudioBuffer<float>>> diffusionBandBuffers;
         std::vector<std::unique_ptr<juce::AudioBuffer<float>>> delayBandBuffers;
 
         // Audio Processors: Input, Sky, EdgeTree, DelayNetwork, Output
         InputNode inputNode;
+        Sky sky;
         EdgeTree edgeTree;
         DelayNetwork delayNetwork;
         OutputNode outputNode;
 
         // Parameters for processors
         InputNode::Parameters currentInputParams;
+        Sky::Parameters currentSkyParams;
         EdgeTree::Parameters currentEdgeTreeParams;
         // Parameters for DelayNetwork
         DelayNetwork::Parameters currentDelayNetworkParams =

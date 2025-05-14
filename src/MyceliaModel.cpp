@@ -68,6 +68,10 @@ MyceliaModel::MyceliaModel(Mycelia &p)
     currentInputParams.bandpassFreq = *bandpassFreq;
     currentInputParams.bandpassWidth = *bandpassWidth;
 
+    // Initialize Sky parameters
+    currentSkyParams.humidity = *skyHumidity;
+    currentSkyParams.height = *skyHeight;
+
     // Initialize DelayNetwork parameters
     currentDelayNetworkParams.entanglement = *entanglement;
     currentDelayNetworkParams.growthRate = *growthRate;
@@ -277,6 +281,18 @@ void MyceliaModel::parameterChanged(const juce::String &parameterID, float newVa
         currentDelayNetworkParams.scarcityAbundance = newValue;
         delayNetwork.setParameters(currentDelayNetworkParams);
     }
+
+    else if (parameterID == IDs::skyHumidity)
+    {
+        currentSkyParams.humidity = newValue;
+        sky.setParameters(currentSkyParams);
+    }
+    else if (parameterID == IDs::skyHeight)
+    {
+        currentSkyParams.height = newValue;
+        sky.setParameters(currentSkyParams);
+    }
+
     else if (parameterID == IDs::foldPosition)
     {
         currentDelayNetworkParams.foldPosition = newValue;
@@ -344,15 +360,15 @@ void MyceliaModel::prepareToPlay(juce::dsp::ProcessSpec spec)
 
     // Prepare all processors
     inputNode.prepare(spec);
-    // sky.prepare(spec);
+    sky.prepare(spec);
     edgeTree.prepare(spec);
     delayNetwork.prepare(spec);
     outputNode.prepare(spec);
 
     // Initialize buffers
     dryBuffer.setSize(spec.numChannels, spec.maximumBlockSize);
+    skyBuffer.setSize(spec.numChannels, spec.maximumBlockSize);
     allocateBandBuffers(currentDelayNetworkParams.numActiveFilterBands);
-    // skyBuffer.setSize(spec.numChannels, spec.maximumBlockSize);
 }
 
 void MyceliaModel::allocateBandBuffers(int numBands)
@@ -406,6 +422,7 @@ void MyceliaModel::releaseResources()
     // host's settings)
 
     inputNode.reset();
+    sky.reset();
     edgeTree.reset();
     outputNode.reset();
 
@@ -460,34 +477,42 @@ void MyceliaModel::process(const ProcessContext &context)
         return;
     }
 
+    // Set up processing contexts
+    juce::dsp::AudioBlock<float> dryBlock(dryBuffer);
+    juce::dsp::AudioBlock<float> skyBlock(skyBuffer);
+    juce::dsp::AudioBlock<float> wetBlock(context.getOutputBlock());
+
+    juce::dsp::ProcessContextReplacing<float> dryContext(dryBlock);
+    juce::dsp::ProcessContextReplacing<float> skyContext(skyBlock);
+    juce::dsp::ProcessContextReplacing<float> wetContext(wetBlock);
+
     // Allocate buffers if needed
     allocateBandBuffers(currentDelayNetworkParams.numActiveFilterBands);
 
     // Process through input node
     inputNode.process(context);
 
-    // Set up processing contexts
-    juce::dsp::AudioBlock<float> dryBlock(dryBuffer);
-    // juce::dsp::AudioBlock<float> skyBlock(skyBuffer);
-    juce::dsp::AudioBlock<float> wetBlock(context.getOutputBlock());
-
     // Keep "dry" signal - post input conditioning
     dryBuffer.setSize(numChannels, numSamples, false, false, true);
     dryBlock.copyFrom(outputBlock);
 
-    juce::dsp::ProcessContextReplacing<float> dryContext(dryBlock);
-    juce::dsp::ProcessContextReplacing<float> wetContext(wetBlock);
-
-    // Mix in the reverb signal (with gain of 0.5f * the reverb mix parameter)
+    // Mix in the reverb signal (with gain of 0.45f * the reverb mix parameter)
     auto reverbMix = ParameterRanges::normalizeParameter(ParameterRanges::reverbMixRange, currentInputParams.reverbMix);
-    skyBlock.multiplyBy(0.5f * reverbMix);
+    skyBlock.multiplyBy(0.45f * reverbMix);
     wetBlock.replaceWithSumOf(skyBlock, dryBlock);
 
-    // Process "dry" signal through EdgeTree
+    // Process "dry" (+ reverb) signal through EdgeTree
     edgeTree.process(wetContext);
 
     // Process through the DelayNetwork
     delayNetwork.process(wetContext, diffusionBandBuffers, delayBandBuffers);
+
+    // Make another copy for sky processing
+    skyBuffer.setSize(numChannels, numSamples, false, false, true);
+    skyBlock.copyFrom(wetBlock);
+
+    // Process through the Sky processor
+    sky.process(skyContext);
 
     // Output mixing stage
     outputNode.process(wetContext, dryContext, diffusionBandBuffers, delayBandBuffers);
