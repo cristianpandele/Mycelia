@@ -96,22 +96,9 @@ void DelayNodes::process(std::vector<std::unique_ptr<juce::AudioBuffer<float>>> 
         // Get the input buffer for this band
         auto& inputBuffer = delayBandBuffers[band];
 
-        // Copy input to the first processor buffer
-        auto &firstBuffer = getProcessorBuffer(band, 0);
-        firstBuffer.setSize(inputBuffer->getNumChannels(), inputBuffer->getNumSamples(), false, false, true);
-        firstBuffer.makeCopyOf(*inputBuffer);
-
         // Process through each delay processor with its own persistent context
         for (size_t i = 0; i < bands[band].delayProcs.size(); ++i)
         {
-            // If not the first processor, copy from previous processor's buffer
-            if (i > 0)
-            {
-                auto &currentBuffer = getProcessorBuffer(band, i);
-                currentBuffer.setSize(inputBuffer->getNumChannels(), inputBuffer->getNumSamples(), false, false, true);
-                currentBuffer.makeCopyOf(getProcessorBuffer(band, i - 1));
-            }
-
             // Process the current node
             processNode(band, i);
 
@@ -357,7 +344,7 @@ void DelayNodes::allocateDelayProcessors(int numColonies, int numNodes)
 }
 
 // Process a specific band and processor stage with its own context
-void DelayNodes::processNode(int band, size_t procIdx) //, juce::AudioBuffer<float>& input)
+void DelayNodes::processNode(int band, size_t procIdx)
 {
     if (band < 0 || band >= inNumColonies || procIdx >= numActiveProcsPerBand)
         return;
@@ -448,7 +435,7 @@ void DelayNodes::updateSidechainLevels()
 
                 for (int otherBand = 0; otherBand < inNumColonies; ++otherBand)
                 {
-                    if (otherBand != band) // Skip the current band
+                    if (otherBand != band)  // Skip the current band
                     {
                         const size_t otherNumProcs = bands[otherBand].delayProcs.size();
                         combinedLevel += bands[otherBand].bufferLevels[otherNumProcs - 1];
@@ -734,8 +721,8 @@ void DelayNodes::updateNodeInterconnections()
                         // Test for creating a connection
                         if (random.nextFloat() < pairEntanglementProbability)
                         {
-                            // Determine a connection strength (0.01-0.2)
-                            auto connectionStrength = random.nextFloat() / (5.0f + (1.0f - normEntanglement) + pairMinAge);
+                            // Determine a connection strength (0.1-0.25)
+                            auto connectionStrength = 0.1f + random.nextFloat() / (5.0f + (1.0f - normEntanglement) + pairMinAge);
                             // DBG("Creating new connection between band " << band1 << " proc " << proc1 << " and band " << band2 << " proc " << proc2 << " with strength " << connectionStrength);
                             bands[band1].interNodeConnections[proc1][band2][proc2] = connectionStrength;
                             bands[band2].interNodeConnections[proc2][band1][proc1] = connectionStrength;
