@@ -242,6 +242,8 @@ void MyceliaModel::parameterChanged(const juce::String &parameterID, float newVa
     else if (parameterID == IDs::reverbMix)
     {
         currentInputParams.reverbMix = newValue;
+        currentSkyParams.humidity = newValue;
+        currentSkyParams.height = (1.0f - newValue);
         inputNode.setParameters(currentInputParams);
     }
     else if (parameterID == IDs::bandpassFreq)

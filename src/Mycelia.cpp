@@ -419,6 +419,10 @@ void Mycelia::processMidiCcMessage(const juce::MidiMessage &midiMessage)
             auto reverbMixVal = ParameterRanges::denormalizeParameter(ParameterRanges::reverbMixRange, normCcValue);
             myceliaModel.setParameterExplicitly(IDs::reverbMix, reverbMixVal);
             magicState.getPropertyAsValue("reverbMix").setValue(reverbMixVal);
+            myceliaModel.setParameterExplicitly(IDs::skyHumidity, reverbMixVal);
+            magicState.getPropertyAsValue("skyHumidity").setValue(reverbMixVal);
+            myceliaModel.setParameterExplicitly(IDs::skyHeight, (1.0f - reverbMixVal));
+            magicState.getPropertyAsValue("skyHeight").setValue((1.0f - reverbMixVal));
             break;
         }
         case 4:
@@ -648,12 +652,12 @@ void Mycelia::valueChanged(juce::Value &value)
 
         if (child.isValid())
         {
-            id = juce::Identifier("title");
-            val = juce::String("Output XY");
+            val = juce::String("Output Sculpt");
             child = child.getChildWithProperty(id, val);
 
             if (child.isValid())
             {
+                id = juce::Identifier("title");
                 val = juce::String("Delay Duck Level");
                 child = child.getChildWithProperty(id, val);
 
