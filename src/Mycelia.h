@@ -61,7 +61,7 @@ class Mycelia :
         //==============================================================================
     private:
         // Timer callback function
-        void timerCallback();
+        void timerCallback() override;
 
         // MAGIC GUI: this is a shorthand where the samples to display are fed to
         foleys::MagicPlotSource *oscilloscope = nullptr;

@@ -18,6 +18,7 @@ Sky::Sky()
     // Manual parameter initialization - we'll set them directly in paramStorage
     // since there's an issue with setFloatParam
     reverb->initVoiceEffect();
+    startTimer(500); // Start the timer for parameter updates
 }
 
 Sky::~Sky()
@@ -110,7 +111,6 @@ void Sky::setParameters(const Parameters &params)
     {
         inHumidity = params.humidity;
         humidityChanged = true;
-        triggerAsyncUpdate();
     }
 
     // Map height (0-100) to position (0-1) and pitch (-0.5 to 0.5)
@@ -118,11 +118,10 @@ void Sky::setParameters(const Parameters &params)
     {
         inHeight = params.height;
         heightChanged = true;
-        triggerAsyncUpdate();
     }
 }
 
-void Sky::handleAsyncUpdate()
+void Sky::timerCallback()
 {
     if (humidityChanged)
     {

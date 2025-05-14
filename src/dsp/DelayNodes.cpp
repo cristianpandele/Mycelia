@@ -589,7 +589,7 @@ void DelayNodes::timerCallback()
         if (bands[0].delayProcs[0]->getAge() > 0.001f)
         {
             // Periodically update the inter-node connections in asynchronous manner
-            triggerAsyncUpdate();
+            updateNodeInterconnections();
         }
     }
 }

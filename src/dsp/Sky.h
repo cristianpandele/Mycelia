@@ -8,7 +8,7 @@
  * Sky processor that uses Nimbus granular effect from SST
  */
 class Sky
-    : private juce::AsyncUpdater
+    : private juce::Timer
 {
     public:
         struct Parameters
@@ -51,7 +51,7 @@ class Sky
             NUM_PARAMS
         };
 
-        void handleAsyncUpdate() override;
+        void timerCallback() override;
 
         // Booleans for parameter changes
         bool  humidityChanged = false;
