@@ -473,7 +473,7 @@ void DelayNodes::updateSidechainLevels()
         }
     }
 
-    averageScarcityAbundance = -1.0f + (averageScarcityAbundance * numActiveProcsPerBand) + inScarcityAbundance;
+    averageScarcityAbundance = -1.0f + (averageScarcityAbundance * inNumColonies) + inScarcityAbundance;
 
     // For each band and processor
     for (int band = 0; band < inNumColonies; ++band)
@@ -575,9 +575,9 @@ void DelayNodes::updateTreePositions()
         // treeConnections[band].resize(numActiveTrees);
         for (int tree = 0; tree < numActiveTrees; ++tree)
         {
-            // Determine if this band connects to this tree (50% probability)
+            // Determine if this band connects to this tree (25% probability)
             // Always connect the last tree (output tree) to all bands
-            if (tree == numActiveTrees - 1 || random.nextFloat() < 0.50f)
+            if (tree == numActiveTrees - 1 || random.nextFloat() < 0.25f)
             {
                 *bands[band].treeConnections[tree] = 1.0f; // Connected
             }
@@ -794,8 +794,8 @@ void DelayNodes::updateNodeInterconnections()
                         // Test for creating a connection
                         if (random.nextFloat() < pairEntanglementProbability)
                         {
-                            // Determine a connection strength (0.1-0.25)
-                            auto connectionStrength = 0.1f + random.nextFloat() / (5.0f + (1.0f - normEntanglement) + pairMinAge);
+                            // Determine a connection strength (0.2-0.55)
+                            auto connectionStrength = 0.2f + random.nextFloat() / (5.0f + (1.0f - normEntanglement) + pairMinAge);
                             // DBG("Creating new connection between band " << band1 << " proc " << proc1 << " and band " << band2 << " proc " << proc2 << " with strength " << connectionStrength);
                             bands[band1].interNodeConnections[proc1][band2][proc2] = connectionStrength;
                             bands[band2].interNodeConnections[proc2][band1][proc1] = connectionStrength;
