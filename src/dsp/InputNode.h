@@ -41,12 +41,13 @@ class InputNode
         float waveshaperDrive = 50.0f;
         float waveshaperLowpass = 100.0f;
         float waveshaperHighpass = 8000.0f;
-        static constexpr float waveshaperBias = 0.0f;
+        static constexpr float waveshaperBias     = 0.0f;
         static constexpr float waveshaperPostgain = 0.0f;
-        static constexpr int waveshaperType = (int)sst::waveshapers::WaveshaperType::wst_ojd;
+        static constexpr int waveshaperType       = (int)sst::waveshapers::WaveshaperType::wst_ojd;
+
         // Booleans for parameter changes
-        bool gainChanged = false;
-        bool filterChanged = false;
+        bool gainChanged      = false;
+        bool filterChanged    = false;
         bool reverbMixChanged = false;
 
         // Input gain

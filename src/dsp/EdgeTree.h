@@ -28,10 +28,11 @@ class EdgeTree
         void process(const ProcessContext &context);
 
         void setParameters(const Parameters &params);
-        void timerCallback();
 
     private:
         EnvelopeFollower envelopeFollower;
+
+        void timerCallback();
 
         float inTreeSize = 1.0f;
         float inTreeDensity = 0.0f;

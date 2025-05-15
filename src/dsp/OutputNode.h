@@ -41,9 +41,10 @@ class OutputNode
             std::vector<std::unique_ptr<juce::AudioBuffer<float>>> &delayBandBuffers);
 
         void setParameters(const Parameters &params);
-        void timerCallback();
 
     private:
+        void timerCallback();
+
         float fs = 44100.0f;
 
         float inDryWetMixLevel;
