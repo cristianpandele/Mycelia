@@ -609,13 +609,13 @@ void DelayNodes::updateFoldWindow()
         rect.getWritePointer(0, winPosition),
         winSize,
         juce::dsp::WindowingFunction<float>::rectangular,
-        false);
+        true);
 
     juce::dsp::WindowingFunction<float>::fillWindowingTables(
         hann.getWritePointer(0, winPosition),
         winSize,
         juce::dsp::WindowingFunction<float>::hann,
-        false);
+        true);
 
     juce::dsp::AudioBlock<float> foldBlock(fold);
     juce::dsp::AudioBlock<float> rectBlock(rect);
