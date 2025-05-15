@@ -93,10 +93,10 @@
             pos-width="30%" pos-x="70%" margin="5" radius="10" pos-y="0%"
             pos-height="100%" background-color="D03C66C8" caption-color="white"
             flex-wrap="nowrap" flex-align-content="">
-        <Slider caption="Reverb Mix" parameter="reverbmix" lookAndFeel="FoleysFinest"
+        <Slider caption="Reverb" parameter="reverbmix" lookAndFeel="FoleysFinest"
                 slider-type="rotary" caption-placement="centred-top" slider-textbox="textbox-below"
                 flex-align-self="stretch" pos-height="80%" pos-y="10%" suffix="%"
-                pos-width="33%" pos-x="67%" tooltip="The amount of reverb feeding back into the system"
+                pos-width="33%" pos-x="67%" tooltip="Push the sky away"
                 radius="40" caption-color="white" slider-text="black" slider-text-outline="transparentwhite"
                 background-gradient="linear-gradient(327,0% d03c66c8,100% a0edc834)"/>
         <Plot source="oscilloscope" pos-width="66%" pos-height="100%" flex-align-self="center"
