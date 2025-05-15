@@ -24,7 +24,6 @@ class Mycelia :
     public foleys::MagicProcessor,
     private juce::AudioProcessorValueTreeState::Listener,
     private juce::Value::Listener,
-    private juce::AsyncUpdater,
     private juce::Timer
 {
     public:
@@ -88,8 +87,6 @@ class Mycelia :
 
         void updateMidiClockSyncStatus();
         void valueChanged(juce::Value &value) override;
-
-        void handleAsyncUpdate() override;
 
         // Process MIDI messages
         void processMidiMessages(const juce::MidiBuffer &midiMessages);

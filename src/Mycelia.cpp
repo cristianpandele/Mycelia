@@ -244,12 +244,6 @@ void Mycelia::processBlock(juce::AudioBuffer<float> &buffer, juce::MidiBuffer &m
     delayDuckLevel.setValue(myceliaModel.getParameterValue(IDs::delayDuck));
     dryWetLevel.setValue(myceliaModel.getParameterValue(IDs::dryWet));
 
-    // Trigger the async update to push the samples to the GUI
-    triggerAsyncUpdate();
-}
-
-void Mycelia::handleAsyncUpdate()
-{
     /////////////
     // MAGIC GUI: push the input samples to be displayed
     inputAnalyser->pushSamples(inputBuffer);
