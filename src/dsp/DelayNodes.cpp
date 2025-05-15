@@ -213,15 +213,14 @@ void DelayNodes::updateDelayProcParams()
             params.feedback = 1.0f;
             params.growthRate = inGrowthRate;
             params.baseDelayMs = inBaseDelayMs;
-            if (inBandFrequencies[band])
+            if (bands[band].inBandFrequency)
             {
-                params.filterFreq = inBandFrequencies[band];
+                params.filterFreq = bands[band].inBandFrequency;
             }
             else
             {
                 params.filterFreq = 0.0f; // Default to 0.0 if no frequency is set
             }
-            // params.filterFreq = *inBandFrequencies[band];
             params.filterGainDb = 0.0f;
             params.revTimeMs = 0.0f;
 
@@ -246,27 +245,83 @@ void DelayNodes::setParameters(const Parameters &params)
     allocateDelayProcessors(params.numColonies);
 
     inNumColonies = params.numColonies;
-    inBandFrequencies.clear();
-    for (const auto& freq : params.bandFrequencies)
-    {
-        inBandFrequencies.push_back(freq);
-    }
-    inStretch = params.stretch;
-    inScarcityAbundance = params.scarcityAbundance;
-    inFoldPosition = params.foldPosition;
-    inFoldWindowShape = params.foldWindowShape;
-    inFoldWindowSize = params.foldWindowSize;
-    inGrowthRate = params.growthRate;
-    inEntanglement = params.entanglement;
-    inBaseDelayMs = params.baseDelayMs;
-    inCompressorParams = params.compressorParams;
-    inUseExternalSidechain = params.useExternalSidechain;
-    inTreeDensity = params.treeDensity;
 
-    updateDelayProcParams();
-    updateTreePositions();
-    updateNodeInterconnections();
-    updateFoldWindow();
+    for (size_t band = 0; band < inNumColonies; ++band)
+    {
+        // If we find a single difference in the band frequencies, we need to update all of them
+        if (bands[band].inBandFrequency != params.bandFrequencies[band])
+        {
+            for (size_t band = 0; band < inNumColonies; ++band)
+            {
+                bands[band].inBandFrequency = params.bandFrequencies[band];
+            }
+            bandFrequenciesChanged = true;
+            break;
+        }
+    }
+
+    if (std::abs(inStretch - params.stretch) > 0.01f)
+    {
+        stretchChanged = true;
+        inStretch = params.stretch;
+    }
+    if (std::abs(inScarcityAbundance - params.scarcityAbundance) > 0.01f)
+    {
+        scarcityAbundanceChanged = true;
+        inScarcityAbundance = params.scarcityAbundance;
+    }
+    if (std::abs(inFoldPosition - params.foldPosition) > 0.01f)
+    {
+        foldPositionChanged = true;
+        inFoldPosition = params.foldPosition;
+    }
+    if (std::abs(inFoldWindowShape - params.foldWindowShape) > 0.01f)
+    {
+        foldWindowShapeChanged = true;
+        inFoldWindowShape = params.foldWindowShape;
+    }
+    if (std::abs(inFoldWindowSize - params.foldWindowSize) > 0.01f)
+    {
+        foldWindowSizeChanged = true;
+        inFoldWindowSize = params.foldWindowSize;
+    }
+    if (std::abs(inEntanglement - params.entanglement) > 0.01f)
+    {
+        entanglementChanged = true;
+        inEntanglement = params.entanglement;
+    }
+    if (std::abs(inGrowthRate - params.growthRate) > 0.01f)
+    {
+        growthRateChanged = true;
+        inGrowthRate = params.growthRate;
+    }
+    if (std::abs(inBaseDelayMs - params.baseDelayMs) > 0.01f)
+    {
+        baseDelayChanged = true;
+        inBaseDelayMs = params.baseDelayMs;
+    }
+    if (std::abs(inTreeDensity - params.treeDensity) > 0.01f)
+    {
+        treeDensityChanged = true;
+        inTreeDensity = params.treeDensity;
+    }
+
+    if (inCompressorParams.attackTime != params.compressorParams.attackTime ||
+        inCompressorParams.releaseTime != params.compressorParams.releaseTime ||
+        inCompressorParams.kneeWidth != params.compressorParams.kneeWidth ||
+        inCompressorParams.ratio != params.compressorParams.ratio ||
+        inCompressorParams.threshold != params.compressorParams.threshold ||
+        inCompressorParams.makeupGain != params.compressorParams.makeupGain)
+    {
+        compressorParamsChanged = true;
+        inCompressorParams = params.compressorParams;
+    }
+
+    if (inUseExternalSidechain != params.useExternalSidechain)
+    {
+        useExternalSidechainChanged = true;
+        inUseExternalSidechain = params.useExternalSidechain;
+    }
 }
 
 // Allocate delay processors and buffers based on the number of colonies
@@ -584,19 +639,37 @@ void DelayNodes::updateFoldWindow()
 
 void DelayNodes::timerCallback()
 {
+    if (baseDelayChanged || bandFrequenciesChanged || stretchChanged || growthRateChanged || useExternalSidechainChanged || compressorParamsChanged)
+    {
+        updateDelayProcParams();
+        useExternalSidechainChanged = false;
+        compressorParamsChanged = false;
+        bandFrequenciesChanged = false;
+        stretchChanged = false;
+        growthRateChanged = false;
+        baseDelayChanged = false;
+    }
+
+    if (treeDensityChanged)
+    {
+        updateTreePositions();
+        treeDensityChanged = false;
+    }
     if (bands[0].delayProcs[0])
     {
-        if (bands[0].delayProcs[0]->getAge() > 0.001f)
+        if ((bands[0].delayProcs[0]->getAge() > 0.001f) || entanglementChanged)
         {
-            // Periodically update the inter-node connections in asynchronous manner
             updateNodeInterconnections();
+            entanglementChanged = false;
         }
     }
-}
-
-void DelayNodes::handleAsyncUpdate()
-{
-    updateNodeInterconnections();
+    if (foldPositionChanged || foldWindowShapeChanged || foldWindowSizeChanged)
+    {
+        updateFoldWindow();
+        foldPositionChanged = false;
+        foldWindowShapeChanged = false;
+        foldWindowSizeChanged = false;
+    }
 }
 
 // Get the flow of sibling nodes into a specific band and processor

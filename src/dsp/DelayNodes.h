@@ -12,8 +12,7 @@
  * Each input gets its own DelayProc with different delay parameters
  */
 class DelayNodes :
-    private juce::Timer,
-    private juce::AsyncUpdater
+    private juce::Timer
 {
     public:
         // Parameters
@@ -60,6 +59,9 @@ class DelayNodes :
 
             // Vector to store delay times for each colony and processor
             std::vector<float> nodeDelayTimes;
+
+            // Band center frequency
+            float inBandFrequency = 0.0f;
 
             // Vector of matrices to store connection strengths between nodes
             std::vector<std::vector<std::vector<float>>> interNodeConnections;
@@ -119,7 +121,6 @@ class DelayNodes :
 
         // Parameters for delay network
         int inNumColonies = ParameterRanges::maxNutrientBands;
-        std::vector<float> inBandFrequencies;
         float inStretch = 0.0f;
         float inScarcityAbundance = 0.0f;
         float inFoldPosition = 0.0f;
@@ -128,6 +129,20 @@ class DelayNodes :
         float inEntanglement = 0.5f;
         float inGrowthRate = 0.5f;
         float inBaseDelayMs = 500.0f;
+
+        // Boolean flags for parameter changes
+        bool bandFrequenciesChanged = false;
+        bool treeDensityChanged = false;
+        bool stretchChanged = false;
+        bool scarcityAbundanceChanged = false;
+        bool foldPositionChanged = false;
+        bool foldWindowShapeChanged = false;
+        bool foldWindowSizeChanged = false;
+        bool entanglementChanged = false;
+        bool growthRateChanged = false;
+        bool useExternalSidechainChanged = false;
+        bool compressorParamsChanged = false;
+        bool baseDelayChanged = false;
 
         // Compressor parameters
         DuckingCompressor::Parameters inCompressorParams;
@@ -141,10 +156,7 @@ class DelayNodes :
         std::vector<float> foldWindow;
 
         // Timer callback function
-        void timerCallback();
-
-        // The async updater function
-        void handleAsyncUpdate() override;
+        void timerCallback() override;
 
         // Update sum of outgoing connections
         void normalizeOutgoingConnections(int band, size_t procIdx);

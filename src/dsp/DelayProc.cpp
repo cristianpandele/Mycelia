@@ -214,21 +214,41 @@ void DelayProc::setParameters (const Parameters& params, bool force)
 
         if (delayChanged)
         {
-            Utils::updateSmoothParameter(inDelayTime, fs, delaySamples, rampTimeSec);
+            Utils::updateSmoothParameter(
+                inDelayTime,
+                fs,
+                delaySamples,
+                rampTimeSec);
         }
         if (fbChanged)
         {
-            Utils::updateSmoothParameter(inFeedback, fs, fbVal, rampTimeSec);
+            Utils::updateSmoothParameter(
+                inFeedback,
+                fs,
+                fbVal,
+                rampTimeSec);
         }
         if (filterFreqChanged || filterGainChanged)
         {
-            Utils::updateSmoothParameter(inFilterFreq, fs, filterFreq, rampTimeSec);
-            Utils::updateSmoothParameter(inFilterGainDb, fs, filterGainDb, rampTimeSec);
+            Utils::updateSmoothParameter(
+                inFilterFreq,
+                fs,
+                filterFreq,
+                rampTimeSec);
+            Utils::updateSmoothParameter(
+                inFilterGainDb,
+                fs,
+                filterGainDb,
+                rampTimeSec);
             updateFilterCoefficients(force);
         }
         if (growthRateChanged)
         {
-            Utils::updateSmoothParameter(inGrowthRate, fs, growthRate, rampTimeSec);
+            Utils::updateSmoothParameter(
+                inGrowthRate,
+                fs,
+                growthRate,
+                rampTimeSec);
         }
     }
 
