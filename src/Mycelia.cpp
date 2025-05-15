@@ -229,6 +229,9 @@ void Mycelia::processBlock(juce::AudioBuffer<float> &buffer, juce::MidiBuffer &m
         buffer.clear(i, 0, buffer.getNumSamples());
     }
 
+    juce::dsp::AudioBlock<float> attBlock(buffer);
+    attBlock.multiplyBy(0.5f);
+
     // Copy the samples to the input buffer
     inputBuffer = buffer;
 
