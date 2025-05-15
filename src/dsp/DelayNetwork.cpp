@@ -1,9 +1,10 @@
 #include "DelayNetwork.h"
+#include "util/Utils.h"
 
 DelayNetwork::DelayNetwork()
 {
     diffusionBandFrequencies.resize(ParameterRanges::maxNutrientBands);
-    startTimerHz(2); // Start the timer for parameter updates
+    startTimerHz(4); // Start the timer for parameter updates
 }
 
 DelayNetwork::~DelayNetwork()

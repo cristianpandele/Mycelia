@@ -11,7 +11,7 @@ Sky::Sky()
     reverbParams[ReverbParams::BUILDUP]    = 1.0f;     // Full buildup
     reverbParams[ReverbParams::MODULATION] = 0.5f;     // Medium modulation
     reverbParams[ReverbParams::LF_DAMPING] = 0.2f;     // Some LF damping
-    reverbParams[ReverbParams::HF_DAMPING] = 0.2f;     // Some HF damping
+    reverbParams[ReverbParams::HF_DAMPING] = 0.35f;    // Some HF damping
 
     // Initialize the reverb effect
     reverb = std::make_unique<sst::voice_effects::liftbus::LiftedReverb2<VFXConfig>>();

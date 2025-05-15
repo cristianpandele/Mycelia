@@ -99,9 +99,10 @@ class DelayProc
         float inputLevel  = 0.0f;
         float outputLevel = 0.0f;
         static constexpr float inputLevelMetabolicThreshold = 0.01f;
-        EnvelopeFollower::Parameters inEnvelopeFollowerParams = {
-            .attackMs = 250.0f,
-            .releaseMs = 150.0f,
+        EnvelopeFollower::Parameters inEnvelopeFollowerParams =
+        {
+            .attackMs = 150.0f,
+            .releaseMs = 25.0f,
             .levelType = juce::dsp::BallisticsFilterLevelCalculationType::RMS
         };
 

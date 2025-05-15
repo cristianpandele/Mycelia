@@ -164,9 +164,10 @@ class MyceliaModel :
             .dryWetMixLevel = 0.0f,
             .delayDuckLevel = 0.0f,
             .numActiveBands = 4,
-            .envelopeFollowerParams = {
-                .attackMs = 2.0f,
-                .releaseMs = 1.0f,
+            .envelopeFollowerParams =
+            {
+                .attackMs = 200.0f,
+                .releaseMs = 100.0f,
                 .levelType = juce::dsp::BallisticsFilterLevelCalculationType::RMS
             },
         };
