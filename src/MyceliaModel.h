@@ -93,6 +93,12 @@ class MyceliaModel :
 
         float getAverageScarcityAbundance() const { return delayNetwork.getAverageScarcityAbundance(); }
 
+        // Access delay band buffers after processing
+        const std::vector<std::unique_ptr<juce::AudioBuffer<float>>>& getDelayBandBuffers() const { return delayBandBuffers; }
+
+        // Get the number of active bands
+        int getNumActiveFilterBands() const { return currentDelayNetworkParams.numActiveFilterBands; }
+
     private:
         size_t numChannels = 2;
         size_t blockSize = 512;

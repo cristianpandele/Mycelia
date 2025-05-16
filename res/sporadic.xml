@@ -35,9 +35,14 @@
                pos-width="60%" pos-x="20%" radius="5" outline-color="FF0D0E30"
                border-color="transparentwhite" background-color="transparentwhite"/>
       </View>
-      <Plot source="output" plot-color="10808080" pos-width="90%" pos-height="100%"
-            flex-align-self="center" margin="5" padding="2" border="1" pos-x="5%"
-            radius="10" id="Main Analyser" pos-y="0%" border-color="D095469E"/>
+      <Plot source="delayBand0" pos-x="5%" pos-width="90%" plot-fill-color="transparentwhite"
+            background-color="transparentwhite"/>
+      <Plot source="delayBand1" pos-x="5%" pos-width="90%" plot-fill-color="transparentwhite"
+            plot-color="FFDF3C3C" background-alpha="0" background-color="transparentwhite"/>
+      <Plot source="delayBand2" pos-x="5%" pos-width="90%" plot-fill-color="transparentwhite"
+            plot-color="FF66AB4C" background-color="transparentwhite"/>
+      <Plot source="delayBand3" pos-x="5%" pos-width="90%" plot-fill-color="transparentwhite"
+            plot-color="FFE6E25A" background-color="transparentwhite"/>
       <View flex-align-self="center" display="contents" border="0" pos-x="95%"
             pos-width="5%" pos-y="1%" caption="Out Level" border-color="FFEA1212"
             margin="" padding="" flex-align-content="center" flex-direction="row"
@@ -99,16 +104,16 @@
         <Slider caption="Reverb" parameter="reverbmix" lookAndFeel="FoleysFinest"
                 slider-type="rotary" caption-placement="centred-top" slider-textbox="textbox-below"
                 flex-align-self="stretch" pos-height="80%" pos-y="10%" suffix="%"
-                pos-width="33%" pos-x="67%" tooltip="Push the sky away"
-                radius="40" caption-color="white" slider-text="black" slider-text-outline="transparentwhite"
+                pos-width="33%" pos-x="67%" tooltip="Push the sky away" radius="40"
+                caption-color="white" slider-text="black" slider-text-outline="transparentwhite"
                 background-gradient="linear-gradient(327,0% d03c66c8,100% a0edc834)"/>
         <Plot source="oscilloscope" pos-width="66%" pos-height="100%" flex-align-self="center"
               margin="0" padding="4" border="0" pos-x="0%" radius="10" pos-y="0%"
               id="Output Analyser" background-color="60FFFAF0" plot-fill-color="0160D1"
               plot-inactive-color="orange" plot-color="3C66D8" caption-placement="top-right"
               caption-color="silver" caption="Dry/Wet vs Delay Duck Level"/>
-        <DuckLevelAnimation title="Delay Duck Level" duckLevel="0.0" background-color="transparentwhite"
-                            dryWetLevel="0.0" pos-x="0%" pos-y="0%" pos-width="66%"
+        <DuckLevelAnimation title="Delay Duck Level" duckLevel="0.541100025177002" background-color="transparentwhite"
+                            dryWetLevel="0.6299999952316284" pos-x="0%" pos-y="0%" pos-width="66%"
                             pos-height="100%" caption-placement=""/>
         <XYDragComponent pos-y="25%" pos-height="67.5%" pos-x="0%" pos-width="66%" margin="0"
                          padding="4" border="0" xy-jump-to-click="1" lookAndFeel="FoleysFinest"
