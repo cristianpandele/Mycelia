@@ -89,6 +89,53 @@ class DuckLevelViewItem : public foleys::GuiItem
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DuckLevelViewItem)
 };
 
+// Fold Window animation component that displays the fold window from DelayNodes
+class FoldWindowAnimation : public juce::Component
+{
+    public:
+        enum ColourIDs
+        {
+            backgroundColourId,
+            windowColourId,
+            gridColourId
+        };
+
+        FoldWindowAnimation();
+        ~FoldWindowAnimation() override;
+
+        void setWindowSize(float size);
+        void setWindowShape(float shape);
+        void setWindowPosition(float position);
+        void updateFoldWindow();
+        void paint(juce::Graphics &g) override;
+
+    private:
+        std::vector<float> windowValues;
+        float windowSize = 0.0f;
+        float windowShape = 0.0f;
+        float windowPosition = 0.0f;
+
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FoldWindowAnimation)
+};
+
+// This class creates and configures the fold window animation component
+class FoldWindowViewItem : public foleys::GuiItem
+{
+    public:
+        FOLEYS_DECLARE_GUI_FACTORY(FoldWindowViewItem)
+
+        FoldWindowViewItem(foleys::MagicGUIBuilder &builder, const juce::ValueTree &node);
+
+        std::vector<foleys::SettableProperty> getSettableProperties() const override;
+        void update() override;
+        juce::Component *getWrappedComponent() override;
+
+    private:
+        FoldWindowAnimation foldAnimation;
+
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FoldWindowViewItem)
+};
+
 // ==========================================================================
 
 // This class is creating and configuring your custom component

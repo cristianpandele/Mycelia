@@ -85,6 +85,10 @@ class Mycelia :
         juce::Value delayDuckLevel{0.0f};
         juce::Value dryWetLevel{0.0f};
 
+        juce::Value windowSizeVal{0.0f};
+        juce::Value windowShapeVal{0.0f};
+        juce::Value windowPosVal{0.0f};
+
         void updateMidiClockSyncStatus();
         void valueChanged(juce::Value &value) override;
 

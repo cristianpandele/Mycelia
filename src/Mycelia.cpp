@@ -52,6 +52,10 @@ Mycelia::Mycelia()
     delayDuckLevel.addListener(this);
     dryWetLevel.addListener(this);
 
+    windowSizeVal.addListener(this);
+    windowShapeVal.addListener(this);
+    windowPosVal.addListener(this);
+
     magicState.setGuiValueTree(BinaryData::sporadic_xml, BinaryData::sporadic_xmlSize);
 
     midiLabel.setValue("MIDI Clock Sync Inactive");
@@ -151,6 +155,7 @@ void Mycelia::initialiseBuilder(foleys::MagicGUIBuilder &builder)
     // Register your custom GUI components here
     builder.registerFactory("MyceliaAnimation", &MyceliaViewItem::factory);
     builder.registerFactory("DuckLevelAnimation", &DuckLevelViewItem::factory);
+    builder.registerFactory("FoldWindowAnimation", &FoldWindowViewItem::factory);
 
     // Save a reference to the builder for later use
     magicBuilder = &builder;
@@ -246,6 +251,11 @@ void Mycelia::processBlock(juce::AudioBuffer<float> &buffer, juce::MidiBuffer &m
     // Get the current delay duck and dry/wet level (valueChanged() will trigger updating the GUI)
     delayDuckLevel.setValue(myceliaModel.getParameterValue(IDs::delayDuck));
     dryWetLevel.setValue(myceliaModel.getParameterValue(IDs::dryWet));
+
+    // Get the current delay duck and dry/wet level (valueChanged() will trigger updating the GUI)
+    windowSizeVal.setValue(myceliaModel.getParameterValue(IDs::foldWindowSize));
+    windowShapeVal.setValue(myceliaModel.getParameterValue(IDs::foldWindowShape));
+    windowPosVal.setValue(myceliaModel.getParameterValue(IDs::foldPosition));
 
     /////////////
     // MAGIC GUI: push the input samples to be displayed
@@ -677,6 +687,45 @@ void Mycelia::valueChanged(juce::Value &value)
         scarAbundOverridden.setValue(true);
         updateScarcityAbundanceLabel();
         startTimer(1000); // Update the Scarcity/Abundance label every 1 seconds
+    }
+    if ((value == windowSizeVal) || (value == windowShapeVal) || (value == windowPosVal))
+    {
+        // Update the GUI to reflect the fold window size
+        auto tree = magicBuilder->getGuiRootNode();
+        auto id = foleys::IDs::caption;
+
+        // Set the background colour of the label
+        auto val = juce::String("XY Controls");
+        auto child = tree.getChildWithProperty(id, val);
+
+        if (child.isValid())
+        {
+            id = juce::Identifier("title");
+            val = juce::String("Fold XY");
+            child = child.getChildWithProperty(id, val);
+
+            if (child.isValid())
+            {
+                val = juce::String("Fold Window Display");
+                child = child.getChildWithProperty(id, val);
+
+                if (child.isValid())
+                {
+                    if (value == windowSizeVal)
+                    {
+                        child.setProperty("windowSize", value.getValue(), nullptr);
+                    }
+                    else if (value == windowShapeVal)
+                    {
+                        child.setProperty("windowShape", value.getValue(), nullptr);
+                    }
+                    else if (value == windowPosVal)
+                    {
+                        child.setProperty("windowPos", value.getValue(), nullptr);
+                    }
+                }
+            }
+        }
     }
 }
 

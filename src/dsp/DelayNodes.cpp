@@ -601,9 +601,9 @@ void DelayNodes::updateFoldWindow()
 
     // Populate the window buffers with the appropriate windowing functions
     auto winSize = static_cast<size_t>(std::ceil(inFoldWindowSize * maxNumDelayProcsPerBand));
-    winSize = std::max(static_cast<size_t>(4), winSize);
+    winSize = std::max(static_cast<size_t>(3), winSize);
 
-    auto winPosition = static_cast<size_t>(std::ceil((maxNumDelayProcsPerBand - winSize) * inFoldPosition));
+    auto winPosition = static_cast<size_t>(std::floor((maxNumDelayProcsPerBand - winSize) * inFoldPosition));
 
     juce::dsp::WindowingFunction<float>::fillWindowingTables(
         rect.getWritePointer(0, winPosition),
