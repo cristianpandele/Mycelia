@@ -35,19 +35,6 @@ class DelayNodes :
             bool useExternalSidechain = true;         // Whether to use cross-band sidechain input
         };
 
-        DelayNodes(size_t numBands = 4);
-        ~DelayNodes();
-
-        void prepare(const juce::dsp::ProcessSpec& spec);
-        void reset();
-
-        // Process each diffusion output with its own delay node
-        void process(std::vector<std::unique_ptr<juce::AudioBuffer<float>>> &diffusionBandBuffers);
-
-        void setParameters(const Parameters& params);
-        float getAverageScarcityAbundance() const { return averageScarcityAbundance; }
-
-    private:
         struct BandResources
         {
             std::vector<std::unique_ptr<DelayProc>> delayProcs;
@@ -75,7 +62,7 @@ class DelayNodes :
                 // Clear inter-node connections
                 for (auto &node : interNodeConnections)
                 {
-                    for (auto& bands : node)
+                    for (auto &bands : node)
                     {
                         bands.clear();
                     }
@@ -101,6 +88,22 @@ class DelayNodes :
             }
         };
 
+        DelayNodes(size_t numBands = 4);
+        ~DelayNodes();
+
+        void prepare(const juce::dsp::ProcessSpec& spec);
+        void reset();
+
+        // Process each diffusion output with its own delay node
+        void process(std::vector<std::unique_ptr<juce::AudioBuffer<float>>> &diffusionBandBuffers);
+
+        void setParameters(const Parameters& params);
+        float getAverageScarcityAbundance() const { return averageScarcityAbundance; }
+
+        // Get the contents of the fold window
+        std::vector<BandResources>& getBandState() { return bands; }
+
+    private:
         std::vector<BandResources> bands;
 
         // Allocate delay processors and buffers based on the number of colonies and nodes

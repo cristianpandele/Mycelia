@@ -46,7 +46,6 @@ Mycelia::Mycelia()
         delayBandOscilloscopes.push_back(magicState.createAndAddObject<foleys::MagicOscilloscope>(oscId));
     }
 
-
     midiLabel.referTo(magicState.getPropertyAsValue("midiClockStatus"));
     midiLabelVisibility.referTo(magicState.getPropertyAsValue("midiClockStatusVisibility"));
     midiClockDetected.addListener(this);
@@ -273,6 +272,13 @@ void Mycelia::processBlock(juce::AudioBuffer<float> &buffer, juce::MidiBuffer &m
 
     // Copy the processed samples to the output buffer
     outputBuffer = buffer;
+
+    // GUI Magic: update the input/output meters and analyzers
+    inputAnalyser->pushSamples(inputBuffer);
+    inputMeter->pushSamples(inputBuffer);
+
+    outputMeter->pushSamples(outputBuffer);
+    outputAnalyser->pushSamples(outputBuffer);
 }
 
 //==============================================================================
@@ -720,16 +726,32 @@ void Mycelia::timerCallback(const int timerID)
         delayDuckLevel.setValue(myceliaModel.getParameterValue(IDs::delayDuck));
         dryWetLevel.setValue(myceliaModel.getParameterValue(IDs::dryWet));
 
-        // Get the current delay duck and dry/wet level (valueChanged() will trigger updating the GUI)
+        // Get the current fold window parameters (valueChanged() will trigger updating the GUI)
         windowSizeVal.setValue(myceliaModel.getParameterValue(IDs::foldWindowSize));
         windowShapeVal.setValue(myceliaModel.getParameterValue(IDs::foldWindowShape));
         windowPosVal.setValue(myceliaModel.getParameterValue(IDs::foldPosition));
 
-        /////////////
-        // MAGIC GUI: push the input samples to be displayed
-        inputAnalyser->pushSamples(inputBuffer);
-        inputMeter->pushSamples(inputBuffer);
+        //////////////
+        // Get the current band states
+        auto& bandStates = myceliaModel.getBandStates();
 
+        // Update the delay band oscilloscopes
+        for (int i = 0; i < delayBandOscilloscopes.size(); ++i)
+        {
+            if (i < bandStates.size())
+            {
+                auto* oscope = delayBandOscilloscopes[i];
+                if (oscope != nullptr)
+                {
+                    // Get the current band state and push it to the corresponding oscilloscope
+                    auto& bandState = bandStates[i];
+                    oscope->pushSamples(*bandState.processorBuffers[0]);
+                }
+            }
+        }
+
+        /////////////
+        // MAGIC GUI: push the input samples to be displayed in the output sculpt visualization
         // Make a copy of the output buffer and normalize it to at most 10% of dynamic range before sending it to the oscilloscope
         juce::AudioBuffer<float> oscilloscopeBuffer = outputBuffer;
 
@@ -744,27 +766,6 @@ void Mycelia::timerCallback(const int timerID)
             normFactor = 0.1f / bufferRange.getEnd();
         }
 
-        // Push delay band buffers to their respective oscilloscopes
-        const auto &delayBandBuffers = myceliaModel.getDelayBandBuffers();
-        for (size_t i = 0; i < delayBandBuffers.size() && i < delayBandOscilloscopes.size(); ++i)
-        {
-            if (delayBandOscilloscopes[i] && delayBandBuffers[i])
-            {
-                // Create a copy of the delay band buffer to normalize
-                juce::AudioBuffer<float> bandOscBuffer;
-                bandOscBuffer.makeCopyOf(*delayBandBuffers[i]);
-
-                // Apply normalization
-                auto bandRange = bandOscBuffer.findMinMax(0, 0, bandOscBuffer.getNumSamples());
-                float bandNormFactor = (bandRange.getEnd() < 0.001f) ? 1.0f : (0.1f / bandRange.getEnd());
-                juce::dsp::AudioBlock<float> bandBlock(bandOscBuffer);
-                bandBlock.multiplyBy(bandNormFactor);
-
-                // Push to oscilloscope
-                delayBandOscilloscopes[i]->pushSamples(*delayBandBuffers[i]);
-            }
-        }
-
         juce::dsp::AudioBlock<float> oscilloscopeBlock(oscilloscopeBuffer);
         oscilloscopeBlock.multiplyBy(normFactor);
 
@@ -776,8 +777,6 @@ void Mycelia::timerCallback(const int timerID)
         oscilloscopeBlock.replaceWithSumOf(oscilloscopeBlock, dryWetMix);
 
         // MAGIC GUI: push the output samples to be displayed
-        outputMeter->pushSamples(outputBuffer);
-        outputAnalyser->pushSamples(outputBuffer);
         oscilloscope->pushSamples(oscilloscopeBuffer);
     }
     else if (timerID == kScarcityTimerId)

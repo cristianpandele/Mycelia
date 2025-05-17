@@ -42,6 +42,9 @@ class DelayNetwork
 
         float getAverageScarcityAbundance() const { return delayNodes.getAverageScarcityAbundance(); }
 
+        // Get the band states from the delay nodes
+        std::vector<DelayNodes::BandResources>& getBandStates() { return delayNodes.getBandState(); }
+
     private:
         float fs = 44100.0f;
 
@@ -87,7 +90,7 @@ class DelayNetwork
                 .makeupGain = 0.0f,
                 .enabled = true
             };
-        bool  useExternalSidechain = true;
+        bool useExternalSidechain = true;
 
         // Diffusion control
         DiffusionControl diffusionControl;
@@ -100,7 +103,10 @@ class DelayNetwork
         std::vector<std::unique_ptr<juce::AudioBuffer<float>>> diffusionBandBuffers;
         std::vector<std::unique_ptr<juce::AudioBuffer<float>>> delayBandBuffers;
 
+        // Update the diffusion and delay nodes parameters
         void updateDiffusionDelayNodesParams();
+
+        // Timer callback for parameter changes
         void timerCallback();
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DelayNetwork)

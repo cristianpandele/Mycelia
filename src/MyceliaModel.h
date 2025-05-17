@@ -6,6 +6,7 @@
 #include "dsp/Sky.h"
 #include "dsp/OutputNode.h"
 #include "dsp/DelayNetwork.h"
+#include "dsp/DelayNodes.h"
 
 #include <juce_dsp/juce_dsp.h>
 #include <juce_audio_processors/juce_audio_processors.h>
@@ -93,11 +94,11 @@ class MyceliaModel :
 
         float getAverageScarcityAbundance() const { return delayNetwork.getAverageScarcityAbundance(); }
 
-        // Access delay band buffers after processing
-        const std::vector<std::unique_ptr<juce::AudioBuffer<float>>>& getDelayBandBuffers() const { return delayBandBuffers; }
-
         // Get the number of active bands
         int getNumActiveFilterBands() const { return currentDelayNetworkParams.numActiveFilterBands; }
+
+        // Get the band states from the delay network
+        std::vector<DelayNodes::BandResources>& getBandStates() { return delayNetwork.getBandStates(); };
 
     private:
         size_t numChannels = 2;
