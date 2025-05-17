@@ -103,6 +103,9 @@ class DelayNodes :
         // Get the contents of the fold window
         std::vector<BandResources>& getBandState() { return bands; }
 
+        // Get the position of the trees in the network
+        std::vector<int>& getTreePositions() { return treePositions; }
+
     private:
         std::vector<BandResources> bands;
 

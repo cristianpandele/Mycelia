@@ -100,6 +100,9 @@ class MyceliaModel :
         // Get the band states from the delay network
         std::vector<DelayNodes::BandResources>& getBandStates() { return delayNetwork.getBandStates(); };
 
+        // Get the position of the trees in the network
+        std::vector<int>& getTreePositions() { return delayNetwork.getTreePositions(); };
+
     private:
         size_t numChannels = 2;
         size_t blockSize = 512;

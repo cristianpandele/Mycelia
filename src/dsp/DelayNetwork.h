@@ -45,6 +45,9 @@ class DelayNetwork
         // Get the band states from the delay nodes
         std::vector<DelayNodes::BandResources>& getBandStates() { return delayNodes.getBandState(); }
 
+        // Get the position of the trees in the network
+        std::vector<int>& getTreePositions() { return delayNodes.getTreePositions(); }
+
     private:
         float fs = 44100.0f;
 

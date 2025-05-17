@@ -750,6 +750,10 @@ void Mycelia::timerCallback(const int timerID)
             }
         }
 
+        //////////////
+        // Get the tree positions and push them to the GUI
+        auto& treePos = myceliaModel.getTreePositions();
+
         /////////////
         // MAGIC GUI: push the input samples to be displayed in the output sculpt visualization
         // Make a copy of the output buffer and normalize it to at most 10% of dynamic range before sending it to the oscilloscope
