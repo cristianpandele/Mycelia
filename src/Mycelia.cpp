@@ -62,6 +62,9 @@ Mycelia::Mycelia()
     windowShapeVal.addListener(this);
     windowPosVal.addListener(this);
 
+    treePositionsVal.addListener(this);
+    treeSizeVal.addListener(this);
+
     magicState.setGuiValueTree(BinaryData::sporadic_xml, BinaryData::sporadic_xmlSize);
 
     midiLabel.setValue("MIDI Clock Sync Inactive");
@@ -165,6 +168,7 @@ void Mycelia::initialiseBuilder(foleys::MagicGUIBuilder &builder)
     builder.registerFactory("MyceliaAnimation", &MyceliaViewItem::factory);
     builder.registerFactory("DuckLevelAnimation", &DuckLevelViewItem::factory);
     builder.registerFactory("FoldWindowAnimation", &FoldWindowViewItem::factory);
+    builder.registerFactory("TreePositionAnimation", &TreePositionViewItem::factory);
 
     // Save a reference to the builder for later use
     magicBuilder = &builder;
@@ -672,6 +676,43 @@ void Mycelia::valueChanged(juce::Value &value)
         }
     }
 
+    // Update the GUI to handle tree positions and size
+    if ((value == treePositionsVal) || (value == treeSizeVal))
+    {
+        // Update the GUI to reflect the tree positions and size
+        auto tree = magicBuilder->getGuiRootNode();
+        auto id = foleys::IDs::caption;
+
+        // Search for the component that displays tree positions
+        auto val = juce::String("XY Controls");
+        auto child = tree.getChildWithProperty(id, val);
+
+        if (child.isValid())
+        {
+            id = juce::Identifier("title");
+            val = juce::String("Fold XY");
+            child = child.getChildWithProperty(id, val);
+
+            if (child.isValid())
+            {
+                val = juce::String("Tree Display");
+                child = child.getChildWithProperty(id, val);
+
+                if (child.isValid())
+                {
+                    if (value == treePositionsVal)
+                    {
+                        child.setProperty("treePositions", value.getValue(), nullptr);
+                    }
+                    else if (value == treeSizeVal)
+                    {
+                        child.setProperty("treeSize", value.getValue(), nullptr);
+                    }
+                }
+            }
+        }
+    }
+
     if (value == scarAbundAuto)
     {
         scarAbundOverridden.setValue(true);
@@ -753,6 +794,21 @@ void Mycelia::timerCallback(const int timerID)
         //////////////
         // Get the tree positions and push them to the GUI
         auto& treePos = myceliaModel.getTreePositions();
+
+        // Convert tree positions to a comma-separated string
+        juce::String treePositionsStr;
+        for (int i = 0; i < treePos.size(); ++i)
+        {
+            treePositionsStr += juce::String(treePos[i]);
+            if (i < treePos.size() - 1)
+                treePositionsStr += ",";
+        }
+
+        // Update the tree positions value (valueChanged() will trigger updating the GUI)
+        treePositionsVal.setValue(treePositionsStr);
+
+        // Update the tree size
+        treeSizeVal.setValue(myceliaModel.getParameterValue(IDs::treeSize));
 
         /////////////
         // MAGIC GUI: push the input samples to be displayed in the output sculpt visualization

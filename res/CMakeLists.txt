@@ -1,24 +1,9 @@
 juce_add_binary_data(BinaryData SOURCES
-    # gui.xml
-    # magic.xml
     sporadic.xml
-    # gui_ios.xml
     duckSmallBackgroundRemoved.png
-    # Panic.png
-    # home.svg
-    # undo-solid.png
-    # cog-solid.svg
-    # LeftArrow.svg
-    # RightArrow.svg
-    # ellipsis-h-solid.png
-
-    # presets/Crazy.chowpreset
-    # presets/Default.chowpreset
-    # presets/Lush.chowpreset
-    # presets/Rhythmic.chowpreset
-    # presets/Chord.chowpreset
-    # presets/Wobble.chowpreset
-    # presets/Wonky.chowpreset
+    tree_1.png
+    tree_2.png
+    tree_3.png
 )
 
 # Need to build BinaryData with -fPIC flag on Linux

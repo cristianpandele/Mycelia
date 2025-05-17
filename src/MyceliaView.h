@@ -4,30 +4,6 @@
 #include <juce_graphics/juce_graphics.h>
 #include <foleys_gui_magic/foleys_gui_magic.h>
 
-class MyceliaAnimation :
-    public juce::Component,
-    private juce::Timer
-{
-    public:
-        enum ColourIDs
-        {
-            // we are safe from collisions, because we set the colours on every component directly from the stylesheet
-            backgroundColourId,
-            drawColourId,
-            fillColourId
-        };
-        MyceliaAnimation();
-        void setFactor(float f);
-        void paint(juce::Graphics &g) override;
-
-    private:
-        void timerCallback() override;
-
-        float factor = 3.0f;
-        float phase = 0.0f;
-        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MyceliaAnimation)
-};
-
 // Duck animation component that displays a duck that moves based on the delay duck parameter
 class DuckLevelAnimation : public juce::Component
 {
@@ -137,6 +113,28 @@ class FoldWindowViewItem : public foleys::GuiItem
 };
 
 // ==========================================================================
+class MyceliaAnimation : public juce::Component,
+                         private juce::Timer
+{
+public:
+    enum ColourIDs
+    {
+        // we are safe from collisions, because we set the colours on every component directly from the stylesheet
+        backgroundColourId,
+        drawColourId,
+        fillColourId
+    };
+    MyceliaAnimation();
+    void setFactor(float f);
+    void paint(juce::Graphics &g) override;
+
+private:
+    void timerCallback() override;
+
+    float factor = 3.0f;
+    float phase = 0.0f;
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MyceliaAnimation)
+};
 
 // This class is creating and configuring your custom component
 class MyceliaViewItem : public foleys::GuiItem
@@ -157,4 +155,60 @@ class MyceliaViewItem : public foleys::GuiItem
         MyceliaAnimation myceliaAnimation;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MyceliaViewItem)
+};
+
+// ==========================================================================
+// This class displays the tree positions as animated trees
+class TreePositionAnimation : public juce::Component
+{
+public:
+    enum ColourIDs
+    {
+        backgroundColourId,
+        gridColourId
+    };
+
+    TreePositionAnimation();
+    ~TreePositionAnimation() override = default;
+
+    // Set the tree positions
+    void setTreePositions(const std::vector<int> &positions);
+
+    // Set the tree size
+    void setTreeSize(float size);
+
+    // Paint the trees
+    void paint(juce::Graphics &g) override;
+
+private:
+    std::vector<int> treePositions;
+    float treeSize = 0.5f;
+
+    // Tree images
+    juce::Image tree1Image;
+    juce::Image tree2Image;
+    juce::Image tree3Image;
+
+    // Random number generator for tree type selection
+    juce::Random random;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TreePositionAnimation)
+};
+
+// This class creates and configures the tree position animation component
+class TreePositionViewItem : public foleys::GuiItem
+{
+public:
+    FOLEYS_DECLARE_GUI_FACTORY(TreePositionViewItem)
+
+    TreePositionViewItem(foleys::MagicGUIBuilder &builder, const juce::ValueTree &node);
+
+    std::vector<foleys::SettableProperty> getSettableProperties() const override;
+    void update() override;
+    juce::Component *getWrappedComponent() override;
+
+private:
+    TreePositionAnimation treeAnimation;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TreePositionViewItem)
 };

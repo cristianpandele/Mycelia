@@ -213,7 +213,6 @@ FoldWindowAnimation::FoldWindowAnimation()
     // Set default background color
     setColour(backgroundColourId, juce::Colours::transparentWhite);
     setColour(windowColourId, juce::Colours::green);
-    // setColour(gridColourId, juce::Colours::grey.withAlpha(0.3f));
 }
 
 FoldWindowAnimation::~FoldWindowAnimation()
@@ -346,8 +345,7 @@ FoldWindowViewItem::FoldWindowViewItem(foleys::MagicGUIBuilder &builder, const j
     // Create the colour names to have them configurable
     setColourTranslation({
         {"fold-window-background", FoldWindowAnimation::backgroundColourId},
-        {"fold-window-line", FoldWindowAnimation::windowColourId},
-        {"fold-window-grid", FoldWindowAnimation::gridColourId}
+        {"fold-window-line", FoldWindowAnimation::windowColourId}
     });
 
     // Add the animation component to the view
@@ -394,4 +392,147 @@ void FoldWindowViewItem::update()
 juce::Component* FoldWindowViewItem::getWrappedComponent()
 {
     return &foldAnimation;
+}
+
+//=========================================================================
+// TreePositionAnimation implementation
+TreePositionAnimation::TreePositionAnimation()
+{
+    // Set default background color
+    setColour(backgroundColourId, juce::Colours::transparentWhite);
+
+    // Load the tree images from BinaryData
+    tree1Image = juce::ImageCache::getFromMemory(BinaryData::tree_1_png, BinaryData::tree_1_pngSize);
+    tree2Image = juce::ImageCache::getFromMemory(BinaryData::tree_2_png, BinaryData::tree_2_pngSize);
+    tree3Image = juce::ImageCache::getFromMemory(BinaryData::tree_3_png, BinaryData::tree_3_pngSize);
+
+    // Initialize random number generator
+    random = juce::Random(juce::Time::currentTimeMillis());
+}
+
+void TreePositionAnimation::setTreePositions(const std::vector<int> &positions)
+{
+    treePositions = positions;
+    repaint();
+}
+
+void TreePositionAnimation::setTreeSize(float size)
+{
+    // Ensure the size is in range [0.1, 1.0]
+    treeSize = juce::jlimit(0.1f, 1.0f, size);
+    repaint();
+}
+
+void TreePositionAnimation::paint(juce::Graphics &g)
+{
+    // Fill the background
+    g.fillAll(findColour(backgroundColourId));
+
+    // Define the animation area
+    const float canvasWidth = static_cast<float>(getWidth());
+    const float canvasHeight = static_cast<float>(getHeight());
+
+    // Number of slots
+    const int numSlots = 8;
+    const float slotWidth = canvasWidth / numSlots;
+
+    // Enable high-quality image rendering
+    g.setImageResamplingQuality(juce::Graphics::highResamplingQuality);
+
+    // Determine which tree image to use (randomized but consistent for each position)
+    random.setSeed(1234); // Set seed for consistent randomness
+
+    // Draw trees in their positions
+    for (int treePos : treePositions)
+    {
+        // Skip invalid positions
+        if (treePos < 0 || treePos >= numSlots)
+            continue;
+
+        // Get x position in the middle of the slot
+        float xPos = treePos * slotWidth + (slotWidth / 2.0f);
+
+        int treeType = random.nextInt(3); // 0, 1, or 2
+
+        juce::Image &treeImage = treeType == 0 ? tree1Image : (treeType == 1 ? tree2Image : tree3Image);
+
+        if (!treeImage.isNull())
+        {
+            // Calculate image dimensions based on tree size
+            float baseScale = juce::jmin(slotWidth / treeImage.getWidth(), canvasHeight / treeImage.getHeight());
+            float scale = baseScale * (2.0f + 1.5f * treeSize);
+
+            float scaledWidth = treeImage.getWidth() * scale;
+            float scaledHeight = treeImage.getHeight() * scale;
+
+            // Center tree in the slot horizontally and place at the bottom vertically
+            float x = xPos - (scaledWidth / 2.0f);
+            float y = canvasHeight - scaledHeight;
+
+            // Draw the tree
+            g.drawImageTransformed(
+                treeImage,
+                juce::AffineTransform::scale(scale).translated(x, y),
+                false // Don't use alpha blending
+            );
+        }
+    }
+}
+
+// TreePositionViewItem implementation
+TreePositionViewItem::TreePositionViewItem(foleys::MagicGUIBuilder &builder, const juce::ValueTree &node)
+    : foleys::GuiItem(builder, node)
+{
+    // Create the colour names to have them configurable
+    setColourTranslation({{"tree-position-background", TreePositionAnimation::backgroundColourId}});
+
+    // Add the animation component to the view
+    addAndMakeVisible(treeAnimation);
+}
+
+std::vector<foleys::SettableProperty> TreePositionViewItem::getSettableProperties() const
+{
+    std::vector<foleys::SettableProperty> properties;
+
+    // Add a property for tree positions (text representation: "1,3,5,7")
+    properties.push_back({configNode, "treePositions", foleys::SettableProperty::Text, "0,1,2,3,4,5,6,7", {}});
+
+    // Add a property for tree size (0.1-1.0)
+    properties.push_back({configNode, "treeSize", foleys::SettableProperty::Number, 0.1f, {}});
+
+    return properties;
+}
+
+void TreePositionViewItem::update()
+{
+    // Get the tree positions property
+    auto positionsValue = getProperty("treePositions");
+    if (!positionsValue.isVoid())
+    {
+        // Parse the comma-separated list of positions
+        juce::String positionsStr = positionsValue.toString();
+        std::vector<int> positions;
+
+        juce::StringArray tokens;
+        tokens.addTokens(positionsStr, ",", "");
+
+        for (const auto &token : tokens)
+        {
+            positions.push_back(token.getIntValue());
+        }
+
+        treeAnimation.setTreePositions(positions);
+    }
+
+    // Get the tree size property
+    auto treeSizeValue = getProperty("treeSize");
+    if (!treeSizeValue.isVoid())
+    {
+        treeAnimation.setTreeSize(static_cast<float>(treeSizeValue));
+    }
+}
+
+juce::Component *TreePositionViewItem::getWrappedComponent()
+{
+    return &treeAnimation;
 }

@@ -85,9 +85,13 @@
       <View pos-x="30%" pos-y="0%" pos-width="40%" pos-height="100%" display="contents"
             margin="5" padding="2" border="3" radius="10" title="Fold XY"
             background-color="papayawhip" border-color="D095469E">
-        <FoldWindowAnimation title="Fold Window Display" windowSize="1.0" windowShape="0"
-                             windowPos="0.5" background-color="transparentwhite"
-                             pos-x="0%" pos-y="0%" pos-width="100%" pos-height="100%" caption-placement=""/>
+        <TreePositionAnimation title="Tree Display" treePositions="2,6,7" treeSize="1.0" background-color="transparentwhite"
+                               pos-x="0%" pos-y="0%" pos-width="100%" pos-height="100%" caption-placement=""
+                               tree-position-background="transparentwhite" tree-position-grid="FF0D6300"/>
+        <FoldWindowAnimation title="Fold Window Display" windowSize="1.0" windowShape="0.0"
+                             windowPos="0.4399999976158142" background-color="transparentwhite"
+                             pos-x="0%" pos-y="0%" pos-width="100%" pos-height="100%" caption-placement=""
+                             fold-window-line="D095469E"/>
         <XYDragComponent pos-y="0%" pos-height="100%" pos-x="0%" pos-width="100%" margin="0"
                          padding="4" border="0" caption="Fold" caption-placement="centred-top"
                          xy-jump-to-click="1" lookAndFeel="FoleysFinest" background-color="transparentwhite"
