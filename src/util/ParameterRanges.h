@@ -59,7 +59,7 @@ namespace ParameterRanges
     static constexpr float maxTreeDensity = 100.0f;
     // Universe Control constants
     static constexpr float minStretch = -32.0f;
-    static constexpr float maxStretch = 16.0f;
+    static constexpr float maxStretch = 32.0f;
     static constexpr float centreStretch = 0.25f;
     static constexpr float minTempoValue = 30.0f;
     static constexpr float maxTempoValue = 300.0f;
