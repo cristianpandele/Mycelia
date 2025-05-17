@@ -24,7 +24,7 @@ class Mycelia :
     public foleys::MagicProcessor,
     private juce::AudioProcessorValueTreeState::Listener,
     private juce::Value::Listener,
-    private juce::Timer
+    private juce::MultiTimer
 {
     public:
         Mycelia();
@@ -60,7 +60,9 @@ class Mycelia :
         //==============================================================================
     private:
         // Timer callback function
-        void timerCallback() override;
+        static constexpr int kGuiTimerId = 0;
+        static constexpr int kScarcityTimerId = 1;
+        void timerCallback(const int timerID) override;
 
         // MAGIC GUI: this is a shorthand where the samples to display are fed to
         foleys::MagicPlotSource *oscilloscope = nullptr;
