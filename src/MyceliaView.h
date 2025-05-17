@@ -177,12 +177,19 @@ public:
     // Set the tree size
     void setTreeSize(float size);
 
+    // Set the stretch factor (0.0-1.0) affecting slot width
+    void setStretch(float stretchFactor);
+
     // Paint the trees
     void paint(juce::Graphics &g) override;
 
 private:
     std::vector<int> treePositions;
     float treeSize = 0.5f;
+    float stretch = 0.5f; // Default stretch value
+
+    // Calculate the slot width and position based on stretch
+    void calculateSlotDimensions(float canvasWidth, int numSlots, float& slotWidth, float& startX) const;
 
     // Tree images
     juce::Image tree1Image;

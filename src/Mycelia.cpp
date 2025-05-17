@@ -64,6 +64,7 @@ Mycelia::Mycelia()
 
     treePositionsVal.addListener(this);
     treeSizeVal.addListener(this);
+    treeStretchVal.addListener(this);
 
     magicState.setGuiValueTree(BinaryData::sporadic_xml, BinaryData::sporadic_xmlSize);
 
@@ -677,7 +678,7 @@ void Mycelia::valueChanged(juce::Value &value)
     }
 
     // Update the GUI to handle tree positions and size
-    if ((value == treePositionsVal) || (value == treeSizeVal))
+    if ((value == treePositionsVal) || (value == treeSizeVal) || (value == treeStretchVal))
     {
         // Update the GUI to reflect the tree positions and size
         auto tree = magicBuilder->getGuiRootNode();
@@ -707,6 +708,10 @@ void Mycelia::valueChanged(juce::Value &value)
                     else if (value == treeSizeVal)
                     {
                         child.setProperty("treeSize", value.getValue(), nullptr);
+                    }
+                    else if (value == treeStretchVal)
+                    {
+                        child.setProperty("stretch", value.getValue(), nullptr);
                     }
                 }
             }
@@ -809,6 +814,9 @@ void Mycelia::timerCallback(const int timerID)
 
         // Update the tree size
         treeSizeVal.setValue(myceliaModel.getParameterValue(IDs::treeSize));
+
+        // Update the tree stretch
+        treeStretchVal.setValue(myceliaModel.getParameterValue(IDs::stretch));
 
         /////////////
         // MAGIC GUI: push the input samples to be displayed in the output sculpt visualization

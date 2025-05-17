@@ -423,6 +423,41 @@ void TreePositionAnimation::setTreeSize(float size)
     repaint();
 }
 
+void TreePositionAnimation::setStretch(float stretchFactor)
+{
+    // Ensure the stretch is in range [0.0, 1.0]
+    stretch = juce::jlimit(0.0f, 1.0f, stretchFactor);
+    stretch = std::abs(stretch - 0.5f) * 2.0f; // Denormalize to [0.0, 1.0]
+    stretch = juce::jlimit(0.0f, 1.0f, stretch);
+    repaint();
+}
+
+void TreePositionAnimation::calculateSlotDimensions(float canvasWidth, int numSlots, float& slotWidth, float& startX) const
+{
+    // Keep the slot width constant - base it on a percentage of canvas width
+    const float fixedSlotWidthPercentage = 0.06f; // 6% of canvas width
+    slotWidth = canvasWidth * fixedSlotWidthPercentage;
+
+    // Calculate spacing between slots based on stretch
+    // At stretch = 0, slots are close together
+    // At stretch = 1, slots are spread across the full width
+
+    // Calculate the width needed for all slots without any spacing
+    float slotsOnlyWidth = slotWidth * numSlots;
+
+    // Calculate maximum available space for spacing (full canvas minus slots)
+    float maxSpacingWidth = canvasWidth - slotsOnlyWidth;
+
+    // Calculate actual spacing based on stretch factor
+    float totalSpacingWidth = maxSpacingWidth * stretch;
+
+    // Calculate total width including spacing
+    float totalWidth = slotsOnlyWidth + totalSpacingWidth;
+
+    // Center the arrangement horizontally
+    startX = (canvasWidth - totalWidth) / 2.0f;
+}
+
 void TreePositionAnimation::paint(juce::Graphics &g)
 {
     // Fill the background
@@ -434,7 +469,17 @@ void TreePositionAnimation::paint(juce::Graphics &g)
 
     // Number of slots
     const int numSlots = 8;
-    const float slotWidth = canvasWidth / numSlots;
+
+    // Calculate slot width and starting X position based on stretch
+    float slotWidth = 0.0f;
+    float startX = 0.0f;
+    calculateSlotDimensions(canvasWidth, numSlots, slotWidth, startX);
+
+    // Calculate spacing between slots
+    float slotsOnlyWidth = slotWidth * numSlots;
+    float maxSpacingWidth = canvasWidth - slotsOnlyWidth;
+    float totalSpacingWidth = maxSpacingWidth * stretch;
+    float spacingPerSlot = (numSlots > 1) ? (totalSpacingWidth / (numSlots - 1)) : 0.0f;
 
     // Enable high-quality image rendering
     g.setImageResamplingQuality(juce::Graphics::highResamplingQuality);
@@ -449,8 +494,18 @@ void TreePositionAnimation::paint(juce::Graphics &g)
         if (treePos < 0 || treePos >= numSlots)
             continue;
 
-        // Get x position in the middle of the slot
-        float xPos = treePos * slotWidth + (slotWidth / 2.0f);
+        // Calculate slot position with spacing
+        float x;
+        if (treePos == 0) {
+            // First slot starts at startX
+            x = startX;
+        } else {
+            // Other slots include spacing
+            x = startX + (treePos * slotWidth) + (treePos * spacingPerSlot);
+        }
+
+        // Get center of slot for positioning the tree
+        float xPos = x + (slotWidth / 2.0f);
 
         int treeType = random.nextInt(3); // 0, 1, or 2
 
@@ -500,6 +555,9 @@ std::vector<foleys::SettableProperty> TreePositionViewItem::getSettablePropertie
     // Add a property for tree size (0.1-1.0)
     properties.push_back({configNode, "treeSize", foleys::SettableProperty::Number, 0.1f, {}});
 
+    // Add a property for stretch factor (0.0-1.0)
+    properties.push_back({configNode, "stretch", foleys::SettableProperty::Number, 0.5f, {}});
+
     return properties;
 }
 
@@ -529,6 +587,13 @@ void TreePositionViewItem::update()
     if (!treeSizeValue.isVoid())
     {
         treeAnimation.setTreeSize(static_cast<float>(treeSizeValue));
+    }
+
+    // Get the stretch property
+    auto stretchValue = getProperty("stretch");
+    if (!stretchValue.isVoid())
+    {
+        treeAnimation.setStretch(static_cast<float>(stretchValue));
     }
 }
 

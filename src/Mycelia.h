@@ -96,6 +96,7 @@ class Mycelia :
 
         juce::Value treePositionsVal{"0,0,0,0,0,0,0,0"}; // Initial empty tree positions
         juce::Value treeSizeVal{0.5f};           // Initial tree size
+        juce::Value treeStretchVal{0.5f};       // Initial tree stretch value
 
         void updateMidiClockSyncStatus();
         void valueChanged(juce::Value &value) override;

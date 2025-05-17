@@ -85,11 +85,12 @@
       <View pos-x="30%" pos-y="0%" pos-width="40%" pos-height="100%" display="contents"
             margin="5" padding="2" border="3" radius="10" title="Fold XY"
             background-color="papayawhip" border-color="D095469E">
-        <TreePositionAnimation title="Tree Display" treePositions="2,6,7" treeSize="1.0" background-color="transparentwhite"
-                               pos-x="0%" pos-y="0%" pos-width="100%" pos-height="100%" caption-placement=""
-                               tree-position-background="transparentwhite" tree-position-grid="FF0D6300"/>
-        <FoldWindowAnimation title="Fold Window Display" windowSize="1.0" windowShape="0.0"
-                             windowPos="0.4399999976158142" background-color="transparentwhite"
+        <TreePositionAnimation title="Tree Display" treePositions="0.0" treeSize="1.0" stretch="0.07279837131500244"
+                               background-color="transparentwhite" pos-x="0%" pos-y="0%" pos-width="100%"
+                               pos-height="100%" caption-placement="" tree-position-background="transparentwhite"
+                               tree-position-grid="FF0D6300"/>
+        <FoldWindowAnimation title="Fold Window Display" windowSize="0.7999999523162842" windowShape="0.1481635123491287"
+                             windowPos="0.7299999594688416" background-color="transparentwhite"
                              pos-x="0%" pos-y="0%" pos-width="100%" pos-height="100%" caption-placement=""
                              fold-window-line="D095469E"/>
         <XYDragComponent pos-y="0%" pos-height="100%" pos-x="0%" pos-width="100%" margin="0"
@@ -99,6 +100,9 @@
                          radius="10" xy-radius="7" xy-sense-factor="2" xy-drag-handle="rosybrown"
                          xy-horizontal="rosybrown" xy-vertical="rosybrown" xy-drag-handle-over="brown"
                          xy-horizontal-over="brown" xy-vertical-over="brown"/>
+        <Slider slider-type="linear-vertical" parameter="foldwindowshape" pos-x="90%"
+                pos-y="20%" pos-width="10%" pos-height="70%" background-color="transparentwhite"
+                slider-text="transparentwhite" slider-text-outline="transparentwhite"/>
       </View>
       <View padding="2" border="1" caption="Output Sculpt" display="contents"
             flex-align-self="" border-color="FF0160D1" flex-grow="1.0" flex-shrink="1.0"
