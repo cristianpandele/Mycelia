@@ -91,6 +91,15 @@ class FoldWindowAnimation : public juce::Component
         float windowShape = 0.0f;
         float windowPosition = 0.0f;
 
+        juce::VBlankAttachment vBlankAttachment
+        {
+            this,
+            [&] {
+                repaint();
+            }
+        };
+
+
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FoldWindowAnimation)
 };
 
@@ -198,6 +207,14 @@ private:
 
     // Random number generator for tree type selection
     juce::Random random;
+
+    juce::VBlankAttachment vBlankAttachment
+    {
+        this,
+        [&] {
+            repaint();
+        }
+    };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TreePositionAnimation)
 };

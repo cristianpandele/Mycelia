@@ -405,9 +405,6 @@ TreePositionAnimation::TreePositionAnimation()
     tree1Image = juce::ImageCache::getFromMemory(BinaryData::tree_1_png, BinaryData::tree_1_pngSize);
     tree2Image = juce::ImageCache::getFromMemory(BinaryData::tree_2_png, BinaryData::tree_2_pngSize);
     tree3Image = juce::ImageCache::getFromMemory(BinaryData::tree_3_png, BinaryData::tree_3_pngSize);
-
-    // Initialize random number generator
-    random = juce::Random(juce::Time::currentTimeMillis());
 }
 
 void TreePositionAnimation::setTreePositions(const std::vector<int> &positions)
@@ -485,7 +482,7 @@ void TreePositionAnimation::paint(juce::Graphics &g)
     g.setImageResamplingQuality(juce::Graphics::highResamplingQuality);
 
     // Determine which tree image to use (randomized but consistent for each position)
-    random.setSeed(1234); // Set seed for consistent randomness
+    random.setSeed(4321); // Set seed for consistent randomness
 
     // Draw trees in their positions
     for (int treePos : treePositions)
@@ -500,7 +497,9 @@ void TreePositionAnimation::paint(juce::Graphics &g)
             // First slot starts at startX
             x = startX;
         } else {
-            // Other slots include spacing
+        }
+        else
+        {
             x = startX + (treePos * slotWidth) + (treePos * spacingPerSlot);
         }
 
@@ -514,14 +513,24 @@ void TreePositionAnimation::paint(juce::Graphics &g)
         if (!treeImage.isNull())
         {
             // Calculate image dimensions based on tree size
-            float baseScale = juce::jmin(slotWidth / treeImage.getWidth(), canvasHeight / treeImage.getHeight());
+            float baseScale = juce::jmin(
+                                slotWidth / treeImage.getWidth(),
+                                canvasHeight / treeImage.getHeight());
+
+            // Increase the base scale based on tree size
             float scale = baseScale * (2.0f + 1.5f * treeSize);
+
+            // Apply random variation of +/-25% to make trees look less uniform
+            float scaleVariation = random.nextFloat() * 0.5f - 0.25f; // -25% to +25%
+
+            // Apply variation to scale
+            scale = scale * (1.0f + scaleVariation);
 
             float scaledWidth = treeImage.getWidth() * scale;
             float scaledHeight = treeImage.getHeight() * scale;
 
             // Center tree in the slot horizontally and place at the bottom vertically
-            float x = xPos - (scaledWidth / 2.0f);
+            x = xPos - (scaledWidth / 2.0f);
             float y = canvasHeight - scaledHeight;
 
             // Draw the tree
