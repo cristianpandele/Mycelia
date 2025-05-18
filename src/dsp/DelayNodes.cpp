@@ -36,9 +36,6 @@ void DelayNodes::prepare(const juce::dsp::ProcessSpec &spec)
 
     // Initialize tree positions
     updateTreePositions();
-
-    // Initialize inter-band connections
-    updateNodeInterconnections();
 }
 
 void DelayNodes::reset()
@@ -287,7 +284,6 @@ void DelayNodes::setParameters(const Parameters &params)
     }
     if (std::abs(inEntanglement - params.entanglement) > 0.01f)
     {
-        entanglementChanged = true;
         inEntanglement = params.entanglement;
     }
     if (std::abs(inGrowthRate - params.growthRate) > 0.01f)
@@ -655,14 +651,21 @@ void DelayNodes::timerCallback()
         updateTreePositions();
         treeDensityChanged = false;
     }
-    if (bands[0].delayProcs[0])
+
+    if ((bands[0].delayProcs[0]) &&
+        (bands[1].delayProcs[0]) &&
+        (bands[2].delayProcs[0]) &&
+        (bands[3].delayProcs[0]))
     {
-        if ((bands[0].delayProcs[0]->getAge() > 0.001f) || entanglementChanged)
+        if ((bands[0].delayProcs[0]->getAge() > 0.001f) ||
+            (bands[1].delayProcs[0]->getAge() > 0.001f) ||
+            (bands[2].delayProcs[0]->getAge() > 0.001f) ||
+            (bands[3].delayProcs[0]->getAge() > 0.001f))
         {
             updateNodeInterconnections();
-            entanglementChanged = false;
         }
     }
+
     if (foldPositionChanged || foldWindowShapeChanged || foldWindowSizeChanged)
     {
         updateFoldWindow();
@@ -724,10 +727,8 @@ void DelayNodes::normalizeOutgoingConnections(int band, size_t procIdx)
     {
         for (size_t targetProc = 0; targetProc < numActiveProcsPerBand; ++targetProc)
         {
-            // if (bands[targetBand].interNodeConnections[targetProc][band][procIdx] > 0.0f)
-            // {
+
             bands[targetBand].interNodeConnections[targetProc][band][procIdx] /= (sum + 0.1f);
-            // }
         }
     }
 }
@@ -736,7 +737,9 @@ void DelayNodes::normalizeOutgoingConnections(int band, size_t procIdx)
 void DelayNodes::updateNodeInterconnections()
 {
     if (inNumColonies <= 1)
+    {
         return; // No inter-band connections possible with only one band
+    }
 
     // Initialize random number generator for consistent variations
     juce::Random random(juce::Time::currentTimeMillis());
@@ -745,19 +748,19 @@ void DelayNodes::updateNodeInterconnections()
     {
         for (int band2 = 0; band2 < inNumColonies; ++band2)
         {
-            // Skip the first processor on each band (input node)
-            for (size_t proc1 = 1; proc1 < numActiveProcsPerBand; ++proc1)
+            for (size_t proc1 = 0; proc1 < numActiveProcsPerBand; ++proc1)
             {
-                for (size_t proc2 = 1; proc2 < numActiveProcsPerBand; ++proc2)
+                for (size_t proc2 = 0; proc2 < numActiveProcsPerBand; ++proc2)
                 {
                     // Skip self-connections
-                    if (band1 == band2 && proc1 == proc2)
+                    if ((band1 == band2) && (proc1 == proc2))
                     {
                         continue;
                     }
 
                     // Skip connections to the previous processor on the same band
-                    if (band1 == band2 && std::abs(static_cast<int>(proc1) - static_cast<int>(proc2)) == 1)
+                    if ((band1 == band2) &&
+                        std::abs(static_cast<int>(proc1) - static_cast<int>(proc2)) == 1)
                     {
                         continue;
                     }

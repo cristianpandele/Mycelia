@@ -18,6 +18,12 @@ void NetworkGraphAnimation::setStretch(float stretch)
     this->stretch = stretch;
 }
 
+void NetworkGraphAnimation::setNumActiveBands(int numActiveBands)
+{
+    // Update number of active bands
+    this->numActiveBands = numActiveBands;
+}
+
 void NetworkGraphAnimation::setBandStates(const std::vector<DelayNodes::BandResources> &states)
 {
     // Clear existing snapshots

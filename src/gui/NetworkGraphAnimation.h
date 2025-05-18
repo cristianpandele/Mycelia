@@ -26,6 +26,9 @@ class NetworkGraphAnimation : public juce::Component
         // Update with new stretch level
         void setStretch(float stretch);
 
+        // Update with number of active bands
+        void setNumActiveBands(int numActiveBands);
+
         // Update with new band states
         void setBandStates(const std::vector<DelayNodes::BandResources> &states);
 

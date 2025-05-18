@@ -735,7 +735,10 @@ void Mycelia::timerCallback(const int timerID)
                 // Update the network graph with the current band states
                 if (networkGraph != nullptr)
                 {
+                    auto numActiveBands = myceliaModel.getNumActiveFilterBands();
+
                     networkGraph->setStretch(stretchLevel);
+                    networkGraph->setNumActiveBands(numActiveBands);
                     networkGraph->setBandStates(bandStates);
                 }
             }

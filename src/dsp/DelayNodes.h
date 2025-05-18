@@ -144,7 +144,6 @@ class DelayNodes :
         bool foldPositionChanged = false;
         bool foldWindowShapeChanged = false;
         bool foldWindowSizeChanged = false;
-        bool entanglementChanged = false;
         bool growthRateChanged = false;
         bool useExternalSidechainChanged = false;
         bool compressorParamsChanged = false;
