@@ -493,13 +493,14 @@ void TreePositionAnimation::paint(juce::Graphics &g)
 
         // Calculate slot position with spacing
         float x;
-        if (treePos == 0) {
+        if (treePos == 0)
+        {
             // First slot starts at startX
             x = startX;
-        } else {
         }
         else
         {
+            // Other slots include spacing
             x = startX + (treePos * slotWidth) + (treePos * spacingPerSlot);
         }
 
@@ -524,13 +525,17 @@ void TreePositionAnimation::paint(juce::Graphics &g)
             float scaleVariation = random.nextFloat() * 0.5f - 0.25f; // -25% to +25%
 
             // Apply variation to scale
-            scale = scale * (1.0f + scaleVariation);
+            scale *= (1.0f + scaleVariation);
 
             float scaledWidth = treeImage.getWidth() * scale;
             float scaledHeight = treeImage.getHeight() * scale;
 
             // Center tree in the slot horizontally and place at the bottom vertically
             x = xPos - (scaledWidth / 2.0f);
+            // Add a small variation to the x position to make it look less uniform
+            float positionVariation = random.nextFloat() * 0.1f - 0.05f; // +/- 5% variation
+            x *= (1.0f + positionVariation);
+            // Position the tree at the bottom of the canvas
             float y = canvasHeight - scaledHeight;
 
             // Draw the tree
