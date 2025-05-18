@@ -75,6 +75,7 @@ namespace ParameterRanges
     // Mycelia Processor constants
     static constexpr float minEntanglement = 0.0f;
     static constexpr float maxEntanglement = 100.0f;
+    static constexpr float centerEntanglement = 33.0f;
     static constexpr float minGrowthRate = 0.0f;
     static constexpr float maxGrowthRate = 100.0f;
     static constexpr float centerGrowthRate = 20.0f;
@@ -275,7 +276,7 @@ namespace ParameterRanges
     inline const juce::NormalisableRange<float> midiCcValueRange(minMidiCcValue, maxMidiCcValue, 0.01f);
 
     // Mycelia parameters
-    inline const juce::NormalisableRange<float> entanglementRange(minEntanglement, maxEntanglement, 0.01f);
+    inline const juce::NormalisableRange<float> entanglementRange = rangeWithSkewForCentre(minEntanglement, maxEntanglement, centerEntanglement);
     inline const juce::NormalisableRange<float> growthRateRange = rangeWithSkewForCentre(minGrowthRate, maxGrowthRate, centerGrowthRate);
     inline const juce::NormalisableRange<int>   nutrientBandsRange(minNutrientBands, maxNutrientBands, 1.0f);
 

@@ -635,6 +635,15 @@ void DelayNodes::updateFoldWindow()
 
 void DelayNodes::timerCallback()
 {
+    if (growthRateChanged)
+    {
+        stopTimer();
+        auto normGrowthRate = ParameterRanges::normalizeParameter(ParameterRanges::growthRateRange, inGrowthRate);
+        // Calculate the new timer rate based on the growth rate (up to 4 bars at current tempo)
+        auto newTimerRate = 16.0f * inBaseDelayMs * std::max(1.0f - normGrowthRate, 0.1f);
+        startTimer(newTimerRate);
+    }
+
     if (baseDelayChanged || bandFrequenciesChanged || stretchChanged || growthRateChanged || useExternalSidechainChanged || compressorParamsChanged)
     {
         updateDelayProcParams();
@@ -791,14 +800,33 @@ void DelayNodes::updateNodeInterconnections()
                     // If the connection strength is 0.0f, attempt to create a new connection based on entanglement
                     else
                     {
-                        auto normEntanglement = ParameterRanges::normalizeParameter(ParameterRanges::entanglementRange, inEntanglement);
-                        auto pairEntanglementProbability = normEntanglement * (1.0f - pairMinAge);
+                        float pairEntanglementProbability;
+                        float normEntanglement = 0.0f;
 
                         // Test for creating a connection
+                        if (band1 == band2)
+                        {
+                            // Same-band connections are dependent on the stretch parameter
+                            auto stretchFactor = ParameterRanges::normalizeParameter(ParameterRanges::stretchRange, inStretch);
+                            auto normStretch = std::abs(stretchFactor - 0.5f);
+                            pairEntanglementProbability = (1.0f - normStretch) * (1.0f - pairMinAge);
+                        }
+                        else
+                        {
+                            // Inter-band connections are dependent on the entanglement parameter
+                            normEntanglement = ParameterRanges::normalizeParameter(ParameterRanges::entanglementRange, inEntanglement);
+                            pairEntanglementProbability = normEntanglement * (1.0f - pairMinAge);
+                        }
+
+                        // Create a new connection with the given probability
                         if (random.nextFloat() < pairEntanglementProbability)
                         {
-                            // Determine a connection strength (0.2-0.55)
-                            auto connectionStrength = 0.2f + random.nextFloat() / (5.0f + (1.0f - normEntanglement) + pairMinAge);
+                            // Determine a connection strength (0.08-0.1)
+                            connectionStrength = random.nextFloat() / (10.0f + (1.0f - normEntanglement) + pairMinAge);
+                            // Scale connection strength by distance between nodes
+                            auto distance = std::sqrt(std::pow(static_cast<int>(proc1) - static_cast<int>(proc2), 2) +
+                                                      std::pow(static_cast<int>(band1) - static_cast<int>(band2), 2));
+                            connectionStrength *= 1/distance;
                             // DBG("Creating new connection between band " << band1 << " proc " << proc1 << " and band " << band2 << " proc " << proc2 << " with strength " << connectionStrength);
                             bands[band1].interNodeConnections[proc1][band2][proc2] = connectionStrength;
                             bands[band2].interNodeConnections[proc2][band1][proc1] = connectionStrength;
