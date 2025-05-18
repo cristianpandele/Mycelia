@@ -680,49 +680,14 @@ void Mycelia::valueChanged(juce::Value &value)
     // Update the GUI to handle tree positions and size
     if ((value == treePositionsVal) || (value == treeSizeVal) || (value == treeStretchVal))
     {
-        // Update the GUI to reflect the tree positions and size
-        auto tree = magicBuilder->getGuiRootNode();
-        auto id = foleys::IDs::caption;
-
-        // Search for the component that displays tree positions
-        auto val = juce::String("XY Controls");
-        auto child = tree.getChildWithProperty(id, val);
-
-        if (child.isValid())
-        {
-            id = juce::Identifier("title");
-            val = juce::String("Fold XY");
-            child = child.getChildWithProperty(id, val);
-
-            if (child.isValid())
-            {
-                val = juce::String("Tree Display");
-                child = child.getChildWithProperty(id, val);
-
-                if (child.isValid())
-                {
-                    if (value == treePositionsVal)
-                    {
-                        child.setProperty("treePositions", value.getValue(), nullptr);
-                    }
-                    else if (value == treeSizeVal)
-                    {
-                        child.setProperty("treeSize", value.getValue(), nullptr);
-                    }
-                    else if (value == treeStretchVal)
-                    {
-                        child.setProperty("stretch", value.getValue(), nullptr);
-                    }
-                }
-            }
-        }
+        updateTreePositionInfo();
     }
 
     if (value == scarAbundAuto)
     {
         scarAbundOverridden.setValue(true);
         updateScarcityAbundanceLabel();
-    }
+        }
     if ((value == windowSizeVal) || (value == windowShapeVal) || (value == windowPosVal))
     {
         // Update the GUI to reflect the fold window size
@@ -878,6 +843,37 @@ void Mycelia::timerCallback(const int timerID)
         }
         // Update the scarcity/abundance label
         updateScarcityAbundanceLabel();
+    }
+}
+
+void Mycelia::updateTreePositionInfo()
+{
+    // Update the GUI to reflect the tree positions and size
+    auto tree = magicBuilder->getGuiRootNode();
+    auto id = foleys::IDs::caption;
+
+    // Search for the component that displays tree positions
+    auto val = juce::String("XY Controls");
+    auto child = tree.getChildWithProperty(id, val);
+
+    if (child.isValid())
+    {
+        id = juce::Identifier("title");
+        val = juce::String("Fold XY");
+        child = child.getChildWithProperty(id, val);
+
+        if (child.isValid())
+        {
+            val = juce::String("Tree Display");
+            child = child.getChildWithProperty(id, val);
+
+            if (child.isValid())
+            {
+                child.setProperty("treePositions", treePositionsVal.getValue(), nullptr);
+                child.setProperty("treeSize", treeSizeVal.getValue(), nullptr);
+                child.setProperty("stretch", treeStretchVal.getValue(), nullptr);
+            }
+        }
     }
 }
 

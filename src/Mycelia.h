@@ -98,7 +98,6 @@ class Mycelia :
         juce::Value treeSizeVal{0.5f};           // Initial tree size
         juce::Value treeStretchVal{0.5f};       // Initial tree stretch value
 
-        void updateMidiClockSyncStatus();
         void valueChanged(juce::Value &value) override;
 
         // Process MIDI messages
@@ -147,6 +146,8 @@ class Mycelia :
         juce::AudioBuffer<float> inputBuffer;
         juce::AudioBuffer<float> outputBuffer;
         void updateScarcityAbundanceLabel();
+        void updateTreePositionInfo();
+        void updateMidiClockSyncStatus();
 
         //////////////////////////////////////////////
         // The underlying model used to perform the DSP processing
