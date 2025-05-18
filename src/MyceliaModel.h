@@ -98,10 +98,10 @@ class MyceliaModel :
         int getNumActiveFilterBands() const { return currentDelayNetworkParams.numActiveFilterBands; }
 
         // Get the band states from the delay network
-        std::vector<DelayNodes::BandResources>& getBandStates() { return delayNetwork.getBandStates(); };
+        std::vector<DelayNodes::BandResources>& getBandStates() { return delayNetwork.getBandStates(); }
 
         // Get the position of the trees in the network
-        std::vector<int>& getTreePositions() { return delayNetwork.getTreePositions(); };
+        std::vector<int>& getTreePositions() { return delayNetwork.getTreePositions(); }
 
     private:
         size_t numChannels = 2;

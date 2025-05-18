@@ -1,0 +1,98 @@
+#pragma once
+
+#include <juce_core/juce_core.h>
+#include <juce_graphics/juce_graphics.h>
+#include <foleys_gui_magic/foleys_gui_magic.h>
+#include "dsp/DelayNodes.h"
+
+// Network Graph Animation component that displays the delay nodes network
+class NetworkGraphAnimation : public juce::Component
+{
+    public:
+        enum ColourIDs
+        {
+            backgroundColourId,
+            nodeBaseColourId,
+            nodeHighAgeColourId,
+            lineLowWeightColourId,
+            lineHighWeightColourId,
+            nodeBorderLowLevelColourId,
+            nodeBorderHighLevelColourId
+        };
+
+        NetworkGraphAnimation();
+        ~NetworkGraphAnimation() override = default;
+
+        // Update with new stretch level
+        void setStretch(float stretch);
+
+        // Update with new band states
+        void setBandStates(const std::vector<DelayNodes::BandResources> &states);
+
+        // Paint the network graph
+        void paint(juce::Graphics &g) override;
+
+    private:
+        // Helper to draw a curved connection between nodes
+        void drawNodeConnection(juce::Graphics &g, juce::Point<float> start, juce::Point<float> end,
+                                float weight, float startLevel, float endLevel);
+
+        // Helper to map a value to a color gradient
+        juce::Colour mapValueToColour(float value, juce::Colour startColour, juce::Colour endColour);
+
+        // Structure to store only what we need for rendering
+        struct BandStateSnapshot
+        {
+            std::vector<float> bufferLevels;
+            std::vector<float> nodeDelayTimes;
+            std::vector<std::vector<std::vector<float>>> interNodeConnections;
+
+            // Helper method to extract just what we need from BandResources
+            static BandStateSnapshot fromBandResources(const DelayNodes::BandResources &resource)
+            {
+                BandStateSnapshot snapshot;
+                snapshot.bufferLevels = resource.bufferLevels;
+                snapshot.nodeDelayTimes = resource.nodeDelayTimes;
+                snapshot.interNodeConnections = resource.interNodeConnections;
+                return snapshot;
+            }
+        };
+
+        // Store the band states data
+        std::vector<BandStateSnapshot> bandStateSnapshots;
+        // Number of active bands
+        int numActiveBands = 0;
+
+        // Constants for visualization
+        const float nodeRadius = 8.0f;
+        const float maxAge = 1.0f;
+        const float maxBufferLevel = 1.0f;
+
+        // VBlank attachment for smooth animation using compositor sync
+        juce::VBlankAttachment vBlankAttachment{
+            this,
+            [&]
+            {
+                repaint();
+            }};
+
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(NetworkGraphAnimation)
+};
+
+// This class creates and configures the network graph animation component
+class NetworkGraphViewItem : public foleys::GuiItem
+{
+    public:
+        FOLEYS_DECLARE_GUI_FACTORY(NetworkGraphViewItem)
+
+        NetworkGraphViewItem(foleys::MagicGUIBuilder &builder, const juce::ValueTree &node);
+
+        std::vector<foleys::SettableProperty> getSettableProperties() const override;
+        void update() override;
+        juce::Component *getWrappedComponent() override;
+
+    private:
+        NetworkGraphAnimation networkAnimation;
+
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(NetworkGraphViewItem)
+};

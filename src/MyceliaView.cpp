@@ -79,7 +79,7 @@ void MyceliaViewItem::update()
     myceliaAnimation.setFactor(factor.isVoid() ? 3.0f : float(factor));
 }
 
-juce::Component *MyceliaViewItem::getWrappedComponent()
+juce::Component* MyceliaViewItem::getWrappedComponent()
 {
     return &myceliaAnimation;
 }

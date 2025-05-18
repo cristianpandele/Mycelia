@@ -170,6 +170,7 @@ void Mycelia::initialiseBuilder(foleys::MagicGUIBuilder &builder)
     builder.registerFactory("DuckLevelAnimation", &DuckLevelViewItem::factory);
     builder.registerFactory("FoldWindowAnimation", &FoldWindowViewItem::factory);
     builder.registerFactory("TreePositionAnimation", &TreePositionViewItem::factory);
+    builder.registerFactory("NetworkGraphAnimation", &NetworkGraphViewItem::factory);
 
     // Save a reference to the builder for later use
     magicBuilder = &builder;
@@ -757,6 +758,21 @@ void Mycelia::timerCallback(const int timerID)
                     // Get the current band state and push it to the corresponding oscilloscope
                     auto& bandState = bandStates[i];
                     oscope->pushSamples(*bandState.processorBuffers[0]);
+                }
+            }
+        }
+
+        // Update network graph animation with current band states
+        if (auto* item = magicBuilder->findGuiItemWithId("networkGraphId"))
+        {
+            if (item != nullptr)
+            {
+                auto *networkGraph = dynamic_cast<NetworkGraphAnimation *>(item->getWrappedComponent());
+                // Update the network graph with the current band states
+                if (networkGraph != nullptr)
+                {
+                    networkGraph->setStretch(stretchLevel);
+                    networkGraph->setBandStates(bandStates);
                 }
             }
         }

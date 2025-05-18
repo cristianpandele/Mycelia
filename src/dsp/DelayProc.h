@@ -57,6 +57,9 @@ class DelayProc
 
         float getAge() const { return currentAge.getCurrentValue(); } // Getter for the current age value
 
+        // Getter for the current age as a normalized value (0.0-1.0)
+        float getCurrentAge() const { return juce::jlimit(0.0f, 1.0f, currentAge.getCurrentValue() / 100.0f); }
+
     private:
         template <typename SampleType>
         inline SampleType processSample(SampleType x, size_t ch);

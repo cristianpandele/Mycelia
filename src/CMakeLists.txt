@@ -24,6 +24,7 @@ target_sources(
     dsp/OutputNode.cpp
     gui/DuckLevelAnimation.cpp
     gui/FoldWindowAnimation.cpp
+    gui/NetworkGraphAnimation.cpp
     gui/TreePositionAnimation.cpp
 )
 
