@@ -22,6 +22,9 @@ target_sources(
     dsp/Dispersion.cpp
     dsp/DuckingCompressor.cpp
     dsp/OutputNode.cpp
+    gui/DuckLevelAnimation.cpp
+    gui/FoldWindowAnimation.cpp
+    gui/TreePositionAnimation.cpp
 )
 
 # Link the actual app code to the ModulesCode library
