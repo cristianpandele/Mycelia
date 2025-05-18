@@ -35,14 +35,11 @@
                pos-width="60%" pos-x="20%" radius="5" outline-color="FF0D0E30"
                border-color="transparentwhite" background-color="transparentwhite"/>
       </View>
-      <Plot source="delayBand0" pos-x="5%" pos-width="90%" plot-fill-color="transparentwhite"
-            background-color="transparentwhite"/>
-      <Plot source="delayBand1" pos-x="5%" pos-width="90%" plot-fill-color="transparentwhite"
-            plot-color="FFDF3C3C" background-alpha="0" background-color="transparentwhite"/>
-      <Plot source="delayBand2" pos-x="5%" pos-width="90%" plot-fill-color="transparentwhite"
-            plot-color="FF66AB4C" background-color="transparentwhite"/>
-      <Plot source="delayBand3" pos-x="5%" pos-width="90%" plot-fill-color="transparentwhite"
-            plot-color="FFE6E25A" background-color="transparentwhite"/>
+        <NetworkGraphAnimation id="networkGraphId" pos-x="5%" pos-width="90%" pos-y="0%"
+            network-background="20000000" node-base-color="FF5BA8FF" node-high-age-color="FFFF5733"
+            line-low-weight-color="20FFFFFF" line-high-weight-color="FFFFFFFF"
+            node-border-low-level-color="FF2E7D32" node-border-high-level-color="FFF57F17"
+            network-grid="30FFFFFF" />
       <View flex-align-self="center" display="contents" border="0" pos-x="95%"
             pos-width="5%" pos-y="1%" caption="Out Level" border-color="FFEA1212"
             margin="" padding="" flex-align-content="center" flex-direction="row"

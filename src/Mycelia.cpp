@@ -40,12 +40,6 @@ Mycelia::Mycelia()
     inputMeter = magicState.createAndAddObject<foleys::MagicLevelSource>(IDs::inputMeter);
     outputMeter = magicState.createAndAddObject<foleys::MagicLevelSource>(IDs::outputMeter);
 
-    // Create oscilloscopes for delay bands (initially create 4 bands)
-    for (int i = 0; i < 4; i++) {
-        auto oscId = juce::String("delayBand") + juce::String(i);
-        delayBandOscilloscopes.push_back(magicState.createAndAddObject<foleys::MagicOscilloscope>(oscId));
-    }
-
     midiLabel.referTo(magicState.getPropertyAsValue("midiClockStatus"));
     midiLabelVisibility.referTo(magicState.getPropertyAsValue("midiClockStatusVisibility"));
     midiClockDetected.addListener(this);
@@ -198,21 +192,6 @@ void Mycelia::prepareToPlay(double sampleRate, int samplesPerBlock)
     oscilloscope->prepareToPlay(sampleRate, samplesPerBlock);
     inputAnalyser->prepareToPlay(sampleRate, samplesPerBlock);
     outputAnalyser->prepareToPlay(sampleRate, samplesPerBlock);
-
-    // Prepare delay band oscilloscopes
-    for (auto* oscope : delayBandOscilloscopes) {
-        if (oscope != nullptr)
-            oscope->prepareToPlay(sampleRate, samplesPerBlock);
-    }
-
-    // Ensure we have the right number of oscilloscopes for the current number of bands
-    int numActiveBands = myceliaModel.getNumActiveFilterBands();
-    while (delayBandOscilloscopes.size() < numActiveBands) {
-        auto oscId = juce::String("delayBand") + juce::String(delayBandOscilloscopes.size());
-        auto* newOsc = magicState.createAndAddObject<foleys::MagicOscilloscope>(oscId);
-        newOsc->prepareToPlay(sampleRate, samplesPerBlock);
-        delayBandOscilloscopes.push_back(newOsc);
-    }
 
     magicState.prepareToPlay(sampleRate, samplesPerBlock);
 }
@@ -746,21 +725,6 @@ void Mycelia::timerCallback(const int timerID)
         //////////////
         // Get the current band states
         auto& bandStates = myceliaModel.getBandStates();
-
-        // Update the delay band oscilloscopes
-        for (int i = 0; i < delayBandOscilloscopes.size(); ++i)
-        {
-            if (i < bandStates.size())
-            {
-                auto* oscope = delayBandOscilloscopes[i];
-                if (oscope != nullptr)
-                {
-                    // Get the current band state and push it to the corresponding oscilloscope
-                    auto& bandState = bandStates[i];
-                    oscope->pushSamples(*bandState.processorBuffers[0]);
-                }
-            }
-        }
 
         // Update network graph animation with current band states
         if (auto* item = magicBuilder->findGuiItemWithId("networkGraphId"))

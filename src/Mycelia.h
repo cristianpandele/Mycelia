@@ -71,9 +71,6 @@ class Mycelia :
         foleys::MagicLevelSource *inputMeter = nullptr;
         foleys::MagicLevelSource *outputMeter = nullptr;
 
-        // Array of oscilloscopes for displaying delay band buffers
-        std::vector<foleys::MagicPlotSource*> delayBandOscilloscopes;
-
         foleys::MagicGUIBuilder *magicBuilder = nullptr;
 
         /////////////////////////////////////////////
