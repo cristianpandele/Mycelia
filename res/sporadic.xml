@@ -21,40 +21,10 @@
   </Styles>
   <View id="root" flex-direction="column" resizable="1" resize-corner="1"
         flex-align-self="center" display="contents" background-gradient="linear-gradient(90,0% ff2b2b2b,100% FF2b2b2b)">
-    <View border="2" background-color="transparentwhite" caption="Visualisers"
-          caption-size="0" title="Scope" pos-width="100%" pos-height="55%"
-          flex-align-self="center" display="contents" margin="0" padding="0"
-          radius="5" pos-x="0%" pos-y="0%" border-color="transparentwhite">
-      <View flex-align-self="center" display="contents" pos-width="5%" caption="In Level"
-            margin="" padding="" border="0" flex-direction="row" flex-align-content="center"
-            radius="10" border-color="FFF1E804" pos-x="0%" pos-height="99%"
-            pos-y="1%" caption-color="white" background-color="transparentwhite"
-            caption-placement="centred-top">
-        <Meter bar-fill-color="FFEDED3E" pos-y="0%" pos-height="100%" padding="1"
-               margin="2" border="2" flex-align-self="center" source="inputMeter"
-               pos-width="60%" pos-x="20%" radius="5" outline-color="FF0D0E30"
-               border-color="transparentwhite" background-color="transparentwhite"/>
-      </View>
-        <NetworkGraphAnimation id="networkGraphId" pos-x="5%" pos-width="90%" pos-y="0%"
-            network-background="20000000" node-base-color="FF5BA8FF" node-high-age-color="FFFF5733"
-            line-low-weight-color="20FFFFFF" line-high-weight-color="FFFFFFFF"
-            node-border-low-level-color="FF2E7D32" node-border-high-level-color="FFF57F17"
-            network-grid="30FFFFFF" />
-      <View flex-align-self="center" display="contents" border="0" pos-x="95%"
-            pos-width="5%" pos-y="1%" caption="Out Level" border-color="FFEA1212"
-            margin="" padding="" flex-align-content="center" flex-direction="row"
-            radius="10" pos-height="99%" caption-color="white" background-color="transparentwhite"
-            caption-placement="centred-top">
-        <Meter bar-fill-color="FFEDED3E" outline-color="FF0D0E30" pos-y="0%"
-               pos-height="100%" padding="1" margin="2" border="2" flex-align-self="center"
-               source="outputMeter" pos-x="20%" pos-width="60%" radius="5" border-color="transparentwhite"
-               background-color="transparentwhite"/>
-      </View>
-    </View>
     <View border="2" background-color="transparentwhite" caption="XY Controls"
           caption-size="0" title="Scope" pos-width="100%" pos-height="25%"
           flex-align-self="center" display="contents" margin="0" padding="0"
-          radius="5" pos-x="0%" pos-y="55%" border-color="transparentwhite">
+          radius="5" pos-x="0%" pos-y="0%" border-color="transparentwhite">
       <View flex-direction="row" caption="Input Sculpt" flex-align-self="center"
             display="contents" pos-height="100%" pos-y="0%" padding="2" border="1"
             margin="5" border-color="FFF1E804" pos-x="0%" pos-width="30%"
@@ -83,12 +53,13 @@
             margin="5" padding="2" border="3" radius="10" title="Fold XY"
             background-color="papayawhip" border-color="D095469E" caption="Fold"
             caption-color="black">
-        <TreePositionAnimation title="Tree Display" treePositions="0.0" treeSize="1.0" stretch="0.07279837131500244"
-                               background-color="transparentwhite" pos-x="0%" pos-y="0%" pos-width="100%"
-                               pos-height="100%" caption-placement="" tree-position-background="transparentwhite"
-                               tree-position-grid="FF0D6300"/>
-        <FoldWindowAnimation title="Fold Window Display" windowSize="0.550000011920929" windowShape="1.0"
-                             windowPos="0.3899999856948853" background-color="transparentwhite"
+        <TreePositionAnimation title="Tree Display" treePositions="0,3,4,6,7" treeSize="0.0"
+                               stretch="0.2403749227523804" background-color="transparentwhite"
+                               pos-x="0%" pos-y="0%" pos-width="100%" pos-height="100%" caption-placement=""
+                               tree-position-background="transparentwhite" tree-position-grid="FF0D6300"
+                               caption="Window Size vs Position"/>
+        <FoldWindowAnimation title="Fold Window Display" windowSize="0.5000000596046448" windowShape="0.008535832166671753"
+                             windowPos="0.8100000023841858" background-color="transparentwhite"
                              pos-x="0%" pos-y="15%" pos-width="100%" pos-height="85%" caption-placement=""
                              fold-window-line="D095469E"/>
         <XYDragComponent pos-y="20%" pos-height="80%" pos-x="0%" pos-width="100%" margin="0"
@@ -98,7 +69,7 @@
                          xy-drag-handle="rosybrown" xy-horizontal="rosybrown" xy-vertical="rosybrown"
                          xy-drag-handle-over="brown" xy-horizontal-over="brown" xy-vertical-over="brown"
                          caption-placement=""/>
-        <Slider slider-type="linear-horizontal" parameter="foldwindowshape" pos-x="65%"
+        <Slider slider-type="linear-horizontal" parameter="foldwindowshape" pos-x="70%"
                 pos-y="0%" pos-width="30%" pos-height="25%" background-color="transparentwhite"
                 slider-text="transparentwhite" slider-text-outline="transparentwhite"
                 caption="Window Shape" caption-placement="centred-top"/>
@@ -131,8 +102,37 @@
                          caption=""/>
       </View>
     </View>
+    <View border="2" background-color="transparentwhite" caption="Visualisers"
+          caption-size="0" title="Scope" pos-width="100%" pos-height="57%"
+          flex-align-self="center" display="contents" margin="0" padding="0"
+          radius="5" pos-x="0%" pos-y="25%" border-color="transparentwhite">
+      <View flex-align-self="center" display="contents" pos-width="5%" caption="In Level"
+            margin="" padding="" border="0" flex-direction="row" flex-align-content="center"
+            radius="10" border-color="FFF1E804" pos-x="0%" pos-height="99%"
+            pos-y="1%" caption-color="white" background-color="transparentwhite"
+            caption-placement="centred-top">
+        <Meter bar-fill-color="FFEDED3E" pos-y="0%" pos-height="100%" padding="1"
+               margin="2" border="2" flex-align-self="center" source="inputMeter"
+               pos-width="60%" pos-x="20%" radius="5" outline-color="FF0D0E30"
+               border-color="transparentwhite" background-color="transparentwhite"/>
+      </View>
+      <NetworkGraphAnimation id="networkGraphId" pos-x="5%" pos-width="90%" pos-y="0%" network-background="20000000"
+                             node-base-color="FF5BA8FF" node-high-age-color="FFFF5733" line-low-weight-color="20FFFFFF"
+                             line-high-weight-color="FFFFFFFF" node-border-low-level-color="FF2E7D32"
+                             node-border-high-level-color="FFF57F17" network-grid="30FFFFFF"/>
+      <View flex-align-self="center" display="contents" border="0" pos-x="95%"
+            pos-width="5%" pos-y="1%" caption="Out Level" border-color="FFEA1212"
+            margin="" padding="" flex-align-content="center" flex-direction="row"
+            radius="10" pos-height="99%" caption-color="white" background-color="transparentwhite"
+            caption-placement="centred-top">
+        <Meter bar-fill-color="FFEDED3E" outline-color="FF0D0E30" pos-y="0%"
+               pos-height="100%" padding="1" margin="2" border="2" flex-align-self="center"
+               source="outputMeter" pos-x="20%" pos-width="60%" radius="5" border-color="transparentwhite"
+               background-color="transparentwhite"/>
+      </View>
+    </View>
     <View margin="0" padding="0" max-height="300" title="Mycelial Delay Controls"
-          pos-y="80%" pos-width="100%" pos-height="20%" flex-align-self="center"
+          pos-y="82%" pos-width="100%" pos-height="18%" flex-align-self="center"
           pos-x="0%" display="contents" caption="Mycelial Delay Controls"
           caption-size="0" border="2" radius="5" background-color="transparentwhite"
           border-color="transparentwhite">
