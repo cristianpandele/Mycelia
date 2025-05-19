@@ -43,7 +43,7 @@ class DelayStore
                 );
         }
 
-        static constexpr int storeSize = 128;
+        static constexpr int storeSize = 32;
 
         std::deque<std::future<std::unique_ptr<juce::dsp::DelayLine<float, juce::dsp::DelayLineInterpolationTypes::Lagrange3rd>>>> delayFutureStore;
         juce::SpinLock delayStoreLock;
