@@ -823,9 +823,12 @@ void DelayNodes::updateNodeInterconnections()
                         {
                             // Determine a connection strength (0.08-0.1)
                             connectionStrength = random.nextFloat() / (10.0f + (1.0f - normEntanglement) + pairMinAge);
-                            // Scale connection strength by distance between nodes
-                            auto distance = std::sqrt(std::pow(static_cast<int>(proc1) - static_cast<int>(proc2), 2) +
-                                                      std::pow(static_cast<int>(band1) - static_cast<int>(band2), 2));
+                            // Scale connection strength by distance between nodes (with inter-band distance weighted higher)
+                            auto distance = std::sqrt
+                                            (
+                                                std::pow(static_cast<int>(proc1) - static_cast<int>(proc2), 2) +
+                                                15.0f * std::pow(static_cast<int>(band1) - static_cast<int>(band2), 2)
+                                            );
                             connectionStrength *= 1/distance;
                             // DBG("Creating new connection between band " << band1 << " proc " << proc1 << " and band " << band2 << " proc " << proc2 << " with strength " << connectionStrength);
                             bands[band1].interNodeConnections[proc1][band2][proc2] = connectionStrength;
