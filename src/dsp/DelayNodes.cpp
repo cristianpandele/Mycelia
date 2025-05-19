@@ -152,8 +152,8 @@ void DelayNodes::process(std::vector<std::unique_ptr<juce::AudioBuffer<float>>> 
         }
 
         // Apply normalization gain
-        juce::dsp::AudioBlock<float> finalBlock(*outputBuffer);
-        finalBlock.multiplyBy(inNumColonies);
+        // juce::dsp::AudioBlock<float> finalBlock(*outputBuffer);
+        // finalBlock.multiplyBy(inNumColonies);
     }
 }
 
