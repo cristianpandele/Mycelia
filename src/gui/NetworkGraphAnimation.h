@@ -38,10 +38,22 @@ class NetworkGraphAnimation : public juce::Component
     private:
         // Helper to draw a curved connection between nodes
         void drawNodeConnection(juce::Graphics &g, juce::Point<float> start, juce::Point<float> end,
-                                float weight, float startLevel, float endLevel);
+                                    float weight, float startLevel, float endLevel);
 
         // Helper to map a value to a color gradient
         juce::Colour mapValueToColour(float value, juce::Colour startColour, juce::Colour endColour);
+
+        // Helper to get the vertical position of a band
+        inline float getBandY(int bandIdx, int numAllocatedBands);
+
+        // Helper to get the width of the plot for a band
+        inline float getBandUsedWidth(const float canvasWidth);
+
+        // Helper to get the left margin for a band
+        inline float getBandMargin(const float canvasWidth, int numBands, int bandIdx);
+
+        // Helper to get the x-position of a node
+        inline float getNodeX(float positionProportion, int numBandNodes, float bandLeftMargin, float canvasWidth);
 
         // Structure to store only what we need for rendering
         struct BandStateSnapshot
@@ -63,6 +75,8 @@ class NetworkGraphAnimation : public juce::Component
 
         // Store the band states data
         std::vector<BandStateSnapshot> bandStateSnapshots;
+        // Stretch level for the network
+        float stretch = 0.0f;
         // Number of active bands
         int numActiveBands = 0;
 

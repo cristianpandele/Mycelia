@@ -726,6 +726,9 @@ void Mycelia::timerCallback(const int timerID)
         // Get the current band states
         auto& bandStates = myceliaModel.getBandStates();
 
+        // Get the current stretch level
+        auto stretchLevel = myceliaModel.getParameterValue(IDs::stretch);
+
         // Update network graph animation with current band states
         if (auto* item = magicBuilder->findGuiItemWithId("networkGraphId"))
         {
