@@ -776,29 +776,32 @@ void Mycelia::timerCallback(const int timerID)
         // Make a copy of the output buffer and normalize it to at most 10% of dynamic range before sending it to the oscilloscope
         juce::AudioBuffer<float> oscilloscopeBuffer = outputBuffer;
 
-        auto bufferRange = oscilloscopeBuffer.findMinMax(0, 0, oscilloscopeBuffer.getNumSamples());
-        float normFactor = 0.0f;
-        if (bufferRange.getEnd() < 0.001f)
+        if (oscilloscopeBuffer.getNumChannels())
         {
-            normFactor = 1.0f;
+            auto bufferRange = oscilloscopeBuffer.findMinMax(0, 0, oscilloscopeBuffer.getNumSamples());
+            float normFactor = 0.0f;
+            if (bufferRange.getEnd() < 0.001f)
+            {
+                normFactor = 1.0f;
+            }
+            else
+            {
+                normFactor = 0.1f / bufferRange.getEnd();
+            }
+
+            juce::dsp::AudioBlock<float> oscilloscopeBlock(oscilloscopeBuffer);
+            oscilloscopeBlock.multiplyBy(normFactor);
+
+            // Add the value of the dry/wet mix (scaled to 0.15-0.9) to the output block for visualization
+            auto dryWetMix = myceliaModel.getParameterValue(IDs::dryWet);
+            const juce::NormalisableRange<float> waterLevelRange(0.15f, 0.9f, 0.01f);
+            dryWetMix = ParameterRanges::denormalizeParameter(waterLevelRange, dryWetMix);
+            dryWetMix = ParameterRanges::denormalizeParameter(ParameterRanges::dryWetRange, dryWetMix);
+            oscilloscopeBlock.replaceWithSumOf(oscilloscopeBlock, dryWetMix);
+
+            // MAGIC GUI: push the output samples to be displayed
+            oscilloscope->pushSamples(oscilloscopeBuffer);
         }
-        else
-        {
-            normFactor = 0.1f / bufferRange.getEnd();
-        }
-
-        juce::dsp::AudioBlock<float> oscilloscopeBlock(oscilloscopeBuffer);
-        oscilloscopeBlock.multiplyBy(normFactor);
-
-        // Add the value of the dry/wet mix (scaled to 0.15-0.9) to the output block for visualization
-        auto dryWetMix = myceliaModel.getParameterValue(IDs::dryWet);
-        const juce::NormalisableRange<float> waterLevelRange(0.15f, 0.9f, 0.01f);
-        dryWetMix = ParameterRanges::denormalizeParameter(waterLevelRange, dryWetMix);
-        dryWetMix = ParameterRanges::denormalizeParameter(ParameterRanges::dryWetRange, dryWetMix);
-        oscilloscopeBlock.replaceWithSumOf(oscilloscopeBlock, dryWetMix);
-
-        // MAGIC GUI: push the output samples to be displayed
-        oscilloscope->pushSamples(oscilloscopeBuffer);
     }
     else if (timerID == kScarcityTimerId)
     {

@@ -672,10 +672,10 @@ void DelayNodes::timerCallback()
         (bands[2].delayProcs[0]) &&
         (bands[3].delayProcs[0]))
     {
-        if ((bands[0].delayProcs[0]->getAge() > 0.001f) ||
-            (bands[1].delayProcs[0]->getAge() > 0.001f) ||
-            (bands[2].delayProcs[0]->getAge() > 0.001f) ||
-            (bands[3].delayProcs[0]->getAge() > 0.001f))
+        if ((bands[0].delayProcs[0]->getInputLevel() > 0.001f) ||
+            (bands[1].delayProcs[0]->getInputLevel() > 0.001f) ||
+            (bands[2].delayProcs[0]->getInputLevel() > 0.001f) ||
+            (bands[3].delayProcs[0]->getInputLevel() > 0.001f))
         {
             updateNodeInterconnections();
         }
