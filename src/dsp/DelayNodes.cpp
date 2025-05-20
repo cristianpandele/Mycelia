@@ -532,10 +532,12 @@ void DelayNodes::updateTreePositions()
         for (int i = 1; i < numActiveTrees; ++i)
         {
             // Calculate the ideal position for even distribution
-            float idealPosition = static_cast<float>(numActiveProcsPerBand - 1) * static_cast<float>(i) / static_cast<float>(numActiveTrees - 1);
+            float idealPosition = static_cast<float>(i) *
+                                    (static_cast<float>(numActiveProcsPerBand - 1) /
+                                     static_cast<float>(numActiveTrees + 1));
 
-            // Add small variation (+/- 2)
-            int variation = random.nextInt(4) - 2;
+            // Add small variation (+/- 1)
+            int variation = random.nextInt(2) - 1;
             int position = static_cast<int>(idealPosition) + variation;
 
             // Ensure position is valid and not the last position (reserved for the output)
@@ -551,7 +553,7 @@ void DelayNodes::updateTreePositions()
                     if (treePositions[j] == position)
                     {
                         isDuplicate = true;
-                        position = (position + 1) % (static_cast<int>(numActiveProcsPerBand) - 2); // -1 is the output tree
+                        position = (position + 1) % (static_cast<int>(numActiveProcsPerBand) - 1); // -1 is the output tree
                         break;
                     }
                 }
@@ -572,10 +574,10 @@ void DelayNodes::updateTreePositions()
         {
             for (int band = 0; band < inNumColonies; ++band)
             {
-                // Determine if this band connects to this tree (25% probability)
+                // Determine if this band connects to this tree (50% probability)
                 // Always connect the last tree (output tree) to all bands
                 bands[band].treeConnections.resize(numActiveTrees);
-                if (tree == numActiveTrees - 1 || random.nextFloat() < 0.25f)
+                if (tree == numActiveTrees - 1 || random.nextFloat() < 0.5f)
                 {
                     getTreeConnection(band, tree) = 1.0f; // Connected
                     numConn += 1;
