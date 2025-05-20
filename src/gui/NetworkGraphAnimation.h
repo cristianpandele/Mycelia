@@ -29,6 +29,9 @@ class NetworkGraphAnimation : public juce::Component
         // Update with number of active bands
         void setNumActiveBands(int numActiveBands);
 
+        // Update the tree positions
+        void setTreePositions(std::vector<int> &treePositions);
+
         // Update with new band states
         void setBandStates(const std::vector<DelayNodes::BandResources> &states);
 
@@ -53,13 +56,14 @@ class NetworkGraphAnimation : public juce::Component
         inline float getBandMargin(const float canvasWidth, int numBands, int bandIdx);
 
         // Helper to get the x-position of a node
-        inline float getNodeX(float positionProportion, int numBandNodes, float bandLeftMargin, float canvasWidth);
+        inline float getNodeX(float positionProportion, float bandLeftMargin, float canvasWidth);
 
         // Structure to store only what we need for rendering
         struct BandStateSnapshot
         {
             std::vector<float> bufferLevels;
             std::vector<float> nodeDelayTimes;
+            std::vector<float> treeConnections;
             std::vector<std::vector<std::vector<float>>> interNodeConnections;
 
             // Helper method to extract just what we need from BandResources
@@ -68,6 +72,7 @@ class NetworkGraphAnimation : public juce::Component
                 BandStateSnapshot snapshot;
                 snapshot.bufferLevels = resource.bufferLevels;
                 snapshot.nodeDelayTimes = resource.nodeDelayTimes;
+                snapshot.treeConnections = resource.treeConnections;
                 snapshot.interNodeConnections = resource.interNodeConnections;
                 return snapshot;
             }
@@ -79,11 +84,11 @@ class NetworkGraphAnimation : public juce::Component
         float stretch = 0.0f;
         // Number of active bands
         int numActiveBands = 0;
+        // Tree positions in the network
+        std::vector<int> treePositions;
 
         // Constants for visualization
-        const float nodeRadius = 8.0f;
-        const float maxAge = 1.0f;
-        const float maxBufferLevel = 1.0f;
+        const float nodeRadius = 10.0f;
 
         // VBlank attachment for smooth animation using compositor sync
         juce::VBlankAttachment vBlankAttachment{

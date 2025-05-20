@@ -40,7 +40,7 @@ class DelayNodes :
             std::vector<std::unique_ptr<DelayProc>> delayProcs;
             std::vector<std::unique_ptr<juce::AudioBuffer<float>>> processorBuffers;
             std::vector<std::unique_ptr<juce::AudioBuffer<float>>> treeOutputBuffers;
-            std::vector<std::unique_ptr<float>> treeConnections;
+            std::vector<float> treeConnections;
             // Vector to store output levels of each processor
             std::vector<float> bufferLevels;
 
@@ -70,8 +70,6 @@ class DelayNodes :
                 }
                 interNodeConnections.clear();
 
-                for (auto &connection : treeConnections)
-                    connection.reset();
                 treeConnections.clear();
 
                 for (auto &buffer : treeOutputBuffers)

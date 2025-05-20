@@ -360,8 +360,7 @@ void DelayNodes::allocateDelayProcessors(int numColonies, int numNodes)
         {
             auto newDelayProc = std::make_unique<DelayProc>();
             newBands[band].delayProcs.push_back(std::move(newDelayProc));
-            auto treeConnection = std::make_unique<float>(0.0f); // Initialize tree connections to 0.0
-            newBands[band].treeConnections.push_back(std::move(treeConnection));
+            newBands[band].treeConnections.push_back(0.0f); // Initialize tree connections to 0.0
             auto newBuffer = std::make_unique<juce::AudioBuffer<float>>(numChannels, blockSize);
             newBands[band].processorBuffers.push_back(std::move(newBuffer));
             auto newTreeBuffer = std::make_unique<juce::AudioBuffer<float>>(numChannels, blockSize);
@@ -565,23 +564,28 @@ void DelayNodes::updateTreePositions()
     // Sort the positions in ascending order for easier processing
     std::sort(treePositions.begin(), treePositions.end());
 
-    // Resize and initialize the tree connections matrix
-    for (int band = 0; band < inNumColonies; ++band)
+    // Initialize the tree connections matrix
+    for (int tree = 0; tree < numActiveTrees; ++tree)
     {
-        // treeConnections[band].resize(numActiveTrees);
-        for (int tree = 0; tree < numActiveTrees; ++tree)
+        int numConn = 0;
+        do
         {
-            // Determine if this band connects to this tree (25% probability)
-            // Always connect the last tree (output tree) to all bands
-            if (tree == numActiveTrees - 1 || random.nextFloat() < 0.25f)
+            for (int band = 0; band < inNumColonies; ++band)
             {
-                *bands[band].treeConnections[tree] = 1.0f; // Connected
+                // Determine if this band connects to this tree (25% probability)
+                // Always connect the last tree (output tree) to all bands
+                bands[band].treeConnections.resize(numActiveTrees);
+                if (tree == numActiveTrees - 1 || random.nextFloat() < 0.25f)
+                {
+                    getTreeConnection(band, tree) = 1.0f; // Connected
+                    numConn += 1;
+                }
+                else
+                {
+                    getTreeConnection(band, tree) = 0.0f; // Not connected
+                }
             }
-            else
-            {
-                *bands[band].treeConnections[tree] = 0.0f; // Not connected
-            }
-        }
+        } while (numConn < 1);
     }
 }
 
@@ -875,7 +879,7 @@ float &DelayNodes::getTreeConnection(int band, size_t procIdx)
     band = juce::jlimit(0, inNumColonies - 1, band);
     procIdx = juce::jlimit(static_cast<size_t>(0), bands[band].treeConnections.size() - 1, procIdx);
 
-    return *bands[band].treeConnections[procIdx];
+    return bands[band].treeConnections[procIdx];
 }
 
 // Get the tree buffer for a specific band

@@ -725,6 +725,7 @@ void Mycelia::timerCallback(const int timerID)
         //////////////
         // Get the current band states
         auto& bandStates = myceliaModel.getBandStates();
+        auto& treePositions = myceliaModel.getTreePositions();
 
         // Get the current stretch level
         auto stretchLevel = myceliaModel.getParameterValue(IDs::stretch);
@@ -743,6 +744,7 @@ void Mycelia::timerCallback(const int timerID)
                     networkGraph->setStretch(stretchLevel);
                     networkGraph->setNumActiveBands(numActiveBands);
                     networkGraph->setBandStates(bandStates);
+                    networkGraph->setTreePositions(treePositions);
                 }
             }
         }

@@ -24,6 +24,12 @@ void NetworkGraphAnimation::setNumActiveBands(int numActiveBands)
     this->numActiveBands = numActiveBands;
 }
 
+void NetworkGraphAnimation::setTreePositions(std::vector<int> &treePositions)
+{
+    // Update tree positions
+    this->treePositions = treePositions;
+}
+
 void NetworkGraphAnimation::setBandStates(const std::vector<DelayNodes::BandResources> &states)
 {
     // Clear existing snapshots
@@ -79,7 +85,7 @@ inline float NetworkGraphAnimation::getBandUsedWidth(const float canvasWidth)
     return canvasWidth * (0.25f + stretchFactor * 0.5f);
 }
 
-inline float NetworkGraphAnimation::getNodeX(float positionProportion, int numBandNodes, float bandLeftMargin, float canvasWidth)
+inline float NetworkGraphAnimation::getNodeX(float positionProportion, float bandLeftMargin, float canvasWidth)
 {
 
     float bandUsedWidth = getBandUsedWidth(canvasWidth);
@@ -117,6 +123,7 @@ void NetworkGraphAnimation::paint(juce::Graphics &g)
             totalDelayTime += time;
         }
 
+        // ================
         // First pass: Draw the nodes
         const int numAllocatedNodes = static_cast<int>(targetBandState.bufferLevels.size());
 
@@ -142,19 +149,17 @@ void NetworkGraphAnimation::paint(juce::Graphics &g)
                 {
                     // First node position
                     positionProportion = 0.0f;
-                } else if (targetProcIdx == numAllocatedNodes - 1)
+                    bandAccumulatedDelay = 0.0f; // Reset accumulated delay for first node
+                }
+                else
                 {
-                    // Last node position
-                    positionProportion = 1.0f;
-                } else
-                {
-                    // Middle nodes positioned proportionally to delay time
+                    // Add current node's delay time to accumulated total
                     bandAccumulatedDelay += nodeDelayTime;
                     positionProportion = bandAccumulatedDelay / totalDelayTime;
                 }
 
                 // Apply the position within the available width
-                nodeX = getNodeX(positionProportion, numAllocatedNodes, bandLeftMargin, canvasWidth);
+                nodeX = getNodeX(positionProportion, bandLeftMargin, canvasWidth);
             }
 
             // Node position
@@ -163,12 +168,8 @@ void NetworkGraphAnimation::paint(juce::Graphics &g)
             // Get buffer level for this node
             float bufferLevel = targetBandState.bufferLevels[targetProcIdx];
 
-            // Get the current age of this node processor
-            float nodeAge = 0.0f;
-            //targetBandState.delayProcs[targetProcIdx]->getAge();
-
             // Map age to node fill color
-            juce::Colour nodeColor = mapValueToColour(nodeAge,
+            juce::Colour nodeColor = mapValueToColour(0.0f,
                                                       findColour(nodeBaseColourId),
                                                       findColour(nodeHighAgeColourId));
 
@@ -186,24 +187,18 @@ void NetworkGraphAnimation::paint(juce::Graphics &g)
             g.setColour(borderColor);
             g.drawEllipse(nodeX - nodeRadius, bandY - nodeRadius,
                           nodeRadius * 2.0f, nodeRadius * 2.0f, 2.0f);
-
-            // Draw node index for clarity
-            g.setColour(juce::Colours::white);
-            g.setFont(nodeRadius * 1.2f);
-            g.drawText(juce::String(targetProcIdx),
-                       nodeX - nodeRadius, bandY - nodeRadius,
-                       nodeRadius * 2.0f, nodeRadius * 2.0f,
-                       juce::Justification::centred, false);
         }
 
+        // ================
         // Second pass: Draw the connections
         if (!targetBandState.interNodeConnections.empty())
         {
             float targetBandAccumulatedDelay = 0.0f;
-            for (int targetProcIdx = 0; targetProcIdx < targetBandState.interNodeConnections.size(); ++targetProcIdx)
+            // Only iterate up to the number of allocated nodes
+            for (int targetProcIdx = 0; targetProcIdx < numAllocatedNodes; ++targetProcIdx)
             {
-                // Skip if we're past the nodes we've already drawn
-                if (targetProcIdx >= numAllocatedNodes)
+                // Skip if we're past the available connections
+                if (targetProcIdx >= targetBandState.interNodeConnections.size())
                 {
                     continue;
                 }
@@ -240,16 +235,17 @@ void NetworkGraphAnimation::paint(juce::Graphics &g)
                     // For each processor in the source band
                     for (int sourceProcIdx = 0; sourceProcIdx < sourceBand.size(); ++sourceProcIdx)
                     {
+                        // Skip if source processor is out of bounds
+                        if (sourceProcIdx >= numSourceNodes)
+                        {
+                            continue;
+                        }
+
                         // Get connection weight
                         float connectionWeight = sourceBand[sourceProcIdx];
 
                         // Skip if there's no connection
                         if (connectionWeight <= 0.001f)
-                        {
-                            continue;
-                        }
-
-                        if (sourceProcIdx >= numSourceNodes)
                         {
                             continue;
                         }
@@ -263,27 +259,24 @@ void NetworkGraphAnimation::paint(juce::Graphics &g)
                         // Calculate source node position using proportional delay time
                         float sourceNodeX = canvasWidth / 2.0f; // Default to center;
 
-                        sourceBandAccumulatedDelay += sourceBandState.nodeDelayTimes[sourceProcIdx];
-
-                        if (sourceTotalDelayTime > 0.0f && numSourceNodes > 1)
+                        float positionProportion;
+                        if (sourceProcIdx == 0)
                         {
-                            float positionProportion;
-
-                            if (sourceProcIdx == 0)
-                            {
-                                positionProportion = 0.0f;
-                            }
-                            else
-                            {
-                                // Position based on accumulated delay proportion
-                                positionProportion = sourceBandAccumulatedDelay / sourceTotalDelayTime;
-                            }
-
-                            // Calculate the left margin to center the nodes
-                            float sourceBandLeftMargin = getBandMargin(canvasWidth, numAllocatedBands, sourceBandIdx);
-                            // Calculate the x-position of the source node
-                            sourceNodeX = getNodeX(positionProportion, numSourceNodes, sourceBandLeftMargin, canvasWidth);
+                            positionProportion = 0.0f;
                         }
+                        else
+                        {
+                            positionProportion = sourceBandAccumulatedDelay / sourceTotalDelayTime;
+                        }
+
+                        // Calculate the left margin to center the nodes
+                        float sourceBandLeftMargin = getBandMargin(canvasWidth, numAllocatedBands, sourceBandIdx);
+                        // Calculate the x-position of the source node
+                        sourceNodeX = getNodeX(positionProportion, sourceBandLeftMargin, canvasWidth);
+
+                        // Now increment the accumulator for the next node
+                        if (sourceProcIdx < sourceBandState.nodeDelayTimes.size())
+                            sourceBandAccumulatedDelay += sourceBandState.nodeDelayTimes[sourceProcIdx];
 
                         // Calculate target node position
                         float targetNodeX = canvasWidth / 2.0f; // Default to center
@@ -291,6 +284,7 @@ void NetworkGraphAnimation::paint(juce::Graphics &g)
                         if (totalDelayTime > 0.0f && numAllocatedNodes > 1)
                         {
                             float positionProportion;
+                            float targetAccumulatedDelay = 0.0f;
 
                             if (targetProcIdx == 0)
                             {
@@ -298,14 +292,22 @@ void NetworkGraphAnimation::paint(juce::Graphics &g)
                             }
                             else
                             {
+                                // Calculate accumulated delay up to this target node
+                                for (int i = 0; i < targetProcIdx; ++i)
+                                {
+                                    if (i < targetBandState.nodeDelayTimes.size())
+                                    {
+                                        targetAccumulatedDelay += targetBandState.nodeDelayTimes[i];
+                                    }
+                                }
                                 // Position based on accumulated delay proportion
-                                positionProportion = targetBandAccumulatedDelay / totalDelayTime;
+                                positionProportion = targetAccumulatedDelay / totalDelayTime;
                             }
 
                             // Calculate the left margin to center the nodes
                             float targetBandLeftMargin = getBandMargin(canvasWidth, numAllocatedBands, targetBandIdx);
-                            // Calculate the x-position of the source node
-                            targetNodeX = getNodeX(positionProportion, numAllocatedNodes, targetBandLeftMargin, canvasWidth);
+                            // Calculate the x-position of the target node
+                            targetNodeX = getNodeX(positionProportion, targetBandLeftMargin, canvasWidth);
                         }
 
                         float sourceBandY = getBandY(sourceBandIdx, numAllocatedBands);
@@ -327,6 +329,135 @@ void NetworkGraphAnimation::paint(juce::Graphics &g)
                     }
                 }
             }
+        }
+    }
+
+    // Draw tree connections from top of canvas to nodes
+    const int numTreeConnections = bandStateSnapshots[0].nodeDelayTimes.size();
+    const float canvasHeight = static_cast<float>(getHeight());
+
+    // Set tree connection color and style
+    g.setColour(juce::Colour(0xD0A95417)); // Semi-transparent amber/gold color
+
+    // For each of the tree connection points at the top
+    for (int treeIdx = 0; treeIdx < numTreeConnections; ++treeIdx)
+    {
+        // For each band, connect to nodes that have a treeConnection value of 1.0
+        for (int bandIdx = 0; bandIdx < numAllocatedBands; ++bandIdx)
+        {
+            auto& bandState = bandStateSnapshots[bandIdx];
+            int numNodes = static_cast<int>(bandState.bufferLevels.size());
+
+            // Skip bands with no nodes
+            if (numNodes == 0)
+                continue;
+
+            // Calculate total delay time for this band (needed for node positioning)
+            float totalDelayTime = 0.0f;
+            for (auto time : bandState.nodeDelayTimes)
+            {
+                totalDelayTime += time;
+            }
+
+            float bandY = getBandY(bandIdx, numAllocatedBands);
+
+            // Skip if tree connection index is out of bounds
+            if (treeIdx >= bandState.treeConnections.size())
+                continue;
+
+            // Skip nodes that don't have a tree connection
+            if (bandState.treeConnections[treeIdx] < 0.5f)
+            {
+                continue;
+            }
+
+            // Search for the tree position corresponding to this tree index
+            int treePosition = -1;
+            if (treeIdx < treePositions.size())
+            {
+                treePosition = treePositions[treeIdx];
+            }
+            else
+            {
+                continue; // No tree position found for this tree index
+            }
+
+            // Skip if tree position is out of bounds
+            if (treePosition >= numNodes)
+                continue;
+
+            // Calculate node position
+            float nodeX = canvasWidth / 2.0f; // Default center position
+
+            if (totalDelayTime > 0.0f && numNodes > 1)
+            {
+                float bandAccumulatedDelay = 0.0f;
+
+                // Calculate accumulated delay up to this node
+                for (int i = 0; i < treePosition; ++i)
+                {
+                    if (i < bandState.nodeDelayTimes.size())
+                    {
+                        bandAccumulatedDelay += bandState.nodeDelayTimes[i];
+                    }
+                }
+
+                float positionProportion;
+                if (treePosition == 0)
+                {
+                    positionProportion = 0.0f;
+                }
+                else
+                {
+                    positionProportion = bandAccumulatedDelay / totalDelayTime;
+                }
+
+                float bandLeftMargin = getBandMargin(canvasWidth, numAllocatedBands, bandIdx);
+                nodeX = getNodeX(positionProportion, bandLeftMargin, canvasWidth);
+            }
+
+            juce::Point<float> nodePoint(nodeX, bandY);
+
+            // Calculate the x position of this connection point at the top - aligned with the tree display on top
+            // Consistent margin of 0.31f * canvasWidth from the edge
+            float leftMargin = canvasWidth * 0.31f;
+            float rightMargin = canvasWidth * 0.31f;
+
+            // Available width for tree connections after margins
+            float availableWidth = canvasWidth - leftMargin - rightMargin;
+
+            // Convert stretch from 0-1 to a stretch factor
+            float stretchFactor = std::abs(stretch - 0.5f) * 2.0f; // Convert 0-1 range from unipolar to bipolar
+            stretchFactor = juce::jlimit(0.0f, 1.0f, stretchFactor);
+
+            // Calculate effective width based on stretch (ranges from 50% to 100% of available width)
+            float effectiveWidth = availableWidth * (0.48f + 0.52f * stretchFactor);
+
+            // Calculate offset to center the effective width within available space
+            float leftOffset = (availableWidth - effectiveWidth) / 2.0f;
+
+            // Calculate the x position of the top connection point
+            // If there's only one connection, center it in the effective width
+            float topX = numTreeConnections > 1 ?
+                leftMargin + leftOffset + (treePosition * effectiveWidth / static_cast<float>(numTreeConnections - 1))
+                : leftMargin + leftOffset + effectiveWidth * 0.5f;
+
+            juce::Point<float> topPoint(topX, 0.0f);
+
+            // Draw the tree connection as a curved path
+            juce::Path treePath;
+            treePath.startNewSubPath(topPoint);
+
+            // Calculate control points for a natural-looking curve
+            float controlOffset = canvasHeight * 0.3f;
+            juce::Point<float> control1(topPoint.x, topPoint.y + controlOffset);
+            juce::Point<float> control2(nodePoint.x, nodePoint.y - controlOffset);
+
+            treePath.cubicTo(control1, control2, nodePoint);
+
+            // Draw the path with the specified width
+            g.strokePath(treePath, juce::PathStrokeType(5.0f, juce::PathStrokeType::curved,
+                                                        juce::PathStrokeType::rounded));
         }
     }
 }
