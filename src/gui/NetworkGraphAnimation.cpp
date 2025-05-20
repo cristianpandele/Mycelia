@@ -231,7 +231,6 @@ void NetworkGraphAnimation::paint(juce::Graphics &g)
                     // Get the number of nodes in source band
                     int numSourceNodes = static_cast<int>(sourceBandState.bufferLevels.size());
 
-                    float sourceBandAccumulatedDelay = 0.0f;
                     // For each processor in the source band
                     for (int sourceProcIdx = 0; sourceProcIdx < sourceBand.size(); ++sourceProcIdx)
                     {
@@ -260,12 +259,21 @@ void NetworkGraphAnimation::paint(juce::Graphics &g)
                         float sourceNodeX = canvasWidth / 2.0f; // Default to center;
 
                         float positionProportion;
+                        float sourceBandAccumulatedDelay = 0.0f;
                         if (sourceProcIdx == 0)
                         {
                             positionProportion = 0.0f;
                         }
                         else
                         {
+                            // Calculate accumulated delay up to this source node
+                            for (int i = 0; i < sourceProcIdx; ++i)
+                            {
+                                if (i < sourceBandState.nodeDelayTimes.size())
+                                {
+                                    sourceBandAccumulatedDelay += sourceBandState.nodeDelayTimes[i];
+                                }
+                            }
                             positionProportion = sourceBandAccumulatedDelay / sourceTotalDelayTime;
                         }
 
@@ -273,10 +281,6 @@ void NetworkGraphAnimation::paint(juce::Graphics &g)
                         float sourceBandLeftMargin = getBandMargin(canvasWidth, numAllocatedBands, sourceBandIdx);
                         // Calculate the x-position of the source node
                         sourceNodeX = getNodeX(positionProportion, sourceBandLeftMargin, canvasWidth);
-
-                        // Now increment the accumulator for the next node
-                        if (sourceProcIdx < sourceBandState.nodeDelayTimes.size())
-                            sourceBandAccumulatedDelay += sourceBandState.nodeDelayTimes[sourceProcIdx];
 
                         // Calculate target node position
                         float targetNodeX = canvasWidth / 2.0f; // Default to center
