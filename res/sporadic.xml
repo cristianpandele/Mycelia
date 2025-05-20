@@ -69,8 +69,8 @@
                          xy-drag-handle="rosybrown" xy-horizontal="rosybrown" xy-vertical="rosybrown"
                          xy-drag-handle-over="brown" xy-horizontal-over="brown" xy-vertical-over="brown"
                          caption-placement=""/>
-        <Slider slider-type="linear-horizontal" parameter="foldwindowshape" pos-x="70%"
-                pos-y="0%" pos-width="30%" pos-height="25%" background-color="transparentwhite"
+        <Slider slider-type="linear-horizontal" parameter="foldwindowshape" pos-x="68%"
+                pos-y="0%" pos-width="30%" pos-height="32.5%" background-color="transparentwhite"
                 slider-text="transparentwhite" slider-text-outline="transparentwhite"
                 caption="Window Shape" caption-placement="centred-top"/>
       </View>
@@ -103,7 +103,7 @@
       </View>
     </View>
     <View border="2" background-color="transparentwhite" caption="Visualisers"
-          caption-size="0" title="Scope" pos-width="100%" pos-height="57%"
+          caption-size="0" title="Scope" pos-width="100%" pos-height="50%"
           flex-align-self="center" display="contents" margin="0" padding="0"
           radius="5" pos-x="0%" pos-y="25%" border-color="transparentwhite">
       <View flex-align-self="center" display="contents" pos-width="5%" caption="In Level"
@@ -132,7 +132,7 @@
       </View>
     </View>
     <View margin="0" padding="0" max-height="300" title="Mycelial Delay Controls"
-          pos-y="82%" pos-width="100%" pos-height="18%" flex-align-self="center"
+          pos-y="75%" pos-width="100%" pos-height="25%" flex-align-self="center"
           pos-x="0%" display="contents" caption="Mycelial Delay Controls"
           caption-size="0" border="2" radius="5" background-color="transparentwhite"
           border-color="transparentwhite">
@@ -170,12 +170,12 @@
                 slider-text="black" slider-text-outline="transparentwhite" background-gradient="linear-gradient(147,0% d0c877d1,100% c0ec1212)"
                 id="scarabundid"/>
         <Label text="MIDI Clock Sync Off" background-color="FFFF8800" property="midiClockStatus"
-               pos-height="14%" pos-x="3%" pos-width="43%" pos-y="86%" justification="centred"
+               pos-height="16%" pos-x="3%" pos-width="43%" pos-y="84%" justification="centred"
                font-size="12.0" border="1" border-color="FF000000" radius="5"
                value="midiClockStatus" visibility="midiClockStatusVisibility"
                id="MIDI Sync"/>
         <Label text="Automated" background-color="FF008800" property="scarcityAbundanceAuto"
-               pos-height="14%" pos-x="53%" pos-width="43%" pos-y="86%" justification="centred"
+               pos-height="16%" pos-x="53%" pos-width="43%" pos-y="84%" justification="centred"
                font-size="12.0" border="1" border-color="FF000000" radius="5"
                value="scarcityAbundanceAuto" visibility="scarcityAbundanceAutoVisibility"
                id="Scar/Abundance Automation"/>
